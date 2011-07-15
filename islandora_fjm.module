@@ -1,0 +1,61 @@
+<?php
+
+function islandora_fjm_islandora_solr_primary_display() {
+  return array(
+    // 'machine-name' = array(
+    //   'name' => 'Human Readable Name',
+    //   'module' => 'module_name',
+    //   'file' => 'FileName.inc',
+    //   'class' => 'ClassName',
+    //   'function' => 'function_name',
+    //   'description' => 'A description of the display profile',
+    // );
+    'custom' => array(
+      'name' => t('FJM display'),
+      'module' => 'islandora_fjm',
+      'file' => '/includes/SolrResults.inc',
+      'class' => "SolrResults",
+      'function' => "displayResults",
+      'description' => t("Change display based on type."),
+    ),
+  );
+}
+
+function islandora_fjm_menu()
+{
+    $items = array();
+    
+    //Hacking a hack...  Need to get the XSLTs used to index in GSearch.
+    //  The XSLTs reference each other, and Xalan seems to have trouble
+    //  With relative URLs.
+    //TODO:  Might want to look at locking it down?  The callback function restricts to
+    //  only .xsd and .xsl, so I don't see a major issue.
+    $items['fedora/xml'] = array(
+        'title' => t('Get stored XML'),
+        'page callback' => 'islandora_fjm_display_schema',
+        'type' => MENU_CALLBACK,
+        'access callback' => TRUE
+    );
+}
+
+function islandora_fjm_display_schema() {
+  $filepath = drupal_get_path('module', 'islandora_fjm');
+
+  //Build the path (relative to the module path) -- kinda bad, but anyway.
+  foreach(func_get_args() as $i)
+  {
+      $filepath .= '/' . $i;
+  }
+  
+  $exts = array(
+      '.xslt' => true
+  );
+  $ext = strtolower(strrchr($filepath, "."));
+  if (isset($exts[$ext]) && $exts[$ext] && file_exists($filepath)) {
+    drupal_goto($filepath);
+  }
+  else {
+    drupal_goto();
+  }
+  return;
+}
