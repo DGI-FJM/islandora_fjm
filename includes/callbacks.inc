@@ -217,7 +217,11 @@ class FJM {
         return $output;
     }
     
-    
+    /**
+     *
+     * @param type $pagenumber
+     * @return string 
+     */
     function showConcert($pagenumber = NULL) {
         $ouput = '';
         $fedoraPath = variable_get("fedora_base_url", 'http://localhost:8080/fedora');
