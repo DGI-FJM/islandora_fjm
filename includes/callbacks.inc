@@ -75,7 +75,8 @@ class FJM {
      *   above, and a "filmstrip" of thumbnails of those images in the gallery
      *   shown below.
      * When clicked, the image in the thumbnail should be made to occupy where 
-     *   the large one is.
+     *   the large one is, and if the large image is clicked, the image should 
+     *   open in lightbox.
      * 
      * @param Array $image (Uses 'path', 'thumbnail' and 'alt' keys...)
      */
@@ -126,7 +127,8 @@ class FJM {
     }
     
     /**
-     * Finds the images which are related to the current PID.
+     * Finds the images which are related to the current PID. (used to populate
+     *   the "filmstrip" in the image gallery)
      * @param Array $defaultImage ('path' => "path_to_image", 'alt' => "alt_text", 'thumbnail' => "path_to_thumbnail
      * @return Array (Similar format to the input)
      */
@@ -156,8 +158,8 @@ class FJM {
                 if(!empty($imagePid))
                 {
                     $images[] = array(
-                        'path' => ("$fedoraPath/objects/$imagePid/datastreams/JPG/content"),
-                        'thumbnail' => ("$fedoraPath/objects/$imagePid/datastreams/TN/content"),
+                        'path' => url("fedora/repository/$imagePid/JPG"),
+                        'thumbnail' => url("fedora/repository/$imagePid/TN"),
                         'alt' => ($altText)
                     );
                 }
@@ -199,7 +201,6 @@ class FJM {
        
         $output .= FJM::showImageGallery($this->getRelatedImages(), array('style'=>"float: left;"));
         
-        //TODO:  Output here should probably be classed or something, to facilitate styling
         $output .= '<div class="fjm_person_header">';
         $output .= t('<div class="fjm_person_name">@name</div> ', array('@name' => $name));
         $output .= t('<div class="fjm_person_dates">(@daterange)</div>', array('@daterange' => $daterange));
@@ -211,7 +212,7 @@ class FJM {
         $output .= '</div>';
         
         $output .= '<div class="fjm_piece_list">';
-        $output .=   '';
+        $output .=   'Build a "playable" list of pieces...?';
         $output .= '</div>';
         
         return $output;
@@ -229,7 +230,7 @@ class FJM {
         $base = $islandoraPath . "/flowplayer";
         drupal_add_js("$base/flowplayer-3.2.6.min.js");
         drupal_add_js("$base/flowplayer.playlist-3.0.8.js");
-        drupal_add_css("$base/playlist.css");
+        drupal_add_css("$islandoraPath/css/islandora_fjm_playlist.css");
         
         $concertTitle = "This is a concert...";
         $concertCycle = "Awesome concerts by awesome people";

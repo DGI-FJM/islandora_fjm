@@ -10,10 +10,10 @@ function islandora_fjm_islandora_solr_primary_display() {
     //   'function' => 'function_name',
     //   'description' => 'A description of the display profile',
     // );
-    'custom' => array(
+    'islandora_fjm' => array(
       'name' => t('FJM display'),
       'module' => 'islandora_fjm',
-      'file' => '/includes/SolrResults.inc',
+      'file' => 'includes/SolrResults.inc',
       'class' => "SolrResults",
       'function' => "displayResults",
       'description' => t("Change display based on type."),

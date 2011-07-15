@@ -1,0 +1,12 @@
+root {
+    display: block;
+}
+
+.atm_solr_result {
+    clear: both;
+    width: 100%;
+}
+
+.atm_solr_result div {
+    float: left;
+}
