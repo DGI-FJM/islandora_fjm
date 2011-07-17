@@ -2,11 +2,12 @@ root {
     display: block;
 }
 
-.atm_solr_result {
-    clear: both;
-    width: 100%;
+.atm_solr_results, .atm_solr_result {
+	display: block;
+	clear: both;
 }
 
-.atm_solr_result div {
-    float: left;
+.atm_solr_result * {
+	float: left;
+	padding-right: 10px;
 }

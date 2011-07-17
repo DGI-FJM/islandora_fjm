@@ -31,7 +31,7 @@ div.atm_concert_bottom_left
 
 div.atm_track > a {
     display: block;
-    background-image: url("media-playback-set.png");
+    background-image: url("../images/media-playback-set.png");
     background-repeat: no-repeat;
     width: 32px;
     height: 32px;

@@ -59,3 +59,75 @@ function islandora_fjm_display_schema() {
   }
   return;
 }
+
+function islandora_fjm_theme() {
+	return array (
+		'islandora_fjm_solr_result' => array(
+			'arguments' => array('item' => null),
+			'template' => 'templates/solr_result'
+		),
+		'islandora_fjm_solr_table' => array(
+			'arguments' => array('items' => null),
+			'template' => 'templates/solr_table'
+		)
+	);
+}
+
+function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars)
+{
+	$result = $vars['item'];
+	//dsm($vars);
+	$toReturn = array();
+		
+	switch($result->atm_type_s)
+	{
+	case "Composer":
+		$toReturn['icon'] = url("fedora/repository/" . $result->atm_composer_icon_s . "/TN");
+		$toReturn['name'] = $result->atm_composer_name_s;
+	break;
+	case "Concert":
+		$toReturn['title'] = $result->atm_concert_title_s;
+		$toReturn['cycle'] = $result->atm_concert_cycle_s;
+		$toReturn['date'] = $result->atm_concert_date_dt;
+		$toReturn['icon'] = url("fedora/repository/$result->atm_concert_iconpid_s");
+			break;
+	case "Performance":
+		$toReturn['title'] = $result->atm_performance_piece_title_s;
+		$toReturn['composer'] = $result->atm_performance_composer_name_s;
+		$toReturn['concert'] = $result->atm_performance_concert_name_s;
+		$toReturn['cycle'] = $result->atm_performance_concert_cycle_s;
+			break;
+	case "Lecture":
+		$toReturn['title'] = $result->atm_lecture_title_s;
+		$toReturn['concert'] = $result->atm_lecture_concert_title_s;
+		$toReturn['cycle'] = $result->atm_lecture_concert_cycle_s;
+			break;
+	case "Performer":
+		$toReturn['name'] = $result->atm_performer_name_s;
+		$toReturn['instrument'] = $result->atm_performer_instrument_s;
+		$toReturn['group'] = $result->atm_performer_group_s;
+		$toReturn['concert'] = $result->atm_performer_concert_title_s;
+		$toReturn['cycle'] = $result->atm_performer_concert_cycle_s;
+		$toReturn['piece'] = $result->atm_performer_piece_title_s;
+			break;
+		case "Program":
+		$toReturn['concert'] = $result->atm_program_concert_title_s;
+		//TODO:  concert cycle does not need to be multivalued...
+		$toReturn['cycle'] = $result->atm_program_concert_cycle_ms;
+		$toReturn['titn'] = $result->atm_program_titn_s;
+		$toReturn['author'] = $result->atm_program_author_s;
+			break;
+		case "Score":
+			$toReturn[] = "Make a score";
+			break;
+		default:
+			$toReturn[] = "Unknown type!";
+	}
+
+	$toReturn['type'] = $result->atm_type_s;
+	$toReturn['PID'] = $result->PID;
+
+	//dsm($toReturn);
+	
+	$vars['item'] = $toReturn;
+}
