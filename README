@@ -1,0 +1,3 @@
+Module created to hold callbacks used by ISLANDORACM and to display solr results differently based on the content type.
+
+Discriminating the type could be done in a better fashion, using the RELS-EXT; I essentially avoid the issue by adding a field "atm_type_s," which has a limited vocabulary.
