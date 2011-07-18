@@ -62,11 +62,14 @@ class FJM {
         foreach ($otherParams as $key => $value) {
             $solrUrl .= "&$key=" . urlencode($value);
         }
+        $doc = DOMDocument::loadXML(do_curl($solrUrl));
         if(is_callable("dsm"))
         {
             dsm($solrUrl);
+            $error = error_get_last();
+            if(!empty($error))
+                dsm($error);
         }
-        $doc = DOMDocument::loadXML(do_curl($solrUrl));
         return ((!$doc)?(new DOMDocument()):($doc));
     }
     
@@ -282,9 +285,9 @@ class FJM {
             nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt 
             in culpa qui officia deserunt mollit anim id est laborum.";
         $concertProgram = "the pid"; //To make a link to the program.
-        $concertResults = FJM::performSolrQuery("Concert", "", 
+        $concertResults = FJM::performSolrQuery("Concert", "PID:\"$this->pid\"", 
                 "PID,atm_concert_title_s,atm_concert_cycle_s,atm_concert_date_dt", 
-                array('fq' => "PID:\"$this->pid\""));
+                array());
         /*$concertResults = FJM::performItqlQuery('
             select $concertTitle $cycleName from <#ri>
             where $concert <mulgara:is> <fedora:' . $this->pid .'>
@@ -317,9 +320,9 @@ class FJM {
             and $performance <http://www.example.org/dummy#concertOrder> $porder
             order by $porder asc
         ');*/
-        $performanceResults = FJM::performSolrQuery("Performance", "", 
+        $performanceResults = FJM::performSolrQuery("Performance", "rels_isMemberOf_ms:\"$this->pid\"+atm_type_s:\"Performance\"", 
                 "PID,atm_performance_piece_title_s,atm_performance_composer_name_s,atm_performance_score_pdf_b,atm_performance_mp3_b,rels_basedOn_ms,atm_performance_movement_ms",
-                array('fq' => "rels_isMemberOf_ms:\"$this->pid\""));
+                array());
         $lectureResults = FJM::performItqlQuery('
             select $lecture $title from <#ri>
             where $lecture <fedora-rels-ext:isMemberOf> <fedora:' . $this->pid . '>
@@ -336,12 +339,12 @@ class FJM {
             $pid = $performance_xpath->evaluate("string(str[@name='PID']/text())", $node);
             $pieceName = $performance_xpath->evaluate("string(str[@name='atm_performance_piece_title_s']/text())", $node);
             $composerName = $performance_xpath->evaluate("string(str[@name='atm_performance_composer_name_s']/text())", $node);
-            $localscore = $performance_xpath->evaluate("string(str[@name='rels_basedOn_s'])", $node);
+            $localscore = $performance_xpath->evaluate("string(arr[@name='rels_basedOn_ms']/str/text())", $node);
             $localpdfscore = (($performance_xpath->evaluate("string(bool[@name='atm_performance_score_pdf_b']/text())", $node) == 'true')?($localscore):(false));
             //TODO: Solr query could could be expensive...  Might be well off making in only perform one additional query...
-            $q2 = FJM::performSolrQuery("Score", "", "atm_score_titn_s,PID", array('fq' => "PID:\"" . $localscore ."\""));
+            $q2 = FJM::performSolrQuery("Score", "PID:\"" . $localscore ."\"", "atm_score_titn_s,PID", array());
             $s_results = new DOMXPath($q2);
-            $libraryscore = $s_results->evaluate("string(/response/result[@name='response']/doc/str[@name='atm_score_titn_s'])");
+            $libraryscore = $s_results->evaluate("string(/response/result[@name='response']/doc/str[@name='atm_score_titn_s']/text())");
             
             $mp3_stat = ($performance_xpath->evaluate("string(bool[@name='atm_performance_mp3_b']/text())", $node) == 'true');
             $performance_array[] = array(
