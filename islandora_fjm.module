@@ -36,6 +36,7 @@ function islandora_fjm_menu()
         'type' => MENU_CALLBACK,
         'access callback' => TRUE
     );
+    return $items;
 }
 
 function islandora_fjm_display_schema() {
