@@ -1,5 +1,4 @@
 <?php
-dsm($item);
 $titn_addr = 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=';
 ?>
 <div class="atm_solr_result">

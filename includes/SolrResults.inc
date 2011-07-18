@@ -99,12 +99,12 @@ class SolrResults extends IslandoraSolrResults
 					'name' => 'cycle' 
 				),
 				array(
-					'data' => t('Audio'),
-					'name' => 'audio'
-				),
-				array(
 					'data' => t('Score'),
 					'name' => 'score_link'
+				),
+				array(
+					'data' => t('Audio'),
+					'name' => 'audio'
 				)
 			),
 			'Performer' => array(
@@ -204,7 +204,10 @@ class SolrResults extends IslandoraSolrResults
 			//Setup to pass to preprocessor... (Something of a hack...)
 			$toPass = array();
 			$toPass['item'] = $doc;
-			islandora_fjm_preprocess_islandora_fjm_solr_result(&$toPass);
+                        
+                        //FIXME (minor):  Apparently, "call-time" pass by reference has been deprecated...
+                        //...  suppressed, for now.
+			@islandora_fjm_preprocess_islandora_fjm_solr_result(&$toPass);
 			
 			//Use preprocessed document...
 			$type = $toPass['item']['type'];
