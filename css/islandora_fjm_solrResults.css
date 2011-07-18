@@ -2,12 +2,31 @@ root {
     display: block;
 }
 
-.atm_solr_results, .atm_solr_result {
-	display: block;
-	clear: both;
-}
-
-.atm_solr_result * {
+.atm_solr_result p {
 	float: left;
 	padding-right: 10px;
+}
+
+.atm_solr_result h3 {
+	clear: left;
+}
+
+#atm_player {
+	display: block;
+    clear: both;
+    height: 30px;
+    width: 100%;
+}
+
+div.atm_track > a {
+    display: block;
+	float: left;
+    background-image: url("../images/media-playback-set.png");
+    background-repeat: no-repeat;
+    width: 32px;
+    height: 32px;
+}
+
+div.atm_track > a.atm_playing {
+    background-position: 100% 0;
 }

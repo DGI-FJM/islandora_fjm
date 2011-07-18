@@ -126,6 +126,47 @@ class FJM {
         return $output;
     }
     
+	static function addPlayer($selector = 'div.atm_track')
+	{
+		$islandoraPath = drupal_get_path("module", "islandora_fjm");
+        $base = $islandoraPath . "/flowplayer";
+		drupal_add_js("$base/flowplayer-3.2.6.min.js");
+        drupal_add_js("$base/flowplayer.playlist-3.0.8.js");
+		$toReturn = '
+            <a class="player" id="atm_player"><!--FlowPlayer goes here --></a>';
+        
+        //TODO: Get the protocol automatically; this would break if SSL were required...
+        //  Then again, is this really required?
+        $hostname = 'http://' . $_SERVER['HTTP_HOST'];
+        $toReturn .= '
+            <script type="text/javascript">
+                $(function() {
+                    $f("atm_player", "/' . $base . '/flowplayer-3.2.7.swf", {
+                        plugins: {
+                            controls: {
+                                all: false,
+                                autoHide: false,
+                                scrubber: true,
+                                time: true,
+                                height: 30
+                            }
+                        },
+                        clip: {
+                            baseUrl: "'. $hostname .'",
+                            autoPlay: false
+                        }
+                    }).playlist("' . $selector . '", {
+                        loop: true,
+                        playingClass: "atm_playing",
+                        pausedClass: "atm_paused",
+                        progressClass: "atm_buffering"
+                    });
+                });
+            </script>';
+			
+		return $toReturn;
+	}
+	
     /**
      * Finds the images which are related to the current PID. (used to populate
      *   the "filmstrip" in the image gallery)
@@ -228,13 +269,10 @@ class FJM {
         $fedoraPath = variable_get("fedora_base_url", 'http://localhost:8080/fedora');
         $islandoraPath = drupal_get_path("module", "islandora_fjm");
         $base = $islandoraPath . "/flowplayer";
-        drupal_add_js("$base/flowplayer-3.2.6.min.js");
-        drupal_add_js("$base/flowplayer.playlist-3.0.8.js");
         drupal_add_css("$islandoraPath/css/islandora_fjm_playlist.css");
         
         $concertTitle = "This is a concert...";
         $concertCycle = "Awesome concerts by awesome people";
-        //$concertDate = "tomorrow?";
         $concertDescription = "Description goes here... Lorem ipsum dolor sit amet,
             consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore
             et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation 
@@ -405,37 +443,7 @@ class FJM {
             $output .= theme('table', $lect_header, $lecture_array, array('class' => 'atm_concert_lecture_table'));
         $output .=  '</div><!--bottom left-->';
 
-        $output .= '
-            <a class="player" id="atm_player"><!--FlowPlayer goes here --></a>';
-        
-        //TODO: Get the protocol automatically; this would break if SSL were required...
-        //  Then again, is this really required?
-        $hostname = 'http://' . $_SERVER['HTTP_HOST'];
-        $output .= '
-            <script type="text/javascript">
-                $(function() {
-                    $f("atm_player", "/' . $base . '/flowplayer-3.2.7.swf", {
-                        plugins: {
-                            controls: {
-                                all: false,
-                                autoHide: false,
-                                scrubber: true,
-                                time: true,
-                                height: 30
-                            }
-                        },
-                        clip: {
-                            baseUrl: "'. $hostname .'",
-                            autoPlay: false
-                        }
-                    }).playlist("div.atm_track", {
-                        loop: true,
-                        playingClass: "atm_playing",
-                        pausedClass: "atm_paused",
-                        progressClass: "atm_buffering"
-                    });
-                });
-            </script>';
+        $output .= FJM::addPlayer('div.atm_track');
         $output .= '</div><!-- bottom -->';
         
         return $output;
