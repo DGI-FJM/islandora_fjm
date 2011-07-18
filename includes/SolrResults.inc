@@ -146,6 +146,47 @@ class SolrResults extends IslandoraSolrResults
 					'data' => t('Audio'),
 					'name' => 'audio'
 				)
+			),
+			'Program' => array(
+				array(
+					'data' => t('Concert'),
+					'name' => 'concert'
+				),
+				array(
+					'data' => t('Cycle'),
+					'name' => 'cycle'
+				),
+				array(
+					'data' => t('Author'),
+					'name' => 'author'
+				),
+				array(
+					'data' => t('Find in library'),
+					'name' => 'titn_link'
+				),
+				array(
+					'data' => t('PDF'),
+					'name' => 'PDF_link'
+				)
+				
+			),
+			'Score' => array(
+				array(
+					'data' => t('Title'),
+					'name' => 'title'
+				),
+				array(
+					'data' => t('Composer'),
+					'name' => 'composer'
+				),
+				array(
+					'data' => t('Find in library'),
+					'name' => 'titn_link'
+				),
+				array(
+					'data' => t('PDF'),
+					'name' => 'PDF_link'
+				)
 			)
 		);
 	
