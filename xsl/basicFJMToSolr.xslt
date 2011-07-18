@@ -379,6 +379,9 @@
 				<xsl:value-of select="normalize-space($SCORES/res:cycleName/text())"/>
 				<!--<xsl:value-of select="normalize-space($C_MODS/m:modsCollection/m:mods/m:name[@type='conference']/m:namePart/text())"/>-->
 			</field>
+                        <field name="atm_audio_concert_date_dt">
+				<xsl:value-of select="normalize-space(concat($C_CUSTOM/Concierto/FECHA/text(), 'Z'))"/>
+			</field>
 			<field name="atm_performance_concert_date_dt">
 				<xsl:value-of select="normalize-space(concat($C_CUSTOM/Concierto/FECHA/text(), 'Z'))"/>
 			</field>
@@ -559,6 +562,8 @@
 				</xsl:call-template>
 			</xsl:variable>
 			<xsl:variable name="LECT" select="xalan:nodeset($LECT_TF)/res:sparql/res:results/res:result"/>
+                        <xsl:variable name="C_CUSTOM" select="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@',
+				$HOST, ':', $PORT, '/fedora/objects/', substring-after($SCORES/res:concert/@uri, '/'), '/datastreams/CustomXML/content'))"/>
 			<field name="atm_type_s">Lecture</field>
 			<field name="atm_lecture_title_s">
 				<xsl:value-of select="$LECT/res:lectureTitle/text()"/>
@@ -576,6 +581,9 @@
 			<field name="atm_audio_concert_cycle_s">
 				<xsl:value-of select="normalize-space($LECT/res:concertCycle/text())"/>
 				<!--<xsl:value-of select="normalize-space($C_MODS/m:modsCollection/m:mods/m:name[@type='conference']/m:namePart/text())"/>-->
+			</field>
+                        <field name="atm_audio_concert_date_dt">
+				<xsl:value-of select="normalize-space(concat($C_CUSTOM/Concierto/FECHA/text(), 'Z'))"/>
 			</field>
 			<field name="atm_lecture_order_i">
 				<xsl:value-of select="$LECT/res:order/text()"/>
