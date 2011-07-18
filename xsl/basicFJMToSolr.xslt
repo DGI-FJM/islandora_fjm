@@ -371,6 +371,14 @@
 				<xsl:value-of select="normalize-space($SCORES/res:cycleName/text())"/>
 				<!--<xsl:value-of select="normalize-space($C_MODS/m:modsCollection/m:mods/m:name[@type='conference']/m:namePart/text())"/>-->
 			</field>
+                        <field name="atm_audio_concert_name_s">
+				<xsl:value-of select="normalize-space($SCORES/res:concertName/text())"/>
+				<!--<xsl:value-of select="normalize-space($C_MODS/m:modsCollection/m:mods/m:titleInfo[@type='alternative'][1]/m:title/text())"/>-->
+			</field>
+			<field name="atm_audio_concert_cycle_s">
+				<xsl:value-of select="normalize-space($SCORES/res:cycleName/text())"/>
+				<!--<xsl:value-of select="normalize-space($C_MODS/m:modsCollection/m:mods/m:name[@type='conference']/m:namePart/text())"/>-->
+			</field>
 			<field name="atm_performance_concert_date_dt">
 				<xsl:value-of select="normalize-space(concat($C_CUSTOM/Concierto/FECHA/text(), 'Z'))"/>
 			</field>
@@ -560,6 +568,14 @@
 			</field>
 			<field name="atm_lecture_concert_cycle_s">
 				<xsl:value-of select="$LECT/res:concertCycle/text()"/>
+			</field>
+                        <field name="atm_audio_concert_name_s">
+				<xsl:value-of select="normalize-space($LECT/res:concertTitle/text())"/>
+				<!--<xsl:value-of select="normalize-space($C_MODS/m:modsCollection/m:mods/m:titleInfo[@type='alternative'][1]/m:title/text())"/>-->
+			</field>
+			<field name="atm_audio_concert_cycle_s">
+				<xsl:value-of select="normalize-space($LECT/res:concertCycle/text())"/>
+				<!--<xsl:value-of select="normalize-space($C_MODS/m:modsCollection/m:mods/m:name[@type='conference']/m:namePart/text())"/>-->
 			</field>
 			<field name="atm_lecture_order_i">
 				<xsl:value-of select="$LECT/res:order/text()"/>
