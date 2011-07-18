@@ -23,7 +23,7 @@ class SolrResults extends IslandoraSolrResults
         $recordStart = $results->response->start;
         $limitResults = variable_get('islandora_solr_search_limit_result_fields', 0);
         
-		$fq = null;
+		/*$fq = null;
 		$type = null;
 		if(is_array($results->responseHeader->params->fq)) {
 			$fq = $results->responseHeader->params->fq;
@@ -69,9 +69,19 @@ class SolrResults extends IslandoraSolrResults
 					break;
 				}
 			}
-		}
+		}*/
 		$headers = array(
-			'performance' => array(
+			'Composer' => array(
+				array(
+					'data' => t('Image'),
+					'name' => 'icon_image'
+				),
+				array(
+					'data' => t('Name'),
+					'name' => 'name_link'
+				)
+			),
+			'Performance' => array(
 				array(
 					'data' =>  t('Piece'),
 					'name' => 'title'
@@ -94,92 +104,119 @@ class SolrResults extends IslandoraSolrResults
 				),
 				array(
 					'data' => t('Score'),
-					'name' => 'score'
+					'name' => 'score_link'
 				)
 			),
-			'performer' => array(
-				'data' => array(
-					t('Name'),
-					t('Piece'),
-					t('Concert Title'),
-					t('Concert Cycle')
+			'Performer' => array(
+				array(
+					'data' => t('Name'),
+					'name' => 'name'
+				),
+				array(
+					'data' => t('Group'),
+					'name' => 'group'
+				),
+				array(
+					'data' => t('Piece'),
+					'name' => 'piece'
+				),
+				array(
+					'data' => t('Concert Title'),
+					'name' => 'concert'
+				),
+				array(
+					'data' => t('Concert Cycle'),
+					'name' => 'cycle'
+				)
+			),
+			'Lecture' => array(
+				array(
+					'data' => t('Title'),
+					'name' => 'title'
+				),
+				array(
+					'data' => t('Concert'),
+					'name' => 'concert'
+				),
+				array(
+					'data' => t('Cycle'),
+					'name' => 'cycle'
+				),
+				array(
+					'data' => t('Audio'),
+					'name' => 'audio'
 				)
 			)
 		);
-		dsm($type);
-		$sommat = array();
-		if(isset($type) && isset($headers[$type]))
+	
+		$table = array(
+			"Composer" => array(),
+			"Concert" => array(),
+			"Lecture" => array(),
+			"Performance" => array(),
+			"Performer" => array(),
+			"Program" => array(),
+			"Score" => array()
+		);
+		foreach($results->response->docs as $doc)
 		{
-			switch($type)
+			//Setup to pass to preprocessor... (Something of a hack...)
+			$toPass = array();
+			$toPass['item'] = $doc;
+			islandora_fjm_preprocess_islandora_fjm_solr_result(&$toPass);
+			
+			//Use preprocessed document...
+			$type = $toPass['item']['type'];
+			$docu = $toPass['item'];
+			
+			//Row to add to table
+			$row = array('data' => array());
+			
+			//If its an acutal table we're to add to...
+			if(isset($headers[$type]))
 			{
-			case "Performance":
-				//Setup audio stuff...
-				module_load_include('inc', 'islandora_fjm', 'includes/callbacks');
-				$output .= FJM::addPlayer();
-			break;
-			default:
-				//Do nothing.
-			}
-		
-			//Do table layout...
-			foreach($results->response->docs as $doc)
-			{
-				$toPass = array(
-					'item' => $doc
-				);
-				//Use the preprocess function to get everything into arrays...
-				islandora_fjm_preprocess_islandora_fjm_solr_result($toPass);
-				
-				//The row to add to the table.
-				$row = array();
-				$row['data'] = array();
-				
-				//
-				foreach($headers[$type] as $array)
+				//...  put the stuff into the proper field...
+				foreach($headers[$type] as $field)
 				{
-					switch($array['name'])
+					switch($field['name'])
 					{
 					case 'audio':
-						//Build the playlist...
-						$cell = '<div class="atm_track">';
-						foreach($toPass['item'][$array['name']] as $track)
+						$cell = "<div class='atm_track'>";
+						foreach($docu['audio'] as $audio)
 						{
-							$cell .= l('<!-- placeholder -->', "fedora/repository/$track/MP3", 
-								array(
-									'html' => true
-								)
-							);
+							$cell .= l('<!-- placeholder -->', "fedora/repository/$audio/MP3", array('html' => true));
 						}
-						$cell .= '</div>';
+						$cell .= "</div>";
 						$row['data'][] = $cell;
-					break;
-					case 'score':
-						$row['data'][] = l('Score', "islandora/solr/search/ /PID:\"". $toPass['item'][$array['name']] ."\"");
-					break;
+						break;
 					default:
-					{
-						$row['data'][] = $toPass['item'][$array['name']];
-					}
+						$row['data'][] = $docu[$field['name']];
 					}
 				}
-				$sommat[] = $row;
 			}
-		}
-		else
-		{
-			//Do "mixed" layout. (divs in table cells)
-			foreach($results->response->docs as $doc)
+			//... otherwise, render it with the theme function, to be thrown into a cell.
+			//FIXME (minor):	Kind of inefficient, as it is "preprocessed" twice, but anyway...
+			else
 			{
-				$sommat[] = array(theme('islandora_fjm_solr_result', $doc));
+				$row['data'][] = theme('islandora_fjm_solr_result', $doc);
+			}
+			
+			$table[$type][] = $row;
+		}
+		if(!empty($table['Performance']) || !empty($table['Lecture']))
+		{
+			module_load_include('inc', 'islandora_fjm', 'includes/callbacks');
+			$output .= FJM::addPlayer();
+		}
+		//Render the table for each content type.
+		foreach($table as $key => $tab)
+		{
+			if(!empty($tab))
+			{
+				$output .= "<h2>$key</h2>";
+				$output .= theme('table', (isset($headers[$key]) ? $headers[$key] : array()), $tab);
 			}
 		}
-		
-		$output .= theme(
-			'table', 
-			(isset($type) && isset($headers[$type])) ? $headers[$type] : array(), 
-			$sommat, 
-			array('class' => 'atm_solr_results')
-		);
         
 		return $output;
     }

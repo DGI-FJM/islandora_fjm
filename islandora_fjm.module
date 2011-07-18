@@ -82,19 +82,21 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars)
 	switch($result->atm_type_s)
 	{
 	case "Composer":
-		$toReturn['icon'] = url("fedora/repository/" . $result->atm_composer_icon_s . "/TN");
+		$toReturn['icon'] = "fedora/repository/" . $result->atm_composer_icon_s . "/TN";
+		$toReturn['icon_image'] = theme('image', $toReturn['icon'], '', '', '', false);
 		$toReturn['name'] = $result->atm_composer_name_s;
+		$toReturn['name_link'] = l($result->atm_composer_name_s, "fedora/repository/$result->PID");
 	break;
 	case "Concert":
 		$toReturn['title'] = $result->atm_concert_title_s;
 		$toReturn['cycle'] = $result->atm_concert_cycle_s;
 		$toReturn['date'] = $result->atm_concert_date_dt;
-		$toReturn['icon'] = url("fedora/repository/$result->atm_concert_iconpid_s");
+		$toReturn['icon'] = "fedora/repository/$result->atm_concert_iconpid_s";
 	break;
 	case "Performance":
 		$toReturn['title'] = $result->atm_performance_piece_title_s;
 		$toReturn['composer'] = $result->atm_performance_composer_name_s;
-		//FIXME (minor):  If the perfomance is somehow part of multiple concerts,
+		//FIXME (minor):  If the perfomance is somehow part of multiple entities/concerts,
 		//	this could break.
 		$toReturn['concertPid'] = $result->rels_isMemberOf_ms;
 		$toReturn['concert'] = $result->atm_performance_concert_name_s;
@@ -112,11 +114,13 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars)
 			}
 		}
 		$toReturn['score'] = $result->rels_basedOn_ms;
+		$toReturn['score_link'] = l('Score', "islandora/solr/search/PID:\"". $toReturn['score'] . "\"");
 	break;
 	case "Lecture":
 		$toReturn['title'] = $result->atm_lecture_title_s;
 		$toReturn['concert'] = $result->atm_lecture_concert_title_s;
 		$toReturn['cycle'] = $result->atm_lecture_concert_cycle_s;
+		$toReturn['audio'] = array($result->PID);
 	break;
 	case "Performer":
 		$toReturn['name'] = $result->atm_performer_name_s;

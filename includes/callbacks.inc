@@ -145,6 +145,7 @@ class FJM {
                         plugins: {
                             controls: {
                                 all: false,
+								play: true,
                                 autoHide: false,
                                 scrubber: true,
                                 time: true,
