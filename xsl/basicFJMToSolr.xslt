@@ -168,6 +168,8 @@
 	
 	<xsl:template name="atm_concert">
 		<xsl:param name="pid" select="no_pid"/>
+                
+                <xsl:variable name="C_CUSTOM" select="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@', $HOST, ':', $PORT, '/fedora/objects/', $pid, '/datastreams/CustomXML/content'))"/>
 		<doc>
 			<field name="PID">
 				<xsl:value-of select="$pid"/>
@@ -212,7 +214,7 @@
 			<!-- FIXME:  The date should be in MODS (and or somewhere else (DC?), and obtained from there), so the original XML need not be stored...
 				Also, the whole "concat(..., 'Z')" seems a little flimsy-->
 			<field name="atm_concert_date_dt">
-				<xsl:value-of select="normalize-space(concat(document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@', $HOST, ':', $PORT, '/fedora/objects/', $pid, '/datastreams/CustomXML/content'))/Concierto/FECHA/text(), 'Z'))"/>
+				<xsl:value-of select="normalize-space(concat($C_CUSTOM/Concierto/FECHA/text(), 'Z'))"/>
 			</field>
 			
 			<xsl:variable name="TN_QUERY_TF">
@@ -226,15 +228,21 @@
 					 <xsl:with-param name="additional_params" select="'&amp;limit=1'"/>
 				</xsl:call-template>
 			</xsl:variable>
-		
+                        
+                        <xsl:variable name="LECT_TF">
+				<xsl:call-template name="perform_query">
+					<xsl:with-param name="query" select="concat('
+					  select $lecture from &lt;#ri&gt;
+					  where $lecture &lt;fedora-rels-ext:isMemberOf&gt; &lt;fedora:', $pid, '&gt;
+                                          and $lecture &lt;fedora-rels-ext:hasModel&gt; &lt;fedora:atm:lectureCModel&gt;
+                                          and $lecture &lt;fedora-model:state&gt; &lt;fedora-model:Active&gt;
+					  ;
+					  ')"/>
+				</xsl:call-template>
+			</xsl:variable>
+                        
 			<xsl:for-each select='$SCORES/res:result'>
 				<!-- TODO: blargh...  Logging in via the URL...  Would like to use the Xalan extensions, but they're (the ones for fedoragsearch anyway) a pain to debug...  Also, didn't seem to work for some API-M stuff I tried... -->
-				<!-- open MODS for the given score -->
-				<!--<xsl:variable name="S_MODS" select="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@',
-					$HOST, ':', $PORT, '/fedora/objects/', substring-after(res:score/@uri, '/'), '/datastreams/MODS/content'))"/>-->
-				<xsl:variable name="C_EACCPF" select="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@',
-					$HOST, ':', $PORT, '/fedora/objects/', substring-after(res:composer/@uri, '/'), '/datastreams/EAC-CPF/content'))"/>
-			
 				<field name="atm_concert_piece_ms">
 					<xsl:value-of select="normalize-space(res:pieceName/text())"/>
 				</field>
@@ -272,9 +280,17 @@
 					<xsl:otherwise>false</xsl:otherwise>
 				</xsl:choose>
 			</field>
+                        
+                        <xsl:variable name="LECT" select="xalan:nodeset($LECT_TF)"/>
+                        <field name="atm_concert_lecture_b">
+                            <xsl:choose>
+                                <xsl:when test="count($LECT/res:sparql/res:results/res:result) &gt; 0">true</xsl:when>
+                                <xsl:otherwise>false</xsl:otherwise>
+                            </xsl:choose>
+                        </field>
 			
 			<field name="atm_concert_program_titn_s">
-				<xsl:value-of select="normalize-space(document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@', $HOST, ':', $PORT, '/fedora/objects/', $pid, '/datastreams/CustomXML/content'))/Concierto/programa/titn_programa/text())"/>
+				<xsl:value-of select="normalize-space($C_CUSTOM/Concierto/programa/titn_programa/text())"/>
 			</field>
 		
 			<xsl:for-each select='xalan:nodeset($TN_QUERY_TF)/res:sparql/res:results/res:result'>
@@ -547,7 +563,7 @@
 			<xsl:variable name="LECT_TF">
 				<xsl:call-template name="perform_query">
 					<xsl:with-param name="query" select="concat('
-						select $lectureTitle $concertTitle $concertCycle $order from &lt;#ri&gt;
+						select $lectureTitle $concertTitle $concertCycle $concert $order from &lt;#ri&gt;
 						where $lecture &lt;mulgara:is&gt; &lt;fedora:', $pid, '&gt;
 						and $lecture &lt;fedora-rels-ext:isMemberOf&gt; $concert
 						and $lecture &lt;fedora-model:label&gt; $lectureTitle
@@ -563,7 +579,7 @@
 			</xsl:variable>
 			<xsl:variable name="LECT" select="xalan:nodeset($LECT_TF)/res:sparql/res:results/res:result"/>
                         <xsl:variable name="C_CUSTOM" select="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@',
-				$HOST, ':', $PORT, '/fedora/objects/', substring-after($SCORES/res:concert/@uri, '/'), '/datastreams/CustomXML/content'))"/>
+				$HOST, ':', $PORT, '/fedora/objects/', substring-after($LECT/res:concert/@uri, '/'), '/datastreams/CustomXML/content'))"/>
 			<field name="atm_type_s">Lecture</field>
 			<field name="atm_lecture_title_s">
 				<xsl:value-of select="$LECT/res:lectureTitle/text()"/>

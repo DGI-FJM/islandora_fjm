@@ -49,7 +49,7 @@ class FJM {
      * @param type $query
      * @param type $fields
      * @param type $type_field
-     * @return type 
+     * @return DOMDocument 
      */
     static function performSolrQuery($type, $query = "", $fields = "PID", $otherParams = array(), $type_field = "atm_type_s")
     {
@@ -59,6 +59,25 @@ class FJM {
         {
             $otherParams['fq'] = $otherParams['fq'] . " $type_field:\"$type\"";
         }
+        foreach ($otherParams as $key => $value) {
+            $solrUrl .= "&$key=" . urlencode($value);
+        }
+        $doc = DOMDocument::loadXML(do_curl($solrUrl));
+        if(is_callable("dsm"))
+        {
+            dsm($solrUrl);
+            $error = error_get_last();
+            if(!empty($error))
+                dsm($error);
+        }
+        return ((!$doc)?(new DOMDocument()):($doc));
+    }
+    
+    //Version getting rid of the "type" stuff...  Got a little too specific.
+    static function performSolrQ($query, $fields = 'PID', $otherParams = array())
+    {
+        $solrUrl = variable_get('fedora_solr_search_url', 'http://localhost:8080/solr') . '/select?q=';
+        $solrUrl .= urlencode($query) . '&fl=' . urlencode($fields);
         foreach ($otherParams as $key => $value) {
             $solrUrl .= "&$key=" . urlencode($value);
         }
@@ -129,47 +148,91 @@ class FJM {
         return $output;
     }
     
-	static function addPlayer($selector = 'div.atm_track')
-	{
-		$islandoraPath = drupal_get_path("module", "islandora_fjm");
-        $base = $islandoraPath . "/flowplayer";
-		drupal_add_js("$base/flowplayer-3.2.6.min.js");
-        drupal_add_js("$base/flowplayer.playlist-3.0.8.js");
-		$toReturn = '
-            <a class="player" id="atm_player"><!--FlowPlayer goes here --></a>';
-        
-        //TODO: Get the protocol automatically; this would break if SSL were required...
-        //  Then again, is this really required?
-        $hostname = 'http://' . $_SERVER['HTTP_HOST'];
-        $toReturn .= '
-            <script type="text/javascript">
-                $(function() {
-                    $f("atm_player", "/' . $base . '/flowplayer-3.2.7.swf", {
-                        plugins: {
-                            controls: {
-                                all: false,
-								play: true,
-                                autoHide: false,
-                                scrubber: true,
-                                time: true,
-                                height: 30
-                            }
-                        },
-                        clip: {
-                            baseUrl: "'. $hostname .'",
-                            autoPlay: false
+    static function addPlayer($selector = 'div.atm_track')
+    {
+            $islandoraPath = drupal_get_path("module", "islandora_fjm");
+    $base = $islandoraPath . "/flowplayer";
+            drupal_add_js("$base/flowplayer-3.2.6.min.js");
+    drupal_add_js("$base/flowplayer.playlist-3.0.8.js");
+            $toReturn = '
+        <a class="player" id="atm_player"><!--FlowPlayer goes here --></a>';
+
+    //TODO: Get the protocol automatically; this would break if SSL were required...
+    //  Then again, is this really required?
+    $hostname = 'http://' . $_SERVER['HTTP_HOST'];
+    $toReturn .= '
+        <script type="text/javascript">
+            $(function() {
+                $f("atm_player", "/' . $base . '/flowplayer-3.2.7.swf", {
+                    plugins: {
+                        controls: {
+                            all: false,
+                                                            play: true,
+                            autoHide: false,
+                            scrubber: true,
+                            time: true,
+                            height: 30
                         }
-                    }).playlist("' . $selector . '", {
-                        loop: true,
-                        playingClass: "atm_playing",
-                        pausedClass: "atm_paused",
-                        progressClass: "atm_buffering"
-                    });
+                    },
+                    clip: {
+                        baseUrl: "'. $hostname .'",
+                        autoPlay: false
+                    }
+                }).playlist("' . $selector . '", {
+                    loop: true,
+                    playingClass: "atm_playing",
+                    pausedClass: "atm_paused",
+                    progressClass: "atm_buffering"
                 });
+            });
+        </script>';
+
+            return $toReturn;
+    }
+    
+    function addViewer($dsid = 'SWF')
+    {
+        $base = drupal_get_path("module", "islandora_fjm") . '/flexpaper';
+        drupal_add_js("$base/js/flexpaper_flash.js");
+        $output = '<div id="flexpaper">';
+        $output .=  '<a id="viewer" style="width: 700px; height: 400px; display: block;"></a>';
+        $output .=  '
+            <script type="text/javascript">
+                var fp = new FlexPaperViewer(
+                    "/' . $base .'/FlexPaperViewer",
+                    "viewer",
+                    {
+                        config : {
+                            SwfFile: "http://' . $_SERVER['HTTP_HOST'] . "/fedora/repository/$this->pid/$dsid" . '",
+                            Scale : 0.6,
+                            ZoomTransition : "easeOut",
+                            ZoomTime : 0.5,
+                            ZoomInterval : 0.1,
+                            FitPageOnLoad : false,
+                            FitWidthOnLoad : true,
+                            PrintEnabled : false,
+                            FullScreenAsMaxWindow : true,
+                            ProgressiveLoading : true,
+                            MinZoomSize : 0.2,
+                            MaxZoomSize : 5,
+                            SearchMatchAll : false,
+                            InitViewMode : \'Portrait\',
+
+                            ViewModeToolsVisible : true,
+                            ZoomToolsVisible : true,
+                            NavToolsVisible : true,
+                            CursorToolsVisible : true,
+                            SearchToolsVisible : true,
+
+                            localeChain : "en_US"
+
+                        }
+                    }
+                );
             </script>';
-			
-		return $toReturn;
-	}
+        $output .= '</div>';
+        return $output;
+    }
 	
     /**
      * Finds the images which are related to the current PID. (used to populate
@@ -450,6 +513,48 @@ class FJM {
         $output .= FJM::addPlayer('div.atm_track');
         $output .= '</div><!-- bottom -->';
         
+        return $output;
+    }
+    
+    //TODO: Cleanup ((Rather) Bad variable names)
+    //TODO:  Need to add link with Titn
+    function showScore($pagenumber = NULL)
+    {
+        $base = drupal_get_path("module", "islandora_fjm");
+        drupal_add_css("$base/css/islandora_fjm_score.css");
+        $output = '';
+        $xp2 = new DOMXPath(FJM::performSolrQ("PID:\"$this->pid\"","atm_score_title_s,atm_score_pdf_b,atm_score_composer_s,atm_score_titn_s"));
+        $res2 = $xp2->query("/response/result[@name='response']/doc")->item(0);
+        $output .= '<h2>' . $xp2->evaluate("string(str[@name='atm_score_title_s']/text())", $res2) . '</h2>';
+        $output .= '<h3>' . $xp2->evaluate("string(str[@name='atm_score_composer_s']/text())", $res2) .'</h3>';
+        $output .= $this->addViewer();
+        $modsUrl = $_SERVER['HTTP_HOST'] . url("fedora/repository/$this->pid/MODS");
+        $asdf = do_curl($modsUrl);
+        $mods = DOMDocument::loadXML($asdf);
+        $abstract = $mods->getElementsByTagName('abstract')->item(0);
+        $notes = $mods->getElementsByTagName('note');
+        $output .= '<div id="islandora_fjm_description">';
+        $output .= $abstract->nodeValue;
+        foreach($notes as $node)
+        {
+            $output .= "<p>$node->nodeValue</p>";
+        }
+        $output .= '</div>';
+        
+        return $output;
+    }
+    
+    function showProgram($pagenumber = NULL)
+    {
+        $base = drupal_get_path("module", "islandora_fjm");
+        //drupal_add_css("$base/css/islandora_fjm_program.css");
+        $xpath = new DOMXPath(FJM::performSolrQ("PID:\"$this->pid\"", "atm_program_concert_title_s,atm_program_concert_cycle_ms,atm_program_author_s,atm_program_titn_s"));
+        $result = $xpath->query("/response/result[@name='response']/doc")->item(0);
+        
+        $output = '';
+        $output .= '<h2>' . $xpath->evaluate("string(str[@name='atm_program_concert_title_s']/text())", $result) . '</h2>';
+        $output .= '<h3>' . $xpath->evaluate("string(arr[@name='atm_program_concert_cycle_ms']/str[1]/text())", $result) . '</h3>';
+        $output .= $this->addViewer();
         return $output;
     }
 }

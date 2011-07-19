@@ -92,7 +92,11 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars)
 		$toReturn['title'] = $result->atm_concert_title_s;
 		$toReturn['cycle'] = $result->atm_concert_cycle_s;
 		$toReturn['date'] = $result->atm_concert_date_dt;
-		$toReturn['icon'] = "fedora/repository/$result->atm_concert_iconpid_s";
+		$toReturn['icon'] = $result->atm_concert_iconpid_s;
+                $toReturn['program'] = array(
+                    'pdf' => $result->atm_concert_program_pdf_b,
+                    'titn' => $result->atm_concert_program_titn_s
+                );
 	break;
 	case "Performance":
 		$toReturn['title'] = $result->atm_performance_piece_title_s;
@@ -105,14 +109,14 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars)
 		$toReturn['audio'] = array();
 		if($result->atm_performance_mp3_b)
 		{
-			$toReturn['audio'][] = $result->PID;
+                    $toReturn['audio'][] = $result->PID;
 		}
 		else
 		{
-			foreach($result->atm_performance_movement_ms as $audio)
-			{
-				$toReturn['audio'][] = $audio;
-			}
+                    foreach($result->atm_performance_movement_ms as $audio)
+                    {
+                        $toReturn['audio'][] = $audio;
+                    }
 		}
 		$toReturn['score'] = $result->rels_basedOn_ms;
 		$toReturn['score_link'] = l('Score', "islandora/solr/search/PID:\"". $toReturn['score'] . "\"");
@@ -141,15 +145,15 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars)
 		$toReturn['PDF_link'] = l(t('PDF'), "fedora/repository/$result->PID");
 	break;
 	case "Score":
-			$toReturn['composer'] = $result->atm_score_composer_s;
-			$toReturn['title'] = $result->atm_score_title_s;
-			$toReturn['titn'] = $result->atm_score_titn_s;
-			$toReturn['titn_link'] = ($toReturn['titn'] > 0)?l(t('Search'), 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=' . $toReturn['titn']):t('no titn!');
-			$toReturn['pdf'] = $result->atm_score_pdf_b;
-			$toReturn['PDF_link'] = ($toReturn['pdf'])? l(t('PDF'), "fedora/repository/$result->PID") : t('no pdf');
+                $toReturn['composer'] = $result->atm_score_composer_s;
+                $toReturn['title'] = $result->atm_score_title_s;
+                $toReturn['titn'] = $result->atm_score_titn_s;
+                $toReturn['titn_link'] = ($toReturn['titn'] > 0)?l(t('Search'), 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=' . $toReturn['titn']):t('no titn!');
+                $toReturn['pdf'] = $result->atm_score_pdf_b;
+                $toReturn['PDF_link'] = ($toReturn['pdf'])? l(t('PDF'), "fedora/repository/$result->PID") : t('no pdf');
 	break;
 	default:
-			$toReturn[] = "Unknown type!";
+                $toReturn[] = "Unknown type!";
 	}
 
 	$toReturn['type'] = $result->atm_type_s;

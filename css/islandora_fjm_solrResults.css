@@ -20,7 +20,7 @@ root {
 
 div.atm_track > a {
     display: block;
-	float: left;
+    float: left;
     background-image: url("../images/media-playback-set.png");
     background-repeat: no-repeat;
     width: 32px;
@@ -29,4 +29,27 @@ div.atm_track > a {
 
 div.atm_track > a.atm_playing {
     background-position: 100% 0;
+}
+
+.atm_solr_result > a > div {
+    float: left;
+}
+
+.atm_solr_result .concert_top_left > * {
+    clear: left;
+}
+
+.atm_solr_result .concert_top_right {
+    float: right;
+}
+
+.atm_solr_result .concert_top_right > *{
+    height: 50px;
+    width: 50px;
+    float: left;
+}
+
+.atm_solr_result .concert_bottom {
+    clear: left;
+    
 }
