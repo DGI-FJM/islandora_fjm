@@ -493,13 +493,13 @@ class FJM {
         );
         
         
-        $output .= '<div class="atm_concert_title">' . $concertTitle . '</div>';
+        $output .= '<h2 class="atm_concert_title">' . $concertTitle . '</h2>';
         $output .= '<div class="atm_concert_top">';
         $output .=   FJM::showImageGallery($this->getRelatedImages(), array('style'=>"float: left; margin: 10px;"));
         $output .=   '<div class="atm_concert_top_right">';
-        $output .=     '<div class="atm_concert_cycle">' . $concertCycle . '</div>';
+        $output .=     '<h3 class="atm_concert_cycle">' . $concertCycle . '</h3>';
         $output .=     '<div class="atm_concert_date">' . ($concertDate->format("Y/m/d")) . '</div>';
-        $output .=     '<div class="atm_concert_description">' . $concertDescription . '</div>';
+        $output .=     '<p class="atm_concert_description">' . $concertDescription . '</p>';
         $output .=   '</div><!--atm_con_top_right -->';
         $output .= '</div><!--atm_con_top -->';
         $output .= '<div class="atm_concert_bottom">';
