@@ -1,0 +1,27 @@
+atm_audio_concert_cycle_s ~ Concert Cycle
+atm_audio_concert_name_s ~ Concert Title
+atm_audio_concert_year_s ~ Year
+atm_composer_concert_cycle_ms ~ Concert Cycle
+atm_composer_concert_title_ms ~ Concert Title
+atm_concert_composer_ms ~ Composers
+atm_concert_cycle_s ~ Concert Cycle
+atm_concert_group_ms ~ Groups
+atm_concert_piece_ms ~ Pieces
+atm_concert_player_ms ~ Performers
+atm_concert_year_s ~ Year
+atm_digital_objects_ms ~ Digital Objects
+atm_performance_composer_name_s ~ Composers
+atm_performance_concert_cycle_s ~ Concert Cycle
+atm_performance_concert_name_s ~ Concert Title
+atm_performance_player_ms ~ Performers
+atm_performance_year_s ~ Year
+atm_performer_concert_cycle_s ~ Concert Cycle
+atm_performer_concert_title_s ~ Concert Title
+atm_performer_group_s ~ Groups
+atm_performer_piece_title_s ~ Pieces
+atm_performer_year_s ~ Year
+atm_program_concert_cycle_ms ~ Concert Cycle
+atm_program_concert_title_s ~ Concert Title
+atm_program_year_s ~ Year
+atm_score_composer_s ~ Composer
+atm_type_s ~ Types
