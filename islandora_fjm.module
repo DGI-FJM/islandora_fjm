@@ -140,7 +140,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars)
 		//FIXME (minor):  concert cycle does not need to be multivalued...
 		$toReturn['cycle'] = $result->atm_program_concert_cycle_ms;
 		$toReturn['titn'] = $result->atm_program_titn_s;
-		$toReturn['titn_link'] = l(t('Search'), 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=' . $toReturn['titn']);
+		$toReturn['titn_link'] = l(t('Search'), 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=' . $toReturn['titn'] . ".titn.");
 		$toReturn['author'] = $result->atm_program_author_s;
 		$toReturn['PDF_link'] = l(t('PDF'), "fedora/repository/$result->PID");
 	break;
@@ -148,7 +148,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars)
                 $toReturn['composer'] = $result->atm_score_composer_s;
                 $toReturn['title'] = $result->atm_score_title_s;
                 $toReturn['titn'] = $result->atm_score_titn_s;
-                $toReturn['titn_link'] = ($toReturn['titn'] > 0)?l(t('Search'), 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=' . $toReturn['titn']):t('no titn!');
+                $toReturn['titn_link'] = ($toReturn['titn'] > 0)?l(t('Search'), 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=' . $toReturn['titn'] . ".titn."):t('no titn!');
                 $toReturn['pdf'] = $result->atm_score_pdf_b;
                 $toReturn['PDF_link'] = ($toReturn['pdf'])? l(t('PDF'), "fedora/repository/$result->PID") : t('no pdf');
 	break;

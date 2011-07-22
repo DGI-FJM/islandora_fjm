@@ -418,7 +418,7 @@ class FJM {
                     //  beginning should be obtained from the module, and the titn base address
                     //  should be configurable
                     (($localpdfscore)?(l("Score", "fedora/repository/" . $localpdfscore)):("")),
-                    (($libraryscore != "-1")?(l("Score in library", "http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=" . $libraryscore)):("")),
+                    (($libraryscore != "-1")?(l("Score in library", "http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=" . $libraryscore . ".titn.")):("")),
                     array(
                         'data' => (($mp3_stat)?
                             ('<div class="atm_track">' . l("<!-- placeholder -->", "fedora/repository/$pid/MP3", array("html" => true)) . '</div>'):
