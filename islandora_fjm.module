@@ -76,88 +76,91 @@ function islandora_fjm_theme() {
 
 function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars)
 {
-	$result = $vars['item'];
-	//dsm($vars);
-	$toReturn = array();
-		
-	switch($result->atm_type_s)
-	{
-	case "Composer":
-		$toReturn['icon'] = "fedora/repository/" . $result->atm_composer_icon_s . "/TN";
-		$toReturn['icon_image'] = theme('image', $toReturn['icon'], '', '', '', false);
-		$toReturn['name'] = $result->atm_composer_name_s;
-		$toReturn['name_link'] = l($result->atm_composer_name_s, "fedora/repository/$result->PID");
-	break;
-	case "Concert":
-		$toReturn['title'] = $result->atm_concert_title_s;
-		$toReturn['cycle'] = $result->atm_concert_cycle_s;
-		$toReturn['date'] = $result->atm_concert_date_dt;
-		$toReturn['icon'] = $result->atm_concert_iconpid_s;
-                $toReturn['program'] = array(
-                    'pdf' => $result->atm_concert_program_pdf_b,
-                    'titn' => $result->atm_concert_program_titn_s
-                );
-	break;
-	case "Performance":
-		$toReturn['title'] = $result->atm_performance_piece_title_s;
-		$toReturn['composer'] = $result->atm_performance_composer_name_s;
-		//FIXME (minor):  If the perfomance is somehow part of multiple entities/concerts,
-		//	this could break.
-		$toReturn['concertPid'] = $result->rels_isMemberOf_ms;
-		$toReturn['concert'] = $result->atm_performance_concert_name_s;
-		$toReturn['cycle'] = $result->atm_performance_concert_cycle_s;
-		$toReturn['audio'] = array();
-		if($result->atm_performance_mp3_b)
-		{
-                    $toReturn['audio'][] = $result->PID;
-		}
-		else
-		{
-                    foreach($result->atm_performance_movement_ms as $audio)
-                    {
-                        $toReturn['audio'][] = $audio;
-                    }
-		}
-		$toReturn['score'] = $result->rels_basedOn_ms;
-		$toReturn['score_link'] = l('Score', "islandora/solr/search/PID:\"". $toReturn['score'] . "\"");
-	break;
-	case "Lecture":
-		$toReturn['title'] = $result->atm_lecture_title_s;
-		$toReturn['concert'] = $result->atm_lecture_concert_title_s;
-		$toReturn['cycle'] = $result->atm_lecture_concert_cycle_s;
-		$toReturn['audio'] = array($result->PID);
-	break;
-	case "Performer":
-		$toReturn['name'] = $result->atm_performer_name_s;
-		$toReturn['instrument'] = $result->atm_performer_instrument_s;
-		$toReturn['group'] = $result->atm_performer_group_s;
-		$toReturn['concert'] = $result->atm_performer_concert_title_s;
-		$toReturn['cycle'] = $result->atm_performer_concert_cycle_s;
-		$toReturn['piece'] = $result->atm_performer_piece_title_s;
-	break;
-	case "Program":
-		$toReturn['concert'] = $result->atm_program_concert_title_s;
-		//FIXME (minor):  concert cycle does not need to be multivalued...
-		$toReturn['cycle'] = $result->atm_program_concert_cycle_ms;
-		$toReturn['titn'] = $result->atm_program_titn_s;
-		$toReturn['titn_link'] = l(t('Search'), 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=' . $toReturn['titn'] . ".titn.");
-		$toReturn['author'] = $result->atm_program_author_s;
-		$toReturn['PDF_link'] = l(t('PDF'), "fedora/repository/$result->PID");
-	break;
-	case "Score":
-                $toReturn['composer'] = $result->atm_score_composer_s;
-                $toReturn['title'] = $result->atm_score_title_s;
-                $toReturn['titn'] = $result->atm_score_titn_s;
-                $toReturn['titn_link'] = ($toReturn['titn'] > 0)?l(t('Search'), 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=' . $toReturn['titn'] . ".titn."):t('no titn!');
-                $toReturn['pdf'] = $result->atm_score_pdf_b;
-                $toReturn['PDF_link'] = ($toReturn['pdf'])? l(t('PDF'), "fedora/repository/$result->PID") : t('no pdf');
-	break;
-	default:
-                $toReturn[] = "Unknown type!";
-	}
+    $result = $vars['item'];
+    //dsm($vars);
+    $toReturn = array();
 
-	$toReturn['type'] = $result->atm_type_s;
-	$toReturn['PID'] = $result->PID;
-	
-	$vars['item'] = $toReturn;
+    switch($result->atm_type_s)
+    {
+    case "Composer":
+            $toReturn['icon'] = "fedora/repository/" . $result->atm_composer_icon_s . "/TN";
+            $toReturn['icon_image'] = theme('image', $toReturn['icon'], '', '', '', false);
+            $toReturn['name'] = $result->atm_composer_name_s;
+            $toReturn['name_link'] = l($result->atm_composer_name_s, "fedora/repository/$result->PID");
+    break;
+    case "Concert":
+            $toReturn['title'] = $result->atm_concert_title_s;
+            $toReturn['cycle'] = $result->atm_concert_cycle_s;
+            $toReturn['date'] = $result->atm_concert_date_dt;
+            $toReturn['icon'] = $result->atm_concert_iconpid_s;
+            $toReturn['program'] = array(
+                'pdf' => $result->atm_concert_program_pdf_b,
+                'titn' => $result->atm_concert_program_titn_s
+            );
+            //FIXME: Generating stuff here seems kinda bad...
+    break;
+    case "Performance":
+            $toReturn['piece'] = $result->atm_performance_piece_title_s;
+            $toReturn['composer'] = l($result->atm_performance_composer_name_s, "fedora/repository/$result->atm_performance_composer_pid_s");
+            //FIXME (minor):  If the perfomance is somehow part of multiple entities/concerts,
+            //	this could break.
+            $toReturn['concertPid'] = $result->rels_isMemberOf_ms;
+            $toReturn['concert'] = l($result->atm_performance_concert_name_s, "fedora/repository/$result->rels_isMemberOf_ms");
+            $toReturn['concert_path'] = "fedora/repository/$result->rels_isMemberOf_ms/-/-/$result->rels_concertOrder_ms";
+            $toReturn['cycle'] = $result->atm_performance_concert_cycle_s;
+            $toReturn['audio'] = array();
+            if($result->atm_performance_mp3_b)
+            {
+                $toReturn['audio'][] = $result->PID;
+            }
+            else
+            {
+                foreach($result->atm_performance_movement_ms as $audio)
+                {
+                    $toReturn['audio'][] = $audio;
+                }
+            }
+            $toReturn['score'] = $result->rels_basedOn_ms;
+            $toReturn['score_link'] = l('Score', "islandora/solr/search/PID:\"". $toReturn['score'] . "\"");
+    break;
+    case "Lecture":
+            $toReturn['title'] = $result->atm_lecture_title_s;
+            $toReturn['concert'] = $result->atm_lecture_concert_title_s;
+            $toReturn['cycle'] = $result->atm_lecture_concert_cycle_s;
+            $toReturn['audio'] = array($result->PID);
+    break;
+    case "Performer":
+            $toReturn['name'] = $result->atm_performer_name_s;
+            $toReturn['instrument'] = $result->atm_performer_instrument_s;
+            $toReturn['group'] = $result->atm_performer_group_s;
+            $toReturn['concert'] = l($result->atm_performer_concert_title_s, "fedora/repository/$result->atm_performer_concert_pid_s");
+            $toReturn['concert_path'] = "fedora/repository/$result->atm_performer_concert_pid_s/-/-/$result->atm_performer_concert_order_s";
+            $toReturn['cycle'] = $result->atm_performer_concert_cycle_s;
+            $toReturn['piece'] = $result->atm_performer_piece_title_s;
+    break;
+    case "Program":
+            $toReturn['concert'] = $result->atm_program_concert_title_s;
+            //FIXME (minor):  concert cycle does not need to be multivalued...
+            $toReturn['cycle'] = $result->atm_program_concert_cycle_ms;
+            $toReturn['titn'] = $result->atm_program_titn_s;
+            $toReturn['titn_link'] = l(t('Go'), 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=' . $toReturn['titn'] . ".titn.");
+            $toReturn['author'] = $result->atm_program_author_s;
+            $toReturn['PDF_link'] = l(t('PDF'), "fedora/repository/$result->PID");
+    break;
+    case "Score":
+            $toReturn['composer'] = l($result->atm_score_composer_s, "fedora/repository/$result->atm_score_composer_pid_s");
+            $toReturn['title'] = $result->atm_score_title_s;
+            $toReturn['titn'] = $result->atm_score_titn_s;
+            $toReturn['titn_link'] = ($toReturn['titn'] > 0)?l(t('Go'), 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=' . $toReturn['titn'] . ".titn."):t('N/A');
+            $toReturn['pdf'] = $result->atm_score_pdf_b;
+            $toReturn['PDF_link'] = ($toReturn['pdf'])? l(t('PDF'), "fedora/repository/$result->PID") : t('N/A');
+    break;
+    default:
+            $toReturn[] = "Unknown type!";
+    }
+
+    $toReturn['type'] = $result->atm_type_s;
+    $toReturn['PID'] = $result->PID;
+
+    $vars['item'] = $toReturn;
 }

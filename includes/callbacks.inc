@@ -332,6 +332,8 @@ class FJM {
      * @return string 
      */
     function showConcert($pagenumber = NULL) {
+        if(is_callable("dsm"))
+            dsm($pagenumber);
         $ouput = '';
         $fedoraPath = variable_get("fedora_base_url", 'http://localhost:8080/fedora');
         $islandoraPath = drupal_get_path("module", "islandora_fjm");
@@ -384,14 +386,17 @@ class FJM {
             order by $porder asc
         ');*/
         $performanceResults = FJM::performSolrQuery("Performance", "rels_isMemberOf_ms:\"$this->pid\"+atm_type_s:\"Performance\"", 
-                "PID,atm_performance_piece_title_s,atm_performance_composer_name_s,atm_performance_score_pdf_b,atm_performance_mp3_b,rels_basedOn_ms,atm_performance_movement_ms",
+                "PID,atm_performance_piece_title_s,atm_performance_composer_name_s,atm_performance_score_pdf_b,atm_performance_mp3_b,rels_basedOn_ms,atm_performance_movement_ms,atm_performance_composer_pid_s,rels_concertOrder_ms",
                 array());
         $lectureResults = FJM::performItqlQuery('
-            select $lecture $title from <#ri>
+            select $lecture $title $order from <#ri>
             where $lecture <fedora-rels-ext:isMemberOf> <fedora:' . $this->pid . '>
             and $lecture <fedora-model:label> $title
             and $lecture <fedora-model:hasModel> <fedora:atm:lectureCModel>
-            and $lecture <fedora-model:state> <fedora-model:Active>');
+            and $lecture <fedora-model:state> <fedora-model:Active>
+            and $lecture <http://www.example.org/dummy#concertOrder> $order
+            order by $order asc
+        ');
         $performance_xpath = new DOMXPath($performanceResults);
         $lect_xpath = new DOMXPath($lectureResults);
         $lect_xpath->registerNamespace("r", "http://www.w3.org/2001/sw/DataAccess/rf1/result");
@@ -401,19 +406,23 @@ class FJM {
         {
             $pid = $performance_xpath->evaluate("string(str[@name='PID']/text())", $node);
             $pieceName = $performance_xpath->evaluate("string(str[@name='atm_performance_piece_title_s']/text())", $node);
+            $composerPid = $performance_xpath->evaluate("string(str[@name='atm_performance_composer_pid_s']/text())", $node);
             $composerName = $performance_xpath->evaluate("string(str[@name='atm_performance_composer_name_s']/text())", $node);
             $localscore = $performance_xpath->evaluate("string(arr[@name='rels_basedOn_ms']/str/text())", $node);
             $localpdfscore = (($performance_xpath->evaluate("string(bool[@name='atm_performance_score_pdf_b']/text())", $node) == 'true')?($localscore):(false));
-            //TODO: Solr query could could be expensive...  Might be well off making in only perform one additional query...
+            $concertOrder = $performance_xpath->evaluate("string(arr[@name='rels_concertOrder_ms']/str[1]/text())", $node);
+
+            //TODO: Solr query could could be expensive...  Might be well off 
+            //  making in only perform one additional query...  Or, make it a
+            //  subquery in Solr?
             $q2 = FJM::performSolrQuery("Score", "PID:\"" . $localscore ."\"", "atm_score_titn_s,PID", array());
             $s_results = new DOMXPath($q2);
             $libraryscore = $s_results->evaluate("string(/response/result[@name='response']/doc/str[@name='atm_score_titn_s']/text())");
-            
             $mp3_stat = ($performance_xpath->evaluate("string(bool[@name='atm_performance_mp3_b']/text())", $node) == 'true');
             $performance_array[] = array(
                 'data' => array(
                     $pieceName,
-                    $composerName,
+                    l($composerName, "fedora/repository/$composerPid"),
                     //TODO: Should probably make the URLs easier to change...  The drupal/fedora 
                     //  beginning should be obtained from the module, and the titn base address
                     //  should be configurable
@@ -421,46 +430,60 @@ class FJM {
                     (($libraryscore != "-1")?(l("Score in library", "http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=" . $libraryscore . ".titn.")):("")),
                     array(
                         'data' => (($mp3_stat)?
-                            ('<div class="atm_track">' . l("<!-- placeholder -->", "fedora/repository/$pid/MP3", array("html" => true)) . '</div>'):
+                            ('<div class="atm_track concertOrder_' . $concertOrder . '">' . l("<!-- placeholder -->", "fedora/repository/$pid/MP3", array("html" => true)) . '</div>'):
                             ("<!-- MP3 should be in movements -->")),
                         'style' => 'float:right;'
                     )
                 )
             );
             
+            $movements = new DOMXPath(FJM::performItqlQuery('
+                select $movement $name $concertOrder $pOrder from <#ri>
+                where $performance <mulgara:is> <fedora:' . $pid . '>
+                and $movement <fedora-rels-ext:isMemberOf> $performance
+                and $movement <fedora-model:label> $name
+                and $performance <http://www.example.org/dummy#concertOrder> $concertOrder
+                and $movement <http://www.example.org/dummy#pieceOrder> $pOrder
+                order by $concertOrder asc $pOrder asc
+            '));
+            $movements->registerNamespace("r", "http://www.w3.org/2001/sw/DataAccess/rf1/result");
+            
             //FIXME:  Assumption is made that if an MP3 exists at the performance level, then
             //  the movements will not contain an MP3 (and vice-versa)
-            foreach($performance_xpath->query("arr[@name='atm_performance_movement_ms']/str", $node) as $mov_node)
+            //FIXME:  Assumption is made that the results in the field will be in order...  May nt be the case.
+            foreach($movements->query("/r:sparql/r:results/r:result") as $mov_node)
             {
-                $mov_pid = $performance_xpath->evaluate("string(text())", $mov_node);
-                $mov_results = new DOMXPath(FJM::performItqlQuery('
+                $mov_pid = $movements->evaluate("substring-after(r:movement/@uri, '/')", $mov_node);
+                /*$mov_results = new DOMXPath(FJM::performItqlQuery('
                         select $name from <#ri>
                         where $movement <mulgara:is> <fedora:' . $mov_pid .'>
                         and $movement <fedora-model:label> $name;
                 ', 1));
-                $mov_results->registerNamespace("r", "http://www.w3.org/2001/sw/DataAccess/rf1/result");
+                $mov_results->registerNamespace("r", "http://www.w3.org/2001/sw/DataAccess/rf1/result");*/
                 //Add the movements.
                 $performance_array[] = array(
                     array(
-                        'data' => $mov_results->evaluate("string(/r:sparql/r:results/r:result/r:name/text())"),
+                        'data' => $movements->evaluate("string(r:name/text())", $mov_node),
                         'colspan' => '4'
                     ),
                     array(
                         'data' => (($mp3_stat)?
-                                ("<!-- MP3 should be in performance -->"):
-                                ('<div class="atm_track">' . l("<!-- placeholder -->", "fedora/repository/$mov_pid/MP3", array("html" => true)) . '</div>'))
+                            ("<!-- MP3 should be in performance -->"):
+                            ('<div class="atm_track concertOrder_' . $concertOrder . '">' . l("<!-- placeholder -->", "fedora/repository/$mov_pid/MP3", array("html" => true)) . '</div>'))
                     )
                 );
             }
         }
+        
         foreach($lect_xpath->query("/r:sparql/r:results/r:result") as $node)
         {
             $pid = $lect_xpath->evaluate("substring-after(r:lecture/@uri, '/')", $node);
             $title = $lect_xpath->evaluate("string(r:title/text())", $node);
+            $concertOrder = $lect_xpath->evaluate("string(r:order/text())", $node);
             $lecture_array[] = array(
                 $title,
                 array(
-                    'data' => ('<div class="atm_track">' . l("<!-- placeholder -->", "fedora/repository/$pid/MP3", array("html" => true)) . '</div>'),
+                    'data' => ('<div class="atm_track concertOrder_' . $concertOrder . '">' . l("<!-- placeholder -->", "fedora/repository/$pid/MP3", array("html" => true)) . '</div>'),
                     'style' => 'float:right;'
                 )
             );
@@ -511,6 +534,14 @@ class FJM {
         $output .=  '</div><!--bottom left-->';
 
         $output .= FJM::addPlayer('div.atm_track');
+        if(isset($pagenumber) && $pagenumber > 0)
+        {
+            $output .= '
+                <script type="text/javascript">
+                    $(function() {$(".concertOrder_' . $pagenumber . ':first > a").click()});
+                </script>
+            ';
+        }
         $output .= '</div><!-- bottom -->';
         
         return $output;

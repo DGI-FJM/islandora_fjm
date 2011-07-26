@@ -3,16 +3,16 @@ root {
 }
 
 .atm_solr_result p {
-	float: left;
-	padding-right: 10px;
+    float: left;
+/*    padding-right: 10px;*/
 }
 
 .atm_solr_result h3 {
-	clear: left;
+    clear: left;
 }
 
 #atm_player {
-	display: block;
+    display: block;
     clear: both;
     height: 30px;
     width: 100%;
@@ -31,8 +31,9 @@ div.atm_track > a.atm_playing {
     background-position: 100% 0;
 }
 
-.atm_solr_result > a > div {
+.atm_solr_result div {
     float: left;
+    padding: 5px;
 }
 
 .atm_solr_result .concert_top_left > * {
@@ -43,13 +44,23 @@ div.atm_track > a.atm_playing {
     float: right;
 }
 
-.atm_solr_result .concert_top_right > *{
-    height: 50px;
-    width: 50px;
+.atm_solr_result .concert_top_left > img{
+    height: 100px;
+    width: 100px;
     float: left;
 }
 
 .atm_solr_result .concert_bottom {
     clear: left;
     
+}
+
+.item_stat > h4 {
+    font-size: 100%;
+}
+
+.item_stat > p {
+    margin: 0;
+    font-size: 75%;
+    float: none;
 }
