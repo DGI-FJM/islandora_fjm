@@ -167,7 +167,7 @@ class FJM {
                     plugins: {
                         controls: {
                             all: false,
-                                                            play: true,
+                            play: true,
                             autoHide: false,
                             scrubber: true,
                             time: true,
@@ -187,7 +187,7 @@ class FJM {
             });
         </script>';
 
-            return $toReturn;
+        return $toReturn;
     }
     
     function addViewer($dsid = 'SWF')
@@ -203,7 +203,7 @@ class FJM {
                     "viewer",
                     {
                         config : {
-                            SwfFile: "http://' . $_SERVER['HTTP_HOST'] . "/fedora/repository/$this->pid/$dsid" . '",
+                            SwfFile: "http://' . $_SERVER['HTTP_HOST'] . url("fedora/repository/$this->pid/$dsid") . '",
                             Scale : 0.6,
                             ZoomTransition : "easeOut",
                             ZoomTime : 0.5,
@@ -328,13 +328,15 @@ class FJM {
     
     /**
      *
-     * @param type $pagenumber
+     * @param String $pagenumber Used as a bit of a hack to determine which song to start playing, if set.
      * @return string 
      */
     function showConcert($pagenumber = NULL) {
         if(is_callable("dsm"))
             dsm($pagenumber);
-        $ouput = '';
+        //$ouput = theme('islandora_fjm_atm_concert', $this->pid);
+        //*
+        $output = '';
         $fedoraPath = variable_get("fedora_base_url", 'http://localhost:8080/fedora');
         $islandoraPath = drupal_get_path("module", "islandora_fjm");
         $base = $islandoraPath . "/flowplayer";
@@ -353,38 +355,8 @@ class FJM {
         $concertResults = FJM::performSolrQuery("Concert", "PID:\"$this->pid\"", 
                 "PID,atm_concert_title_s,atm_concert_cycle_s,atm_concert_date_dt", 
                 array());
-        /*$concertResults = FJM::performItqlQuery('
-            select $concertTitle $cycleName from <#ri>
-            where $concert <mulgara:is> <fedora:' . $this->pid .'>
-            and $concert <fedora-model:label> $concertTitle
-            and $concert <fedora-rels-ext:isMemberOf> $cycle
-            and $cycle <fedora-model:label> $cycleName
-        ', 1);*/
         $concert_xpath = new DOMXPath($concertResults);
-        
-        $concertTitle = $concert_xpath->evaluate("string(normalize-space(/response/result[@name='response']/doc/str[@name='atm_concert_title_s']/text()))");
-        $concertCycle = $concert_xpath->evaluate("string(normalize-space(/response/result[@name='response']/doc/str[@name='atm_concert_cycle_s']/text()))");
-        
-        $concertDate = new DateTime($concert_xpath->evaluate("string(normalize-space(/response/result[@name='response']/doc/date[@name='atm_concert_date_dt']/text()))"));
-        /*$performanceResults = FJM::performItqlQuery('
-            select $performance $pieceName $composerName $porder
-              subquery(
-                select $movement $order from <#ri>
-                where $movement <fedora-rels-ext:isMemberOf> $performance
-                and $movement <http://www.example.org/dummy#pieceOrder> $order
-                order by $order asc
-              )
-            from <#ri>
-            where $performance <fedora-rels-ext:isMemberOf> <fedora:' . $this->pid . '>
-            and $performance <fedora-model:hasModel> <fedora:atm:performanceCModel>
-            and $performance <http://www.example.org/dummy#basedOn> $score
-            and $score <fedora-model:label> $pieceName
-            and $composer <http://www.example.org/dummy#composed> $score
-            and $composer <fedora-model:label> $composerName
-            and $performance <fedora-model:state> <fedora-model:Active>
-            and $performance <http://www.example.org/dummy#concertOrder> $porder
-            order by $porder asc
-        ');*/
+
         $performanceResults = FJM::performSolrQuery("Performance", "rels_isMemberOf_ms:\"$this->pid\"+atm_type_s:\"Performance\"", 
                 "PID,atm_performance_piece_title_s,atm_performance_composer_name_s,atm_performance_score_pdf_b,atm_performance_mp3_b,rels_basedOn_ms,atm_performance_movement_ms,atm_performance_composer_pid_s,rels_concertOrder_ms",
                 array());
@@ -400,6 +372,11 @@ class FJM {
         $performance_xpath = new DOMXPath($performanceResults);
         $lect_xpath = new DOMXPath($lectureResults);
         $lect_xpath->registerNamespace("r", "http://www.w3.org/2001/sw/DataAccess/rf1/result");
+        
+        $concertTitle = $concert_xpath->evaluate("string(normalize-space(/response/result[@name='response']/doc/str[@name='atm_concert_title_s']/text()))");
+        $concertCycle = $concert_xpath->evaluate("string(normalize-space(/response/result[@name='response']/doc/str[@name='atm_concert_cycle_s']/text()))");
+        $concertDate = new DateTime($concert_xpath->evaluate("string(normalize-space(/response/result[@name='response']/doc/date[@name='atm_concert_date_dt']/text()))"));
+        
         $performance_array = array();
         $lecture_array = array();
         foreach($performance_xpath->query("/response/result[@name='response']/doc") as $node)
@@ -454,12 +431,7 @@ class FJM {
             foreach($movements->query("/r:sparql/r:results/r:result") as $mov_node)
             {
                 $mov_pid = $movements->evaluate("substring-after(r:movement/@uri, '/')", $mov_node);
-                /*$mov_results = new DOMXPath(FJM::performItqlQuery('
-                        select $name from <#ri>
-                        where $movement <mulgara:is> <fedora:' . $mov_pid .'>
-                        and $movement <fedora-model:label> $name;
-                ', 1));
-                $mov_results->registerNamespace("r", "http://www.w3.org/2001/sw/DataAccess/rf1/result");*/
+                
                 //Add the movements.
                 $performance_array[] = array(
                     array(
@@ -531,18 +503,22 @@ class FJM {
             $output .= theme('table', $perf_header, $performance_array, array('class' => 'atm_concert_performance_table'));
         if(sizeof($lecture_array) > 0)
             $output .= theme('table', $lect_header, $lecture_array, array('class' => 'atm_concert_lecture_table'));
+        if(sizeof($performance_array) + sizeof($lecture_array) > 0)
+            $output .= FJM::addPlayer('div.atm_track');
+        
         $output .=  '</div><!--bottom left-->';
 
-        $output .= FJM::addPlayer('div.atm_track');
+        
         if(isset($pagenumber) && $pagenumber > 0)
         {
             $output .= '
                 <script type="text/javascript">
-                    $(function() {$(".concertOrder_' . $pagenumber . ':first > a").click()});
+                    //$(function() {$(".concertOrder_' . $pagenumber . ':first > a").click()});
                 </script>
             ';
         }
         $output .= '</div><!-- bottom -->';
+        //*/
         
         return $output;
     }
