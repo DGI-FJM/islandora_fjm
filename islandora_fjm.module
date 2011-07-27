@@ -40,37 +40,49 @@ function islandora_fjm_menu()
 }
 
 function islandora_fjm_display_schema() {
-  $filepath = drupal_get_path('module', 'islandora_fjm');
+    $filepath = drupal_get_path('module', 'islandora_fjm');
 
-  //Build the path (relative to the module path) -- kinda bad, but anyway.
-  foreach(func_get_args() as $i)
-  {
-      $filepath .= '/' . $i;
-  }
-  
-  $exts = array(
-      '.xslt' => true
-  );
-  $ext = strtolower(strrchr($filepath, "."));
-  if (isset($exts[$ext]) && $exts[$ext] && file_exists($filepath)) {
-    drupal_goto($filepath);
-  }
-  else {
-    drupal_goto();
-  }
-  return;
+    //Build the path (relative to the module path) -- kinda bad, but anyway.
+    foreach (func_get_args() as $i) {
+        $filepath .= '/' . $i;
+    }
+
+    $exts = array(
+        '.xslt' => true
+    );
+    $ext = strtolower(strrchr($filepath, "."));
+    if (isset($exts[$ext]) && $exts[$ext] && file_exists($filepath)) {
+        drupal_goto($filepath);
+    } else {
+        drupal_goto();
+    }
+    return;
 }
 
 function islandora_fjm_theme() {
 	return array (
 		'islandora_fjm_solr_result' => array(
-			'arguments' => array('item' => null),
-			'template' => 'templates/solr_result'
+                    'arguments' => array(
+                        'item' => null
+                    ),
+                    'template' => 'templates/solr_result'
 		),
-		'islandora_fjm_solr_table' => array(
-			'arguments' => array('items' => null),
-			'template' => 'templates/solr_table'
-		)
+		'islandora_fjm_atm_concert' => array(
+                    'arguments' => array(
+                        'pid' => null,
+                        'concert' => null,
+                        'islandoraPath' => drupal_get_path("module", "islandora_fjm"), 
+                        'fedoraPath' => variable_get("fedora_base_url", 'http://localhost:8080/fedora')
+                    ),
+                    'template' => 'templates/atm_concert'
+		),
+                'islandora_fjm_atm_concert_performance_list' => array(
+                    'arguments' => array(
+                        'concert_pid' => null,
+                        'header' => array(),
+                        'rows' => array(),
+                    )
+                )
 	);
 }
 
@@ -163,4 +175,17 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars)
     $toReturn['PID'] = $result->PID;
 
     $vars['item'] = $toReturn;
+}
+
+function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars)
+{
+    $pid = $vars['pid'];
+    $concert = array();
+    
+    $concertResults = FJM::performSolrQ("PID:\"$pid\"", 
+        "PID,atm_concert_title_s,atm_concert_cycle_s,atm_concert_date_dt", 
+        array());
+    $concert_xpath = new DOMXPath($concertResults);
+    
+    $vars['concert'] = $concert;
 }
