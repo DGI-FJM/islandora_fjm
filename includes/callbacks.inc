@@ -9,8 +9,16 @@ class FJM {
     function __construct($pid)
     {
         $this->pid = $pid;
-        
-        //A little hack to allow the datastream to be loaded directly
+        FJM::userAgentHack();
+    }
+    
+    /**
+     * A little hack to allow the datastream to be loaded directly
+     */
+    static function userAgentHack()
+    {
+        static $hacked = false;
+        if(!$hacked)
         {
             $opts = array(
                 'http' => array(
@@ -20,6 +28,7 @@ class FJM {
 
             $context = stream_context_create($opts);
             libxml_set_streams_context($context);
+            $hacked = true;
         }
     }
     
@@ -36,6 +45,7 @@ class FJM {
      * @return DOMDocument 
      */
     static function performItqlQuery($query, $limit = -1, $offset = 0) {
+        FJM::userAgentHack();
         $queryUrl = variable_get('fedora_repository_url', 'http://localhost:8080/fedora/risearch');
         $queryUrl .= "?type=tuples&flush=TRUE&format=Sparql" . (($limit > 0)?("&limit=$limit"):("")) . "&offset=$offset&lang=itql&stream=on&query=" . urlencode($query);
         $doc = DOMDocument::loadXML(do_curl($queryUrl));
@@ -53,6 +63,7 @@ class FJM {
      */
     static function performSolrQuery($type, $query = "", $fields = "PID", $otherParams = array(), $type_field = "atm_type_s")
     {
+        FJM::userAgentHack();
         $solrUrl = variable_get('fedora_solr_search_url', 'http://localhost:8080/solr') . '/select?q=';
         $solrUrl .= urlencode($query) . '&fl=' . urlencode($fields);
         if(isset($otherParams['fq']))
@@ -76,6 +87,7 @@ class FJM {
     //Version getting rid of the "type" stuff...  Got a little too specific.
     static function performSolrQ($query, $fields = 'PID', $otherParams = array())
     {
+        FJM::userAgentHack();
         $solrUrl = variable_get('fedora_solr_search_url', 'http://localhost:8080/solr') . '/select?q=';
         $solrUrl .= urlencode($query) . '&fl=' . urlencode($fields);
         foreach ($otherParams as $key => $value) {
@@ -104,6 +116,7 @@ class FJM {
      */
     static function showImageGallery($images, $attributes = array())
     {
+        FJM::userAgentHack();
         $first = TRUE;
         $output = '<div class="image_strip_group"';
         foreach($attributes as $attribute => $value)
@@ -124,10 +137,13 @@ class FJM {
             }
             
             //Add the image to the list of images.
-            $output .= '<li>
-                <img src="' . $image['thumbnail'] . '" alt="' . 
-                $image['alt'] . '" path="' . $image['path'] . '"/>
-                </li>';
+            if(sizeof($images) > 1)
+            {
+                $output .= '<li>
+                    <img src="' . $image['thumbnail'] . '" alt="' . 
+                    $image['alt'] . '" path="' . $image['path'] . '"/>
+                    </li>';
+            }
         }
         $output .= '  </ul>';
         $output .= '</div>';
@@ -142,7 +158,8 @@ class FJM {
         $output .= '</script>';
         
         //Make the filmstrip and lightbox work.
-        jcarousel_add("image_strip", array('start' =>  "1", 'wrap' => "both", 'visible' => 3, 'vertical' => FALSE, 'itemFallbackDimension' => 300));
+        if(sizeof($images) > 1)
+            jcarousel_add("image_strip", array('start' =>  "1", 'wrap' => "both", 'visible' => 3, 'vertical' => FALSE, 'itemFallbackDimension' => 300));
         lightbox2_add_files();
         
         return $output;
@@ -150,24 +167,30 @@ class FJM {
     
     static function addPlayer($selector = 'div.atm_track')
     {
-            $islandoraPath = drupal_get_path("module", "islandora_fjm");
-    $base = $islandoraPath . "/flowplayer";
-            drupal_add_js("$base/flowplayer-3.2.6.min.js");
-    drupal_add_js("$base/flowplayer.playlist-3.0.8.js");
-            $toReturn = '
-        <a class="player" id="atm_player"><!--FlowPlayer goes here --></a>';
+        FJM::userAgentHack();
+        $islandoraPath = drupal_get_path("module", "islandora_fjm");
+        $base = $islandoraPath . "/flowplayer";
+        drupal_add_js("$base/flowplayer-3.2.6.min.js");
+        drupal_add_js("$base/flowplayer.playlist-3.0.8.js");
+        $toReturn = '
+        <a class="player" id="atm_player"></a>';
 
-    //TODO: Get the protocol automatically; this would break if SSL were required...
-    //  Then again, is this really required?
-    $hostname = 'http://' . $_SERVER['HTTP_HOST'];
-    $toReturn .= '
-        <script type="text/javascript">
+        //TODO: Get the protocol automatically; this would break if SSL were required...
+        //  Then again, is this really required?
+        $hostname = 'http://' . $_SERVER['HTTP_HOST'];
+        $toReturn .= '<script type="text/javascript">
             $(function() {
                 $f("atm_player", "/' . $base . '/flowplayer-3.2.7.swf", {
                     plugins: {
                         controls: {
                             all: false,
-                            play: true,
+                            //Play button here is a Bad Idea (also happens to avoid a bug:
+                            //  When the player\' play button was clicked first, 
+                            //  the CSS was not being changed, and as such the icons 
+                            //  for tracks were not changing; however, if the track icon was
+                            //  clicked first, then the button in the player would
+                            //  work to change the CSS)
+                            //play: true,
                             autoHide: false,
                             scrubber: true,
                             time: true,
@@ -194,9 +217,8 @@ class FJM {
     {
         $base = drupal_get_path("module", "islandora_fjm") . '/flexpaper';
         drupal_add_js("$base/js/flexpaper_flash.js");
-        $output = '<div id="flexpaper">';
-        $output .=  '<a id="viewer" style="width: 700px; height: 400px; display: block;"></a>';
-        $output .=  '
+        $output = '<div id="flexpaper">
+            <a id="viewer" style="width: 700px; height: 400px; display: block;"></a>
             <script type="text/javascript">
                 var fp = new FlexPaperViewer(
                     "/' . $base .'/FlexPaperViewer",
@@ -229,32 +251,29 @@ class FJM {
                         }
                     }
                 );
-            </script>';
-        $output .= '</div>';
+            </script>
+        </div>';
         return $output;
     }
-	
-    /**
-     * Finds the images which are related to the current PID. (used to populate
-     *   the "filmstrip" in the image gallery)
-     * @param Array $defaultImage ('path' => "path_to_image", 'alt' => "alt_text", 'thumbnail' => "path_to_thumbnail
-     * @return Array (Similar format to the input)
-     */
-    function getRelatedImages($defaultImage = NULL)
+    
+    static function getRelatedImagesByPid($pid, $defaultImage = NULL, $dsid = 'JPG', $tndsid = 'TN')
     {
         $fedoraPath = variable_get('fedora_base_url', 'http://localhost:8080/fedora');
-        $iconQuery = ''
-            . 'select $label $icon from <#ri>'
-            . 'where ($icon <http://www.example.org/dummy#isIconOf> <fedora:' . $this->pid . '>'
-            . ' or $icon <http://www.example.org/dummy#isImageOf> <fedora:' . $this->pid . '>)'
-            . 'and $icon <fedora-model:label> $label;';
-        $queryResult = FJM::performItqlQuery($iconQuery);
+
+        $queryResult = FJM::performItqlQuery('
+            select $label $icon from <#ri>
+            where (
+                $icon <http://www.example.org/dummy#isIconOf> <fedora:' . $pid . '>
+                or $icon <http://www.example.org/dummy#isImageOf> <fedora:' . $pid . '>
+            )
+            and $icon <fedora-model:label> $label
+        ;');
         
         //Get all the result elements, and iterate through them.
         $elements = $queryResult->getElementsByTagName('result');
         $images = array();
         if($elements->length > 0) {
-        for($i=0; $i < $elements->length; $i++) {
+            for($i=0; $i < $elements->length; $i++) {
                 //Get the icon element from the search results
                 $resultElement = $elements->item($i);
                 $iconElement = $resultElement->getElementsByTagName('icon')->item(0);
@@ -266,18 +285,34 @@ class FJM {
                 if(!empty($imagePid))
                 {
                     $images[] = array(
-                        'path' => url("fedora/repository/$imagePid/JPG"),
-                        'thumbnail' => url("fedora/repository/$imagePid/TN"),
+                        'path' => url("fedora/repository/$imagePid/$dsid"),
+                        'thumbnail' => url("fedora/repository/$imagePid/$tndsid"),
                         'alt' => ($altText)
                     );
                 }
             }
         }
         elseif(isset($defaultImage)) {
-            $images[] = $defaultImage;
+            $images[] = array(
+                'path' => "$defaultImage/$dsid",
+                'thumbnail' => "$defaultImage/$tndsid",
+                'alt' => t("Default Image")
+            );
         }
         
         return $images;
+    }
+	
+    /**
+     * Finds the images which are related to the current PID. (used to populate
+     *   the "filmstrip" in the image gallery)
+     * @deprecated Shouldn't have to call this with the use of theme functions.
+     * @param Array $defaultImage ('path' => "path_to_image", 'alt' => "alt_text", 'thumbnail' => "path_to_thumbnail
+     * @return Array (Similar format to the input)
+     */
+    function getRelatedImages($defaultImage = NULL)
+    {
+        return FJM::getRelatedImagesByPid($this->pid, $defaultImage);
     }
     
     /**
@@ -288,7 +323,7 @@ class FJM {
      * TODO:  Might want to make it verify the content model.
      */
     function showPerson($pagenumber = NULL) {
-        $output = '';
+        /*$output = '';
         $fedoraPath = variable_get('fedora_base_url', 'http://localhost:8080/fedora');
 
         $eacdoc = DOMDocument::load("$fedoraPath/objects/"
@@ -323,7 +358,8 @@ class FJM {
         $output .=   'Build a "playable" list of pieces...?';
         $output .= '</div>';
         
-        return $output;
+        return $output;*/
+        return theme('islandora_fjm_atm_person', $this->pid);
     }
     
     /**
@@ -397,20 +433,25 @@ class FJM {
             $libraryscore = $s_results->evaluate("string(/response/result[@name='response']/doc/str[@name='atm_score_titn_s']/text())");
             $mp3_stat = ($performance_xpath->evaluate("string(bool[@name='atm_performance_mp3_b']/text())", $node) == 'true');
             $performance_array[] = array(
-                'data' => array(
-                    $pieceName,
-                    l($composerName, "fedora/repository/$composerPid"),
-                    //TODO: Should probably make the URLs easier to change...  The drupal/fedora 
-                    //  beginning should be obtained from the module, and the titn base address
-                    //  should be configurable
-                    (($localpdfscore)?(l("Score", "fedora/repository/" . $localpdfscore)):("")),
-                    (($libraryscore != "-1")?(l("Score in library", "http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=" . $libraryscore . ".titn.")):("")),
-                    array(
-                        'data' => (($mp3_stat)?
-                            ('<div class="atm_track concertOrder_' . $concertOrder . '">' . l("<!-- placeholder -->", "fedora/repository/$pid/MP3", array("html" => true)) . '</div>'):
-                            ("<!-- MP3 should be in movements -->")),
-                        'style' => 'float:right;'
-                    )
+                array(
+                    'data' => $pieceName,
+                    'colspan' => '2'    //
+                ),
+                array(
+                    'data' => l($composerName, "fedora/repository/$composerPid")
+                ),
+                //TODO: Should probably make the URLs easier to change...  
+                //  the titn base address should be configurable
+                array(
+                    'data' => (($localpdfscore)?(l("PDF", "fedora/repository/" . $localpdfscore)):(t("N/A")))
+                ),
+                array(
+                    'data' => (($libraryscore != "-1")?(l(t("Go"), "http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=" . $libraryscore . ".titn.")):(t("N/A")))
+                ),
+                array(
+                    'data' => (($mp3_stat)?
+                        ('<div class="atm_track concertOrder_' . $concertOrder . '">' . l("<!-- placeholder -->", "fedora/repository/$pid/MP3", array("html" => true)) . '</div>'):
+                        ("<!-- MP3 should be in movements -->"))
                 )
             );
             
@@ -434,9 +475,12 @@ class FJM {
                 
                 //Add the movements.
                 $performance_array[] = array(
+                    array(  //Empty cell to enforce indentation
+                        'data' => ""
+                    ),
                     array(
                         'data' => $movements->evaluate("string(r:name/text())", $mov_node),
-                        'colspan' => '4'
+                        'colspan' => "4"
                     ),
                     array(
                         'data' => (($mp3_stat)?
@@ -462,7 +506,11 @@ class FJM {
         }
         $perf_header = array(
             array(
-                'data' => t("Piece")
+                'data' => t("Piece")   
+            ),
+            array(  //To allow indentation "enforcement" for movements...
+                'data' => "",
+                'width' => '75'
             ),
             array(
                 'data' => t("Composer")
@@ -517,6 +565,7 @@ class FJM {
                 </script>
             ';
         }
+        
         $output .= '</div><!-- bottom -->';
         //*/
         
@@ -527,41 +576,11 @@ class FJM {
     //TODO:  Need to add link with Titn
     function showScore($pagenumber = NULL)
     {
-        $base = drupal_get_path("module", "islandora_fjm");
-        drupal_add_css("$base/css/islandora_fjm_score.css");
-        $output = '';
-        $xp2 = new DOMXPath(FJM::performSolrQ("PID:\"$this->pid\"","atm_score_title_s,atm_score_pdf_b,atm_score_composer_s,atm_score_titn_s"));
-        $res2 = $xp2->query("/response/result[@name='response']/doc")->item(0);
-        $output .= '<h2>' . $xp2->evaluate("string(str[@name='atm_score_title_s']/text())", $res2) . '</h2>';
-        $output .= '<h3>' . $xp2->evaluate("string(str[@name='atm_score_composer_s']/text())", $res2) .'</h3>';
-        $output .= $this->addViewer();
-        $modsUrl = $_SERVER['HTTP_HOST'] . url("fedora/repository/$this->pid/MODS");
-        $asdf = do_curl($modsUrl);
-        $mods = DOMDocument::loadXML($asdf);
-        $abstract = $mods->getElementsByTagName('abstract')->item(0);
-        $notes = $mods->getElementsByTagName('note');
-        $output .= '<div id="islandora_fjm_description">';
-        $output .= $abstract->nodeValue;
-        foreach($notes as $node)
-        {
-            $output .= "<p>$node->nodeValue</p>";
-        }
-        $output .= '</div>';
-        
-        return $output;
+        return theme('islandora_fjm_atm_score', $this->pid);
     }
     
     function showProgram($pagenumber = NULL)
     {
-        $base = drupal_get_path("module", "islandora_fjm");
-        //drupal_add_css("$base/css/islandora_fjm_program.css");
-        $xpath = new DOMXPath(FJM::performSolrQ("PID:\"$this->pid\"", "atm_program_concert_title_s,atm_program_concert_cycle_ms,atm_program_author_s,atm_program_titn_s"));
-        $result = $xpath->query("/response/result[@name='response']/doc")->item(0);
-        
-        $output = '';
-        $output .= '<h2>' . $xpath->evaluate("string(str[@name='atm_program_concert_title_s']/text())", $result) . '</h2>';
-        $output .= '<h3>' . $xpath->evaluate("string(arr[@name='atm_program_concert_cycle_ms']/str[1]/text())", $result) . '</h3>';
-        $output .= $this->addViewer();
-        return $output;
+        return theme('islandora_fjm_atm_program', $this->pid);
     }
 }

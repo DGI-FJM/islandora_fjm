@@ -458,9 +458,13 @@
 			</xsl:if>
 	
 			<xsl:for-each select="$PLAYERS/people/doc">
+				<xsl:variable name="person_pid" select="normalize-space(field[@name='PID']/text())"/>
 				<xsl:variable name="name" select="normalize-space(field[@name='atm_performer_name_s']/text())"/>
 				<xsl:variable name="inst" select="normalize-space(field[@name='atm_performer_instrument_s']/text())"/>
 				<xsl:variable name="class" select="normalize-space(field[@name='atm_performer_instrument_class_s']/text())"/>
+				<field name="atm_performance_player_pid_ms">
+					<xsl:value-of selec="$person_pid"/>
+				</field>
 				<field name="atm_performance_player_ms">
 					<xsl:value-of select="$name"/>
 				</field>
@@ -775,7 +779,7 @@
 			<xsl:call-template name="perform_query">
 				<xsl:with-param name="query">
 					<xsl:value-of select="'
-						select $concert $performerObj $personName $instrumentName $instrumentClassName $groupName $concertTitle $cycleName $pieceName $concertOrder from &lt;#ri&gt;
+						select $concert $performerObj $person $personName $instrumentName $instrumentClassName $groupName $concertTitle $cycleName $pieceName $concertOrder from &lt;#ri&gt;
 						where
 					'"/>
 					<!-- choose the performer docs to create depending on the input parameters -->

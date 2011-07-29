@@ -21,54 +21,7 @@ class SolrResults extends IslandoraSolrResults {
         $title = null;
         $recordStart = $results->response->start;
         $limitResults = variable_get('islandora_solr_search_limit_result_fields', 0);
-
-        /* $fq = null;
-          $type = null;
-          if(is_array($results->responseHeader->params->fq)) {
-          $fq = $results->responseHeader->params->fq;
-          }
-          else
-          {
-          $fq = array();
-          $fq[] = $results->responseHeader->params->fq;
-          }
-          //dsm($results->responseHeader->params->fq);
-          foreach($fq as $filter)
-          {
-          $type_string = 'atm_type_s:';
-          $test = strpos($filter, $type_string);
-
-          if($test !== false)
-          {
-          //$type_string was found somewhere.
-          // +/- 1 to get rid of the double quotes.
-          $type = strtolower(substr($filter, strlen($type_string) + 1, -1));
-          break;
-          }
-          else
-          {
-          //might contain another restricting term...
-          $prefix = 'atm_';
-          $test = strpos($filter, $prefix);
-          if($test !== false)
-          {
-          $type = strtolower(
-          substr(
-          $filter,
-          strlen($prefix),
-          strpos(
-          substr(
-          $filter,
-          strlen($prefix)
-          ),
-          '_'
-          )
-          )
-          );
-          break;
-          }
-          }
-          } */
+        
         $headers = array(
             'Composer' => array(
                 array(
@@ -115,13 +68,17 @@ class SolrResults extends IslandoraSolrResults {
                     'data' => t('Group'),
                     'name' => 'group'
                 ),
-                array(
+                /*array(    //Not desired
                     'data' => t('Piece'),
                     'name' => 'piece'
-                ),
+                ),*/
                 array(
                     'data' => t('Concert Title'),
                     'name' => 'concert'
+                ),
+                array(
+                    'data' => t('Year'),
+                    'name' => 'year'
                 ),
                 array(
                     'data' => t('Concert Cycle'),
@@ -197,6 +154,19 @@ class SolrResults extends IslandoraSolrResults {
             "Program" => array(),
             "Score" => array()
         );
+
+        /**
+         * @var $groups Used to translate from the keys to actual output strings.
+         */
+        $groups = array(
+            'Composer' => t('Composers'),
+            'Concert' => t('Concerts'),
+            'Lecture' => t('Conferences'),
+            'Performance' => t('Works'),
+            'Performer' => t('Performers'),
+            'Program' => t('Concert Programs'),
+            'Score' => t('Scores')
+        );
         foreach ($results->response->docs as $doc) {
             //Setup to pass to preprocessor... (Something of a hack,
             //  using the preprocessor function in this way)
@@ -256,8 +226,8 @@ class SolrResults extends IslandoraSolrResults {
         //Render the table for each content type.
         foreach ($table as $key => $tab) {
             if (!empty($tab)) {
-                $output .= "<h2>$key</h2>";
-                $output .= theme('table', (isset($headers[$key]) ? $headers[$key] : array()), $tab);
+                /*$output .= "<h2>" . $groups[$key] . "</h2>";*/
+                $output .= theme('table', (isset($headers[$key]) ? $headers[$key] : array()), $tab, array(), $groups[$key]);
             }
         }
 
