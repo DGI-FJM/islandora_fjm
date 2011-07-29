@@ -12,6 +12,9 @@ drupal_add_css("$base/css/islandora_fjm_score.css");
 <h2><? echo $title ?></h2>
 <h3><? echo $composer ?></h3>
 <? echo theme('islandora_fjm_flexpaper', $pid) ?>
+<div class="islandora_fjm_download">
+    <? echo l(t('Download PDF'), "fedora/repository/$pid/PDF/download/" . t("Score") . " - $title.pdf") ?>
+</div>
 <div class="islandora_fjm_description">
 <? if(!empty($abstract)): ?>
     <h4><? echo t("Abstract") ?></h4>

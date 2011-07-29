@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @file
+ * Extension of IslandoraSolrResults, which renders results differently dependant
+ * on content type.
+ */
 module_load_include('inc', 'islandora_solr_search', 'IslandoraSolrResults');
 
 class SolrResults extends IslandoraSolrResults {
@@ -11,17 +15,23 @@ class SolrResults extends IslandoraSolrResults {
 
     /**
      * Override the parent's "print" implementation
-     * @param  $results 
+     * @param  $results
+     * @var
      */
     function printResults($results) {
         $output = "";
 
         $items = array();
         $type = 'ol';
-        $title = null;
+        $title = NULL;
         $recordStart = $results->response->start;
         $limitResults = variable_get('islandora_solr_search_limit_result_fields', 0);
         
+        /**
+         * @var array<array<array<string>>> Array of headers to use in drawing the tables.  Also contains a 
+         * "name" field, which matches up against the key set in the preprocess
+         * function
+         */
         $headers = array(
             'Composer' => array(
                 array(
@@ -47,7 +57,11 @@ class SolrResults extends IslandoraSolrResults {
                     'name' => 'concert'
                 ),
                 array(
-                    'data' => t('Concert Cycle'),
+                    'data' => t('Year'),
+                    'name' => 'year'
+                ),
+                array(
+                    'data' => t('Concert Series'),
                     'name' => 'cycle'
                 ),
                 array(
@@ -81,7 +95,7 @@ class SolrResults extends IslandoraSolrResults {
                     'name' => 'year'
                 ),
                 array(
-                    'data' => t('Concert Cycle'),
+                    'data' => t('Concert Series'),
                     'name' => 'cycle'
                 )
             ),
@@ -95,7 +109,7 @@ class SolrResults extends IslandoraSolrResults {
                     'name' => 'concert'
                 ),
                 array(
-                    'data' => t('Cycle'),
+                    'data' => t('Series'),
                     'name' => 'cycle'
                 ),
                 array(
@@ -109,17 +123,21 @@ class SolrResults extends IslandoraSolrResults {
                     'name' => 'concert'
                 ),
                 array(
-                    'data' => t('Cycle'),
+                    'data' => t('Year'),
+                    'name' => 'year'
+                ),
+                array(
+                    'data' => t('Series'),
                     'name' => 'cycle'
                 ),
                 array(
-                    'data' => t('Author'),
+                    'data' => t('Author(s)'),
                     'name' => 'author'
                 ),
-                array(
+                /*array( //Not desired.
                     'data' => t('Find in library'),
                     'name' => 'titn_link'
-                ),
+                ),*/
                 array(
                     'data' => t('PDF'),
                     'name' => 'PDF_link'
@@ -145,6 +163,10 @@ class SolrResults extends IslandoraSolrResults {
             )
         );
 
+        /**
+         * Accumulate the rows for each table
+         * @var array<array>
+         */
         $table = array(
             "Composer" => array(),
             "Concert" => array(),
@@ -156,7 +178,8 @@ class SolrResults extends IslandoraSolrResults {
         );
 
         /**
-         * @var $groups Used to translate from the keys to actual output strings.
+         * Used to translate from the keys to "caption" strings.
+         * @var array<string> 
          */
         $groups = array(
             'Composer' => t('Composers'),
@@ -164,7 +187,7 @@ class SolrResults extends IslandoraSolrResults {
             'Lecture' => t('Conferences'),
             'Performance' => t('Works'),
             'Performer' => t('Performers'),
-            'Program' => t('Concert Programs'),
+            'Program' => t('Programs'),
             'Score' => t('Scores')
         );
         foreach ($results->response->docs as $doc) {
@@ -191,7 +214,7 @@ class SolrResults extends IslandoraSolrResults {
                         case 'audio':
                             $cell = "<div class='atm_track'>";
                             foreach ($docu['audio'] as $audio) {
-                                $cell .= l('<!-- placeholder -->', "fedora/repository/$audio/MP3", array('html' => true));
+                                $cell .= l('<!-- placeholder -->', "fedora/repository/$audio/MP3", array('html' => TRUE));
                             }
                             $cell .= "</div>";
                             $row['data'][] = $cell;

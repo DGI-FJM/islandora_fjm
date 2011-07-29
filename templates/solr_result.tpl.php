@@ -26,7 +26,7 @@ case "Concert":?>
         </div>
         <div class="item_stat">
             <h4><? print t("Audio:") ?></h4>
-            <p><? print ($item['audio'])?('asdf'):('fdsa') ?></p>
+            <p><? print (!empty($item['audio']))?('asdf'):('fdsa') ?></p>
         </div>
     </div>
     <div class="concert_bottom">

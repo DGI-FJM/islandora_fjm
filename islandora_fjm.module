@@ -21,8 +21,7 @@ function islandora_fjm_islandora_solr_primary_display() {
   );
 }
 
-function islandora_fjm_menu()
-{
+function islandora_fjm_menu() {
     $items = array();
     
     //Hacking a hack...  Need to get the XSLTs used to index in GSearch.
@@ -53,128 +52,128 @@ function islandora_fjm_display_schema() {
     $ext = strtolower(strrchr($filepath, "."));
     if (isset($exts[$ext]) && $exts[$ext] && file_exists($filepath)) {
         drupal_goto($filepath);
-    } else {
+    } 
+    else {
         drupal_goto();
     }
     return;
 }
 
 function islandora_fjm_theme() {
-	return array (
-            'islandora_fjm_solr_result' => array(
-                'arguments' => array(
-                    'item' => null
-                ),
-                'template' => 'templates/solr_result'
+    return array(
+        'islandora_fjm_solr_result' => array(
+            'arguments' => array(
+                'item' => NULL
             ),
-            'islandora_fjm_atm_concert' => array(
-                'arguments' => array(
-                    'pid' => null,
-                    'concert' => null,
-                    'islandoraPath' => drupal_get_path("module", "islandora_fjm"), 
-                    'fedoraPath' => variable_get("fedora_base_url", 'http://localhost:8080/fedora')
-                ),
-                'template' => 'templates/atm_concert'
+            'template' => 'templates/solr_result'
+        ),
+        'islandora_fjm_atm_concert' => array(
+            'arguments' => array(
+                'pid' => NULL,
+                'concert' => NULL,
+                'islandoraPath' => drupal_get_path("module", "islandora_fjm"), 
+                'fedoraPath' => variable_get("fedora_base_url", 'http://localhost:8080/fedora')
             ),
-            'islandora_fjm_atm_concert_performance_list' => array(
-                'arguments' => array(
-                    'concert_pid' => null,
-                    'header' => array(),
-                    'rows' => array(),
+            'template' => 'templates/atm_concert'
+        ),
+        'islandora_fjm_atm_concert_performance_list' => array(
+            'arguments' => array(
+                'concert_pid' => NULL,
+                'header' => array(),
+                'rows' => array(),
+            )
+        ),
+        'islandora_fjm_atm_score' => array(
+            'arguments' => array(
+                'pid' => NULL,
+                'pagenumber' => 1,
+                'title' => t('unknown'),
+                'composer' => t('unknown'),
+                'abstract' => t('No abstract'),
+                'notes' => array()
+
+            ),
+            'template' => 'templates/atm_score'
+        ),
+        'islandora_fjm_flexpaper' => array(
+            'arguments' => array(
+                'pid' => NULL,
+                'dsid' => 'SWF',
+                'pagenumber' => 1,
+                'flexpaper_path' => '/' . drupal_get_path("module", "islandora_fjm") . '/flexpaper',
+                'flexpaper_config' => array(
+                    'Scale' => 0.6,
+                    'ZoomTransition' => '"easeOut"',
+                    'ZoomTime' => 0.5,
+                    'ZoomInterval' => 0.1,
+                    'FitPageOnLoad' => 'false',
+                    'FitWidthOnLoad' => 'true',
+                    'PrintEnabled' => 'false',
+                    'FullScreenAsMaxWindow' => 'true',
+                    'ProgressiveLoading' => 'true',
+                    'MinZoomSize' => 0.2,
+                    'MaxZoomSize' => 5,
+                    'SearchMatchAll' => 'false',
+                    'InitViewMode' => "'Portrait'",
+                    'ViewModeToolsVisible' => 'true',
+                    'ZoomToolsVisible' => 'true',
+                    'NavToolsVisible' => 'true',
+                    'CursorToolsVisible' => 'true',
+                    'SearchToolsVisible' => 'true',
+                    'localeChain' => '"en_US"'
                 )
             ),
-            'islandora_fjm_atm_score' => array(
-                'arguments' => array(
-                    'pid' => null,
-                    'pagenumber' => 1,
-                    'title' => t('unknown'),
-                    'composer' => t('unknown'),
-                    'abstract' => t('No abstract'),
-                    'notes' => array()
-                    
-                ),
-                'template' => 'templates/atm_score'
+            'template' => 'templates/atm_flexpaper'
+        ),
+        'islandora_fjm_atm_program' => array(
+            'arguments' => array(
+                'pid' => NULL,
+                'dsid' => 'SWF',
+                'pagenumber' => 1,
+                'concert' => array(),
+                'toc' => NULL,
+                'notes' => array()
             ),
-            'islandora_fjm_flexpaper' => array(
-                'arguments' => array(
-                    'pid' => null,
-                    'dsid' => 'SWF',
-                    'pagenumber' => 1,
-                    'flexpaper_path' => '/' . drupal_get_path("module", "islandora_fjm") . '/flexpaper',
-                    'flexpaper_config' => array(
-                        'Scale' => 0.6,
-                        'ZoomTransition' => '"easeOut"',
-                        'ZoomTime' => 0.5,
-                        'ZoomInterval' => 0.1,
-                        'FitPageOnLoad' => 'false',
-                        'FitWidthOnLoad' => 'true',
-                        'PrintEnabled' => 'false',
-                        'FullScreenAsMaxWindow' => 'true',
-                        'ProgressiveLoading' => 'true',
-                        'MinZoomSize' => 0.2,
-                        'MaxZoomSize' => 5,
-                        'SearchMatchAll' => 'false',
-                        'InitViewMode' => "'Portrait'",
-                        'ViewModeToolsVisible' => 'true',
-                        'ZoomToolsVisible' => 'true',
-                        'NavToolsVisible' => 'true',
-                        'CursorToolsVisible' => 'true',
-                        'SearchToolsVisible' => 'true',
-                        'localeChain' => '"en_US"'
-                    )
+            'template' => 'templates/atm_program'
+        ),
+        'islandora_fjm_atm_person' => array(
+            'arguments' => array(
+                'pid' => NULL,
+                'name' => array(
+                    'first' => t('unknown'),
+                    'last' => t('unknown')
                 ),
-                'template' => 'templates/atm_flexpaper'
+                'date' => array(
+                    'birth' => NULL,
+                    'death' => NULL
+                ),
+                'biography' => t('No biography'),
+                'default_image' => url("fedora/repository/atm:defaultPersonImage"),
+                'performances' => array(),
+                'performance_headers' => array("blah")
             ),
-            'islandora_fjm_atm_program' => array(
-                'arguments' => array(
-                    'pid' => null,
-                    'dsid' => 'SWF',
-                    'pagenumber' => 1,
-                    'concert' => array()
-                ),
-                'template' => 'templates/atm_program'
+            'template' => 'templates/atm_person'
+        ),
+        'islandora_fjm_atm_imagegallery' => array(
+            'arguments' => array(
+                'pid' => NULL,
+                'attributes' => array('class' => 'image_strip_group'),
+                'images' => array()
             ),
-            'islandora_fjm_atm_person' => array(
-                'arguments' => array(
-                    'pid' => null,
-                    'name' => array(
-                        'first' => t('unknown'),
-                        'last' => t('unknown')
-                    ),
-                    'date' => array(
-                        'birth' => null,
-                        'death' => null
-                    ),
-                    'biography' => t('No biography'),
-                    'default_image' => url("fedora/repository/atm:defaultPersonImage"),
-                    'performances' => array(),
-                    'performance_headers' => array("blah")
-                ),
-                'template' => 'templates/atm_person'
-            ),
-            'islandora_fjm_atm_imagegallery' => array(
-                'arguments' => array(
-                    'pid' => null,
-                    'attributes' => array('class' => 'image_strip_group'),
-                    'images' => array()
-                ),
-                'template' => 'templates/imagegallery'
-            )
-            
-	);
+            'template' => 'templates/imagegallery'
+        )
+    );
 }
 
-function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars)
-{
+function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
     $result = $vars['item'];
     //dsm($vars);
     $toReturn = array();
 
-    switch($result->atm_type_s)
-    {
+    switch ($result->atm_type_s) {
     case "Composer":
             $toReturn['icon'] = "fedora/repository/" . $result->atm_composer_icon_s . "/TN";
-            $toReturn['icon_image'] = theme('image', $toReturn['icon'], '', '', '', false);
+            $toReturn['icon_image'] = theme('image', $toReturn['icon'], '', '', '', FALSE);
             $toReturn['name'] = $result->atm_composer_name_s;
             $toReturn['name_link'] = l($result->atm_composer_name_s, "fedora/repository/$result->PID");
     break;
@@ -196,17 +195,15 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars)
             //	this could break.
             $toReturn['concertPid'] = $result->rels_isMemberOf_ms;
             $toReturn['concert'] = l($result->atm_performance_concert_name_s, "fedora/repository/$result->rels_isMemberOf_ms");
+            $toReturn['year'] = $result->atm_performance_year_s;
             $toReturn['concert_path'] = "fedora/repository/$result->rels_isMemberOf_ms/-/-/$result->rels_concertOrder_ms";
             $toReturn['cycle'] = $result->atm_performance_concert_cycle_s;
             $toReturn['audio'] = array();
-            if($result->atm_performance_mp3_b)
-            {
+            if ($result->atm_performance_mp3_b) {
                 $toReturn['audio'][] = $result->PID;
             }
-            else
-            {
-                foreach($result->atm_performance_movement_ms as $audio)
-                {
+            else {
+                foreach ($result->atm_performance_movement_ms as $audio) {
                     $toReturn['audio'][] = $audio;
                 }
             }
@@ -231,6 +228,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars)
     break;
     case "Program":
             $toReturn['concert'] = $result->atm_program_concert_title_s;
+            $toReturn['year'] = $result->atm_program_year_s;
             //FIXME (minor):  concert cycle does not need to be multivalued...
             $toReturn['cycle'] = $result->atm_program_concert_cycle_ms;
             $toReturn['titn'] = $result->atm_program_titn_s;
@@ -242,9 +240,21 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars)
             $toReturn['composer'] = l($result->atm_score_composer_s, "fedora/repository/$result->atm_score_composer_pid_s");
             $toReturn['title'] = $result->atm_score_title_s;
             $toReturn['titn'] = $result->atm_score_titn_s;
-            $toReturn['titn_link'] = ($toReturn['titn'] > 0)?l(t('Go'), 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=' . $toReturn['titn'] . ".titn."):t('N/A');
+            $toReturn['titn_link'] = ($toReturn['titn'] > 0)?l(t('Go'), 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=' . $toReturn['titn'] . ".titn."): 
+                /**
+                 * @todo REMOVEME: Field to be left blank without link...
+                 * (http://support.discoverygarden.ca/attachments/download/480/CLAMOR_site_feedback.docx)
+                 * //t('N/A')
+                 */ 
+                "";
             $toReturn['pdf'] = $result->atm_score_pdf_b;
-            $toReturn['PDF_link'] = ($toReturn['pdf'])? l(t('PDF'), "fedora/repository/$result->PID") : t('N/A');
+            $toReturn['PDF_link'] = ($toReturn['pdf'])? l(t('PDF'), "fedora/repository/$result->PID") : 
+                /**
+                 * @todo REMOVEME: Field to be left blank without link... 
+                 * (http://support.discoverygarden.ca/attachments/download/480/CLAMOR_site_feedback.docx) 
+                 * //t('N/A')
+                 */ 
+                "";
     break;
     default:
             $toReturn[] = "Unknown type!";
@@ -260,15 +270,21 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars)
  * @todo Complete...
  * @param array $vars 
  */
-function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars)
-{
+function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
     $pid = $vars['pid'];
     $concert = array();
     
     $concertResults = FJM::performSolrQ("PID:\"$pid\"", 
         "PID,atm_concert_title_s,atm_concert_cycle_s,atm_concert_date_dt", 
         array());
+    $performanceResults = FJM::performSolrQ("atm_type_s:\"Performance\" AND rels_isMemberOf_ms:\"$pid\"",
+            "PID,atm_performance_piece_title_s,atm_performance_composer_name_s," . 
+            "atm_performance_score_pdf_b,atm_performance_mp3_b,rels_basedOn_ms,atm_performance_movements_ms" .
+            "atm_performance_movement_ms,atm_performance_composer_pid_s,rels_concertOrder_ms");
+    $lectureResults = FJM::performSolrQ("atm_type_s:\"Lecture\" AND rels_isMemberOf_ms:\"$pid\"", "PID,atm_lecture_title_s");
     $concert_xpath = new DOMXPath($concertResults);
+    $performance_xpath = new DOMXPath($performanceResults);
+    $lecture_xpath = new DOMXPath($lectureResults);
     
     $vars['concert'] = $concert;
 }
@@ -277,13 +293,13 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars)
  * Assemble the required information given the PID of a score.
  * @param &array $vars Input/output
  */
-function islandora_fjm_preprocess_islandora_fjm_atm_score(&$vars)
-{
+function islandora_fjm_preprocess_islandora_fjm_atm_score(&$vars) {
     $pid = $vars['pid'];
     
     $base = drupal_get_path("module", "islandora_fjm");
     $output = '';
-    $score_xpath = new DOMXPath(FJM::performSolrQ("PID:\"$pid\"","atm_score_title_s,atm_score_pdf_b,atm_score_composer_s,atm_score_titn_s"));
+    $score_xpath = new DOMXPath(FJM::performSolrQ("PID:\"$pid\"",
+        "atm_score_title_s,atm_score_pdf_b,atm_score_composer_s,atm_score_titn_s"));
     $score_result = $score_xpath->query("/response/result[@name='response']/doc")->item(0);
     
     $vars['title'] = $score_xpath->evaluate("string(str[@name='atm_score_title_s']/text())", $score_result);
@@ -294,42 +310,48 @@ function islandora_fjm_preprocess_islandora_fjm_atm_score(&$vars)
     $vars['abstract'] = $mods->getElementsByTagName('abstract')->item(0)->nodeValue;
     $vars['notes'] = array();
 
-    foreach($mods->getElementsByTagName('note') as $node)
-    {
+    foreach ($mods->getElementsByTagName('note') as $node) {
         //$output .= "<p>$node->nodeValue</p>";
         $vars['notes'][] = $node->nodeValue;
     }
 }
 
-function islandora_fjm_preprocess_islandora_fjm_flexpaper(&$vars)
-{
+function islandora_fjm_preprocess_islandora_fjm_flexpaper(&$vars) {
     $pid = $vars['pid'];
     $dsid = $vars['dsid'];
     
-    if(isset($vars['flexpaper_config']) && !isset($vars['flexpaper_config']['SwfFile']))
+    if (isset($vars['flexpaper_config']) && !isset($vars['flexpaper_config']['SwfFile']))
         $vars['flexpaper_config']['SwfFile'] = '"http://' . $_SERVER['HTTP_HOST'] . url("fedora/repository/$pid/$dsid") . '"';
 }
 
-function islandora_fjm_preprocess_islandora_fjm_atm_program(&$vars)
-{
+function islandora_fjm_preprocess_islandora_fjm_atm_program(&$vars) {
     $pid = $vars['pid'];
     
-    $xpath = new DOMXPath(FJM::performSolrQ("PID:\"$pid\"", "atm_program_concert_title_s,atm_program_concert_cycle_ms,atm_program_author_s,atm_program_titn_s"));
+    $xpath = new DOMXPath(FJM::performSolrQ("PID:\"$pid\"", "atm_program_concert_title_s,atm_program_concert_cycle_ms,atm_program_author_s,atm_program_titn_s,atm_program_year_s"));
     $result = $xpath->query("/response/result[@name='response']/doc")->item(0);
     
     $vars['concert'] = array();
     $vars['concert']['title'] = $xpath->evaluate("string(str[@name='atm_program_concert_title_s']/text())", $result);
     $vars['concert']['cycle'] = $xpath->evaluate("string(arr[@name='atm_program_concert_cycle_ms']/str[1]/text())", $result);
+    $vars['concert']['year'] = $xpath->evaluate("string(str[@name='atm_program_year_s']/text())", $result);
+    
+    $modsUrl = $_SERVER['HTTP_HOST'] . url("fedora/repository/$pid/MODS"); 
+    $mods = DOMDocument::loadXML(do_curl($modsUrl));
+    $vars['toc'] = $mods->getElementsByTagName('tableOfContents')->item(0)->nodeValue;
+    $vars['notes'] = array();
+
+    foreach ($mods->getElementsByTagName('note') as $node) {
+        //$output .= "<p>$node->nodeValue</p>";
+        $vars['notes'][] = $node->nodeValue;
+    }
 }
 
-function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars)
-{
+function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars) {
     $pid = $vars['pid'];
     FJM::userAgentHack();
     $eacdoc = new DOMDocument();
     
-    if(!$eacdoc->load("http://localhost" . url("fedora/repository/$pid/EAC-CPF")))
-    {
+    if (!$eacdoc->load("http://localhost" . url("fedora/repository/$pid/EAC-CPF"))) {
         dsm($vars);
         return;
     }
@@ -398,26 +420,20 @@ function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars)
     //Perform magic...  
     //  Really, use the two arrays (of arrays) we just defined to build an array
     //  containing the actual data to pass to the template...
-    foreach($performances as $key => $xpath)
-    {
-        foreach($xpath->evaluate("/response/result[@name='response']/doc") as $doc)
-        {
+    foreach ($performances as $key => $xpath) {
+        foreach ($xpath->evaluate("/response/result[@name='response']/doc") as $doc) {
             $temp = array();
 
-            foreach($headers[$key] as $col)
-            {
+            foreach ($headers[$key] as $col) {
                 $temp[$col['sField']] = $xpath->evaluate("string(" . $col['xpath'] . ")", $doc);
                 
                 //Make this column a link, based on...
-                if(isset($col['linkTo']))
-                {
+                if (isset($col['linkTo'])) {
                     //... a pid obtained via another xpath
-                    if(isset($col['linkTo']['pid']))
-                    {
+                    if (isset($col['linkTo']['pid'])) {
                         //If there is a check and it fails, continue to the next 
                         //  column without creating the link.
-                        if(isset($col['linkTo']['pid']['check']) && !$xpath->evaluate("string(" . $col['linkTo']['pid']['check'] . ")", $doc))
-                        {
+                        if (isset($col['linkTo']['pid']['check']) && !$xpath->evaluate("string(" . $col['linkTo']['pid']['check'] . ")", $doc)) {
                             dsm($xpath->evaluate("string(" . $col['linkTo']['pid']['check'] . ")"));
                             $temp[$col['sField']] = $xpath->evaluate("string(" . $col['linkTo']['pid']['failvalue'] . ")", $doc);
                             continue;
@@ -438,20 +454,16 @@ function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars)
     //  a custom "table" theme function?
     //Unset "mystuff" (the stuff I don't want in the markup...)
     $mystuff = array('sField', 'xpath', 'linkTo');
-    foreach($headers['associated'] as $idx => $header)
-    {
-        foreach($header as $key => $value)
-        {
-            if(in_array($key, $mystuff))
-            {
+    foreach ($headers['associated'] as $idx => $header) {
+        foreach ($header as $key => $value) {
+            if (in_array($key, $mystuff)) {
                 unset($vars['performance_headers'][$idx][$key]);
             }
         }
     }
 }
 
-function islandora_fjm_preprocess_islandora_fjm_atm_imagegallery(&$vars)
-{
+function islandora_fjm_preprocess_islandora_fjm_atm_imagegallery(&$vars) {
     $pid = $vars['pid'];
     
     $vars['images'] = FJM::getRelatedImagesByPid($pid);    

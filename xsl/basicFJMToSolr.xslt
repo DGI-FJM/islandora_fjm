@@ -629,9 +629,11 @@
 				<xsl:value-of select="substring($date, 1, 4)"/>
 			</field>
 			
-			<!-- FIXME: Don't know where to get the author from! -->
+			<!-- FIXME (major): Need to create EAC-CPF objects for authors and obtain from there!
+				Also, trigger reindex when author object changes.
+				Going to be creating "person" objects for each with EAC-CPF, and index from there.-->
 			<field name="atm_program_author_s">
-				<xsl:value-of select="'unknown'"/>
+				<!--<xsl:value-of select="normalize-space()"/>-->
 			</field>
 			
 			
