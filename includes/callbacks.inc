@@ -358,7 +358,7 @@ class FJM {
      * @return string 
      */
     function showConcert($pagenumber = NULL) {
-        if (is_callable("dsm"))
+        /*if (is_callable("dsm"))
             dsm($pagenumber);
         //$ouput = theme('islandora_fjm_atm_concert', $this->pid);
         //*
@@ -555,7 +555,8 @@ class FJM {
         $output .= '</div><!-- bottom -->';
         //*/
         
-        return $output;
+        //return $output;*/
+        return theme('islandora_fjm_atm_concert', $this->pid);
     }
     
     //TODO: Cleanup ((Rather) Bad variable names)

@@ -47,7 +47,7 @@ function islandora_fjm_display_schema() {
     }
 
     $exts = array(
-        '.xslt' => true
+        '.xslt' => TRUE
     );
     $ext = strtolower(strrchr($filepath, "."));
     if (isset($exts[$ext]) && $exts[$ext] && file_exists($filepath)) {
@@ -75,13 +75,6 @@ function islandora_fjm_theme() {
                 'fedoraPath' => variable_get("fedora_base_url", 'http://localhost:8080/fedora')
             ),
             'template' => 'templates/atm_concert'
-        ),
-        'islandora_fjm_atm_concert_performance_list' => array(
-            'arguments' => array(
-                'concert_pid' => NULL,
-                'header' => array(),
-                'rows' => array(),
-            )
         ),
         'islandora_fjm_atm_score' => array(
             'arguments' => array(
@@ -211,8 +204,9 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
             $toReturn['score_link'] = l('Score', "islandora/solr/search/PID:\"". $toReturn['score'] . "\"");
     break;
     case "Lecture":
-            $toReturn['title'] = $result->atm_lecture_title_s;
+            $toReturn['description'] = $result->atm_lecture_title_s;
             $toReturn['concert'] = $result->atm_lecture_concert_title_s;
+            $toReturn['year'] = $result->atm_audio_concert_year_s;
             $toReturn['cycle'] = $result->atm_lecture_concert_cycle_s;
             $toReturn['audio'] = array($result->PID);
     break;
@@ -272,7 +266,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
  */
 function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
     $pid = $vars['pid'];
-    $concert = array();
+    //$concert = array();
     
     $concertResults = FJM::performSolrQ("PID:\"$pid\"", 
         "PID,atm_concert_title_s,atm_concert_cycle_s,atm_concert_date_dt", 
@@ -283,8 +277,168 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
             "atm_performance_movement_ms,atm_performance_composer_pid_s,rels_concertOrder_ms");
     $lectureResults = FJM::performSolrQ("atm_type_s:\"Lecture\" AND rels_isMemberOf_ms:\"$pid\"", "PID,atm_lecture_title_s");
     $concert_xpath = new DOMXPath($concertResults);
+    $concert_doc = $concert_xpath->query('/response/result[@name="response"]/doc')->item(0);
     $performance_xpath = new DOMXPath($performanceResults);
     $lecture_xpath = new DOMXPath($lectureResults);
+    $concert = array(
+        'title' => $concert_xpath->evaluate('string(str[@name="atm_concert_title_s"]/text())', $concert_doc),
+        'cycle' => $concert_xpath->evaluate('string(str[@name="atm_concert_cycle_s"]/text())', $concert_doc),
+        'date' => new DateTime($concert_xpath->evaluate("string(normalize-space(date[@name='atm_concert_date_dt']/text()))", $concert_doc)),
+        'description' => $concert_xpath->evaluate('string(str[@name="atm_concert_description_s"]/text())', $concert_doc),
+        'performance' => array(),
+        'performance_rows' => array(),
+        'lecture' => array(),
+        'lecture_rows' => array()
+    );
+    
+    foreach ($performance_xpath->query("/response/result[@name='response']/doc") as $node) {
+        
+        $performance = array(
+            'pid' => $performance_xpath->evaluate("string(str[@name='PID']/text())", $node),
+            'piece' => $performance_xpath->evaluate("string(str[@name='atm_performance_piece_title_s']/text())", $node),
+            'composer' => array(
+                'pid' => $performance_xpath->evaluate("string(str[@name='atm_performance_composer_pid_s']/text())", $node),
+                'name'=> $performance_xpath->evaluate("string(str[@name='atm_performance_composer_name_s']/text())", $node)
+            ),
+            'localscore' => $performance_xpath->evaluate("string(arr[@name='rels_basedOn_ms']/str[1]/text())", $node),
+            'localpdfscore' => (
+                ($performance_xpath->evaluate("string(bool[@name='atm_performance_score_pdf_b']/text())", $node) == 'true')?
+                ($performance_xpath->evaluate("string(arr[@name='rels_basedOn_ms']/str[1]/text())", $node)):
+                (FALSE)
+            ),
+            'order' => $performance_xpath->evaluate("string(arr[@name='rels_concertOrder_ms']/str[1]/text())", $node),
+            'mp3stat' => ($performance_xpath->evaluate("string(bool[@name='atm_performance_mp3_b']/text())", $node) == 'true'),
+            'movements' => array()
+        );
+        
+        $performance['rows'] = array(
+            array(
+                array(
+                    'data' => $performance['piece'],
+                    'colspan' => '2'
+                ),
+                array(
+                    'data' => l($performance['composer']['name'], "fedora/repository/" . $performance['composer']['pid'])
+                ),
+                array(
+                    'data' => (
+                        ($performance['localpdfscore'])?
+                        (l(t("PDF"), "fedora/repository/" . $performance['localpdfscore'])):
+                        (t("N/A"))) //Don't know if they want this row populated if there's none.
+                ),
+                array(
+                    'data'=> "<!-- No titn yet... -->"
+                ),
+                array(
+                    'data' => (
+                        ($performance['mp3stat'])?
+                        ('
+                            <div class="atm_track concertOrder_' . $performance['order'] . '">
+                                ' . l("<!-- placeholder -->", "fedora/repository/" . $performance['pid'], array('html' => TRUE)) . '
+                            </div>'):
+                        ('  <!-- MP3 is probably in movements -->')
+                    )
+                )
+            )
+        );
+        
+        if ($performance_xpath->evaluate("string(count(atm_performance_movement_ms))", $node) > 0) {
+            $movements = new DOMXPath(
+                FJM::performSolrQ(
+                    'rels_hasModel_ms:"atm:movementCModel" AND rels_isMemberOf_ms:"' . $performance['pid'] . '"', 
+                    'PID,title_s,hasMP3_b'
+                )
+            );
+
+            foreach ($movements->query("/response/results[@name='response']/doc") as $mov_node) {
+                $movement = array(
+                    'pid' => //$movements->evaluate("substring-after(r:movement/@uri, '/')", $mov_node),
+                        $movements->evaluate("string(str[@name='PID']/text())", $mov_node),
+                    'name' => //$movements->evaluate("string(r:name/text())", $mov_node)
+                        $movements->evaluate("string(str[@name='name_s']/text()", $mov_node),
+                    'hasMP3' => $movements->evaluate("string(bool[@name='hasMP3_b']/text())")
+                );
+
+                $performance['rows'][] = array(
+                    array(
+                        'data' => "" //empty cell for formatting
+                    ),
+                    array(
+                        'data' => $movement['name'],
+                        'colspan' => '4'
+                    ),
+                    array(
+                        'data' => (
+                            (!$performance['mp3stat'] && $movement['hasMP3'])?
+                            ('
+                                <div class="atm_track">
+                                    ' . l('<!-- placeholder -->', 'fedora/repository/' .  $movement['pid'], array('html' => TRUE)) . '
+                                </div>
+                            '):
+                            ("<!-- MP3 in performance, or none -->")
+                        )
+                    )
+                );
+            }
+        }
+        
+        $concert['performance'][] = $performance;
+        $concert['performance_rows'] = array_merge($concert['performance_rows'], $performance['rows']);
+    }
+    
+    foreach ($lecture_xpath->query("/response/result[@name='response']/doc") as $node) {
+        $lecture = array(
+            'pid' => $lecture_xpath->evaluate("string(str[@name='PID']/text())", $node),
+            'description' => $lecture_xpath->evaluate("string(str[@name='atm_lecture_title_s']/text())", $node),
+        );
+        
+        $lecture['row'] = array(
+            $lecture['description'],
+            array(
+                'data' => '
+                    <div class="atm_track">
+                    ' . l("<!-- placeholder -->", 'fedora/repository/' . $lecture['pid'], array('html' => TRUE)) . ' 
+                    </div>
+                ',
+                'style' => 'float:right;'
+            )
+        );
+        $concert['lecture'][] = $lecture;
+        $concert['lecture_rows'][] = $lecture['row'];
+    }
+    
+    $concert['headers'] = array(
+        'performance' => array(
+            array(
+                'data' => t("Piece")   
+            ),
+            array(  //To allow indentation "enforcement" for movements...
+                'data' => "",
+                'width' => '75'
+            ),
+            array(
+                'data' => t("Composer")
+            ),
+            array(
+                'data' => t("Score")
+            ), //Score in Fedora Repo
+            array(
+                'data' => t("Biblio")
+            ),   //Score in Library
+            array(
+                //Playable track...
+                'data' => "",
+            )
+        ),
+        'lecture' => array(
+            array(
+                'data' => t("Description")
+            ),
+            array(
+                'data' => ""
+            )
+        )
+    );
     
     $vars['concert'] = $concert;
 }
@@ -335,7 +489,8 @@ function islandora_fjm_preprocess_islandora_fjm_atm_program(&$vars) {
     $vars['concert']['cycle'] = $xpath->evaluate("string(arr[@name='atm_program_concert_cycle_ms']/str[1]/text())", $result);
     $vars['concert']['year'] = $xpath->evaluate("string(str[@name='atm_program_year_s']/text())", $result);
     
-    $modsUrl = $_SERVER['HTTP_HOST'] . url("fedora/repository/$pid/MODS"); 
+    $modsUrl = $_SERVER['HTTP_HOST'] . url("fedora/repository/$pid/MODS");
+    echo $modsUrl;
     $mods = DOMDocument::loadXML(do_curl($modsUrl));
     $vars['toc'] = $mods->getElementsByTagName('tableOfContents')->item(0)->nodeValue;
     $vars['notes'] = array();

@@ -13,15 +13,6 @@
 root  {
     display: block;
 }
-
-div.atm_concert_bottom {
-    clear: both;
-}
-
-div.atm_concert_bottom_left 
-{
-    float: left;
-}
     
 #atm_player {
     float: left;

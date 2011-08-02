@@ -101,8 +101,8 @@ class SolrResults extends IslandoraSolrResults {
             ),
             'Lecture' => array(
                 array(
-                    'data' => t('Title'),
-                    'name' => 'title'
+                    'data' => t('Description'),
+                    'name' => 'description'
                 ),
                 array(
                     'data' => t('Concert'),

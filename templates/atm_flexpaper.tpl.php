@@ -5,11 +5,12 @@
  * @param string swf_url
  */
 
-$base = drupal_get_path("module", "islandora_fjm") . '/flexpaper';
-drupal_add_js("$base/js/flexpaper_flash.js");
+$base = drupal_get_path("module", "islandora_fjm");
+drupal_add_js("$base/flexpaper/js/flexpaper_flash.js");
+drupal_add_css("$base/css/islandora_fjm_flexpaper.css");
 ?>
 <div id="flexpaper">
-    <div id="viewer" style="width: 700px; height: 400px; display: block;"></div>
+    <div id="viewer"></div>
     <script type="text/javascript">
         var fp = new FlexPaperViewer(
             "<? echo $flexpaper_path; ?>/FlexPaperViewer",

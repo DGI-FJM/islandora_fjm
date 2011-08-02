@@ -163,6 +163,37 @@
 							</xsl:call-template>
 						</xsl:for-each>
 					</xsl:when>
+					<xsl:when test="@rdf:resource='info:fedora/atm:movementCModel'">
+						<xsl:call-template name="atm_movement">
+							<xsl:with-param name="pid" select="$pid"/>
+						</xsl:call-template>
+						<xsl:variable name="ITEM_TF">
+							<xsl:call-template name="perform_query">
+								<xsl:with-param name="query" select="concat('
+									select $performance from &lt;#ri&gt;
+									where $movement &lt;mulgara:is&gt; &lt;fedora:', $pid, '&gt;
+									and $movement &lt;fedora-rels-ext:isMemberOf&gt; $performance
+									and $performance &lt;fedora-model:state&gt; &lt;fedora-model:Active&gt;
+								')"/>
+							</xsl:call-template>
+						</xsl:variable>
+						<xsl:for-each select="xalan:nodeset($ITEM_TF)/res:sparql/res:results/res:result/res:performance">
+							<xsl:call-template name="fjm-atm">
+								<xsl:with-param name="pid" select="substring-after(@uri, '/')"/>
+								<xsl:with-param name="previous_items" select="concat($previous_items, ' ', $pid)"/>
+							</xsl:call-template>
+						</xsl:for-each>
+					</xsl:when>
+					<xsl:otherwise>
+						<doc>
+							<field name="PID">
+								<xsl:value-of select="$pid"/>
+							</field>
+							<xsl:call-template name="rels_ext">
+								<xsl:with-param name="pid" select="$pid"/>
+							</xsl:call-template>
+						</doc>
+					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:for-each>
 		</xsl:if>
@@ -463,7 +494,7 @@
 				<xsl:variable name="inst" select="normalize-space(field[@name='atm_performer_instrument_s']/text())"/>
 				<xsl:variable name="class" select="normalize-space(field[@name='atm_performer_instrument_class_s']/text())"/>
 				<field name="atm_performance_player_pid_ms">
-					<xsl:value-of selec="$person_pid"/>
+					<xsl:value-of select="$person_pid"/>
 				</field>
 				<field name="atm_performance_player_ms">
 					<xsl:value-of select="$name"/>
@@ -473,6 +504,49 @@
 				</field>
 				<field name="atm_performance_inst_class_ms">
 					<xsl:value-of select="$class"/>
+				</field>
+			</xsl:for-each>
+		</doc>
+	</xsl:template>
+	
+	
+	<xsl:template name="atm_movement">
+		<xsl:param name="pid"/>
+		
+		<doc>
+			<field name="PID">
+				<xsl:value-of select="$pid"/>
+			</field>
+			<xsl:call-template name="rels_ext">
+				<xsl:with-param name="pid" select="$pid"/>
+			</xsl:call-template>
+			<field name="hasMP3_b">
+				<xsl:choose>
+					<xsl:when test="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@', $HOST, ':', $PORT, '/fedora/objects/', $pid , '/datastreams?format=xml'))/fds:objectDatastreams/fds:datastream[@dsid='MP3']">true</xsl:when>
+					<xsl:otherwise>false</xsl:otherwise>
+				</xsl:choose>
+			</field>
+			<xsl:variable name="ITEM_TF">
+				<xsl:call-template name="perform_query">
+					<xsl:with-param name="query" select="concat('
+						select $name $cOrder $pOrder from &lt;#ri&gt;
+						where $movement &lt;mulgara:is&gt; &lt;fedora:', $pid, '&gt;
+						and $movement &lt;fedora-model:label&gt; $name
+						and $movement &lt;fedora-rels-ext:isMemberOf&gt; $performance
+						and $performance &lt;', $NAMESPACE, 'concertOrder&gt; $cOrder
+						and $movement &lt;', $NAMESPACE, 'pieceOrder&gt; $pOrder
+					')"/>
+				</xsl:call-template>
+			</xsl:variable>
+			<xsl:for-each select="xalan:nodeset($ITEM_TF)/res:sparql/res:results/res:result">
+				<field name="title_s">	
+					<xsl:value-of select="normalize-space(res:name/text())"/>
+				</field>
+				<field name="cOrder_s">
+					<xsl:value-of select="res:cOrder/text()"/>
+				</field>
+				<field name="pOrder_s">
+					<xsl:value-of select="res:pOrder/text()"/>
 				</field>
 			</xsl:for-each>
 		</doc>
@@ -706,6 +780,9 @@
 			<field name="atm_lecture_order_i">
 				<xsl:value-of select="$LECT/res:order/text()"/>
 			</field>
+			<xsl:call-template name="rels_ext">
+				<xsl:with-param name="pid" select="$pid"/>
+			</xsl:call-template>
 		</doc>
 	</xsl:template>
 	
@@ -955,7 +1032,11 @@
 				<xsl:with-param name="str" select="normalize-space($query)"/>
 			</xsl:call-template>
 		</xsl:variable>
-		<xsl:copy-of select="document(concat($RISEARCH, $encoded_query, $additional_params))"/>
+		<xsl:variable name="full_query" select="document(concat($RISEARCH, $encoded_query, $additional_params))"/>
+		<xsl:comment>
+			<xsl:value-of select="$full_query"/>
+		</xsl:comment>
+		<xsl:copy-of select="$full_query"/>
 	</xsl:template>
 	
 	<xsl:template name="rels_ext">

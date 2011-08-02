@@ -1,7 +1,7 @@
 <?php 
- drupal_add_css($path, $type)?>
+ drupal_add_css(drupal_get_path('module', 'islandora_fjm') . "/css/islandora_fjm_imagegallery.css", 'module')?>
 <div <? 
-//FIXME:  Should this be moved to preprocess? I think so...  Anyway.
+//FIXME:  Should this be moved to preprocess? I think so...  Probably...  Anyway.
 $attributeStringArray = array();
 foreach ($attributes as $attribute => $value) {
     if(is_array($value))
