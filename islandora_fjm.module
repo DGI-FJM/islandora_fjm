@@ -150,7 +150,9 @@ function islandora_fjm_theme() {
         'islandora_fjm_atm_imagegallery' => array(
             'arguments' => array(
                 'pid' => NULL,
-                'attributes' => array('class' => 'image_strip_group'),
+                'attributes' => array(
+                    'class' => 'image_strip_group'
+                ),
                 'images' => array()
             ),
             'template' => 'templates/imagegallery'
@@ -226,7 +228,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
             //FIXME (minor):  concert cycle does not need to be multivalued...
             $toReturn['cycle'] = $result->atm_program_concert_cycle_ms;
             $toReturn['titn'] = $result->atm_program_titn_s;
-            $toReturn['titn_link'] = l(t('Go'), 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=' . $toReturn['titn'] . ".titn.");
+            $toReturn['titn_link'] = l(t('Go'), FJM::getTitnAddr($toReturn['titn']));
             $toReturn['author'] = $result->atm_program_author_s;
             $toReturn['PDF_link'] = l(t('PDF'), "fedora/repository/$result->PID");
     break;
@@ -234,7 +236,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
             $toReturn['composer'] = l($result->atm_score_composer_s, "fedora/repository/$result->atm_score_composer_pid_s");
             $toReturn['title'] = $result->atm_score_title_s;
             $toReturn['titn'] = $result->atm_score_titn_s;
-            $toReturn['titn_link'] = ($toReturn['titn'] > 0)?l(t('Go'), 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=' . $toReturn['titn'] . ".titn."): 
+            $toReturn['titn_link'] = ($toReturn['titn'] > 0)?l(t('Go'), FJM::getTitnAddr($toReturn['titn'])): 
                 /**
                  * @todo REMOVEME: Field to be left blank without link...
                  * (http://support.discoverygarden.ca/attachments/download/480/CLAMOR_site_feedback.docx)
@@ -273,8 +275,11 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
         array());
     $performanceResults = FJM::performSolrQ("atm_type_s:\"Performance\" AND rels_isMemberOf_ms:\"$pid\"",
             "PID,atm_performance_piece_title_s,atm_performance_composer_name_s," . 
-            "atm_performance_score_pdf_b,atm_performance_mp3_b,rels_basedOn_ms,atm_performance_movements_ms" .
-            "atm_performance_movement_ms,atm_performance_composer_pid_s,rels_concertOrder_ms");
+            "atm_performance_score_pdf_b,atm_performance_mp3_b,rels_basedOn_ms,atm_performance_movement_ms," .
+            "atm_performance_composer_pid_s,rels_concertOrder_ms,atm_performance_score_titn_s",
+            array(
+                'sort' => 'atm_performance_order_i asc'
+            ));
     $lectureResults = FJM::performSolrQ("atm_type_s:\"Lecture\" AND rels_isMemberOf_ms:\"$pid\"", "PID,atm_lecture_title_s");
     $concert_xpath = new DOMXPath($concertResults);
     $concert_doc = $concert_xpath->query('/response/result[@name="response"]/doc')->item(0);
@@ -306,6 +311,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                 ($performance_xpath->evaluate("string(arr[@name='rels_basedOn_ms']/str[1]/text())", $node)):
                 (FALSE)
             ),
+            'score_titn' => $performance_xpath->evaluate("string(str[@name='atm_performance_score_titn_s']/text())", $node),
             'order' => $performance_xpath->evaluate("string(arr[@name='rels_concertOrder_ms']/str[1]/text())", $node),
             'mp3stat' => ($performance_xpath->evaluate("string(bool[@name='atm_performance_mp3_b']/text())", $node) == 'true'),
             'movements' => array()
@@ -327,7 +333,11 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                         (t("N/A"))) //Don't know if they want this row populated if there's none.
                 ),
                 array(
-                    'data'=> "<!-- No titn yet... -->"
+                    'data'=> (
+                        (!empty($performance['score_titn']))?
+                        (l(t("Go"), FJM::getTitnAddr($performance['score_titn']))):
+                        (t("N/A"))
+                    )
                 ),
                 array(
                     'data' => (
@@ -342,21 +352,24 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
             )
         );
         
-        if ($performance_xpath->evaluate("string(count(atm_performance_movement_ms))", $node) > 0) {
+        if ($performance_xpath->evaluate("count(arr[@name='atm_performance_movement_ms']/str)", $node) > 0) {
             $movements = new DOMXPath(
                 FJM::performSolrQ(
                     'rels_hasModel_ms:"atm:movementCModel" AND rels_isMemberOf_ms:"' . $performance['pid'] . '"', 
-                    'PID,title_s,hasMP3_b'
+                    'PID,title_s,hasMP3_b',
+                    array(
+                        'sort' => 'pOrder_s asc'
+                    )
                 )
             );
 
-            foreach ($movements->query("/response/results[@name='response']/doc") as $mov_node) {
+            foreach ($movements->query("/response/result[@name='response']/doc") as $mov_node) {
                 $movement = array(
                     'pid' => //$movements->evaluate("substring-after(r:movement/@uri, '/')", $mov_node),
                         $movements->evaluate("string(str[@name='PID']/text())", $mov_node),
                     'name' => //$movements->evaluate("string(r:name/text())", $mov_node)
-                        $movements->evaluate("string(str[@name='name_s']/text()", $mov_node),
-                    'hasMP3' => $movements->evaluate("string(bool[@name='hasMP3_b']/text())")
+                        $movements->evaluate("string(str[@name='title_s']/text())", $mov_node),
+                    'hasMP3' => $movements->evaluate("string(bool[@name='hasMP3_b']/text())", $mov_node)
                 );
 
                 $performance['rows'][] = array(

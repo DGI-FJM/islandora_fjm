@@ -9,9 +9,8 @@ foreach ($attributes as $attribute => $value) {
     else
         $toOutput = $value;
     
-    $attributeStringArray[] = $attribute ."=\"$toOutput\" ";
+    $attributeStringArray[] = $attribute ."=\"$toOutput\"";
 }
-
 echo implode(' ', $attributeStringArray);
 ?>>
 <?

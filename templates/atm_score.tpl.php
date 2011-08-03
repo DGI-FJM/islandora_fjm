@@ -5,8 +5,7 @@
      * @param string $abstract Short description (taken from MODS?)
      * @param array<string> $notes An array of notes (taken from MODS?)
      */
-$base = drupal_get_path("module", "islandora_fjm");
-drupal_add_css("$base/css/islandora_fjm_score.css");
+
 ?>
 
 <h2><? echo $title ?></h2>

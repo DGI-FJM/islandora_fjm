@@ -469,6 +469,10 @@
 					<xsl:otherwise>false</xsl:otherwise>
 				</xsl:choose>
 			</field>
+			<field name="atm_performance_score_titn_s">
+				<xsl:value-of select="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@',
+				$HOST, ':', $PORT, '/fedora/objects/', substring-after($SCORES/res:score/@uri, '/'), '/datastreams/OriginalXML/content'))/Obra/titn_partitura"/>
+			</field>
 	
 			<!-- check if there is an MP3 in this performance (otherwise, they have to be in the movements) -->
 			<field name="atm_performance_mp3_b">

@@ -293,6 +293,12 @@ class FJM {
         
         return $images;
     }
+    
+    static function getTitnAddr($titn) {
+        $url = 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=';
+        $end = '.titn.';
+        return $url . $titn . $end;
+    }
 
     /**
      * Finds the images which are related to the current PID. (used to populate
