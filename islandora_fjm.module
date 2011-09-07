@@ -271,16 +271,45 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
     //$concert = array();
     
     $concertResults = FJM::performSolrQ("PID:\"$pid\"", 
-        "PID,atm_concert_title_s,atm_concert_cycle_s,atm_concert_date_dt", 
-        array());
-    $performanceResults = FJM::performSolrQ("atm_type_s:\"Performance\" AND rels_isMemberOf_ms:\"$pid\"",
-            "PID,atm_performance_piece_title_s,atm_performance_composer_name_s," . 
-            "atm_performance_score_pdf_b,atm_performance_mp3_b,rels_basedOn_ms,atm_performance_movement_ms," .
-            "atm_performance_composer_pid_s,rels_concertOrder_ms,atm_performance_score_titn_s",
+        implode(',',
             array(
-                'sort' => 'atm_performance_order_i asc'
-            ));
-    $lectureResults = FJM::performSolrQ("atm_type_s:\"Lecture\" AND rels_isMemberOf_ms:\"$pid\"", "PID,atm_lecture_title_s");
+                "PID",
+                "atm_concert_title_s",
+                "atm_concert_cycle_s",
+                "atm_concert_date_dt",
+                "atm_concert_description_s",
+                "atm_concert_program_pdf_pid_s",
+                "atm_concert_program_titn_s"
+            )
+        ),
+        array());
+    $performanceResults = FJM::performSolrQ("atm_type_s:\"Performance\" AND rels_isMemberOf_ms:\"$pid\"", 
+        implode(',', 
+            array(
+                "PID",
+                "atm_performance_piece_title_s",
+                "atm_performance_composer_name_s",
+                "atm_performance_score_pdf_b",
+                "atm_performance_mp3_b",
+                "rels_basedOn_ms",
+                "atm_performance_movement_ms",
+                "atm_performance_composer_pid_s",
+                "rels_concertOrder_ms",
+                "atm_performance_score_titn_s"
+            )
+        ),
+        array(
+            'sort' => 'atm_performance_order_i asc'
+        )
+    );
+    $lectureResults = FJM::performSolrQ("atm_type_s:\"Lecture\" AND rels_isMemberOf_ms:\"$pid\"",
+        implode(',',
+            array(
+                "PID",
+                "atm_lecture_title_s"
+            )
+        )
+    );
     $concert_xpath = new DOMXPath($concertResults);
     $concert_doc = $concert_xpath->query('/response/result[@name="response"]/doc')->item(0);
     $performance_xpath = new DOMXPath($performanceResults);
@@ -293,7 +322,11 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
         'performance' => array(),
         'performance_rows' => array(),
         'lecture' => array(),
-        'lecture_rows' => array()
+        'lecture_rows' => array(),
+        'program' => array(
+            'pid' => $concert_xpath->evaluate('string(str[@name="atm_concert_program_pdf_pid_s"]/text())', $concert_doc),
+            'titn' => $concert_xpath->evaluate('string(str[@name="atm_concert_program_titn_s"]/text())', $concert_doc),
+        )
     );
     
     foreach ($performance_xpath->query("/response/result[@name='response']/doc") as $node) {
@@ -305,12 +338,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                 'pid' => $performance_xpath->evaluate("string(str[@name='atm_performance_composer_pid_s']/text())", $node),
                 'name'=> $performance_xpath->evaluate("string(str[@name='atm_performance_composer_name_s']/text())", $node)
             ),
-            'localscore' => $performance_xpath->evaluate("string(arr[@name='rels_basedOn_ms']/str[1]/text())", $node),
-            'localpdfscore' => (
-                ($performance_xpath->evaluate("string(bool[@name='atm_performance_score_pdf_b']/text())", $node) == 'true')?
-                ($performance_xpath->evaluate("string(arr[@name='rels_basedOn_ms']/str[1]/text())", $node)):
-                (FALSE)
-            ),
+            'localpdfscore' => $performance_xpath->evaluate("string(arr[@name='rels_basedOn_ms']/str[contains(text(), ':')]/text())", $node),
             'score_titn' => $performance_xpath->evaluate("string(str[@name='atm_performance_score_titn_s']/text())", $node),
             'order' => $performance_xpath->evaluate("string(arr[@name='rels_concertOrder_ms']/str[1]/text())", $node),
             'mp3stat' => ($performance_xpath->evaluate("string(bool[@name='atm_performance_mp3_b']/text())", $node) == 'true'),
@@ -321,7 +349,8 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
             array(
                 array(
                     'data' => $performance['piece'],
-                    'colspan' => '2'
+                    'colspan' => '2',
+                    'class' => 'atm_piecename'
                 ),
                 array(
                     'data' => l($performance['composer']['name'], "fedora/repository/" . $performance['composer']['pid'])
@@ -330,13 +359,13 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                     'data' => (
                         ($performance['localpdfscore'])?
                         (l(t("PDF"), "fedora/repository/" . $performance['localpdfscore'])):
-                        (t("N/A"))) //Don't know if they want this row populated if there's none.
+                        (t("N/A"))) //TODO (minor): Don't know if they want this column populated if there's none.
                 ),
                 array(
                     'data'=> (
                         (!empty($performance['score_titn']))?
                         (l(t("Go"), FJM::getTitnAddr($performance['score_titn']))):
-                        (t("N/A"))
+                        (t("N/A")) //TODO (minor): Don't know if they want this column populated if there's none.
                     )
                 ),
                 array(
@@ -344,7 +373,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                         ($performance['mp3stat'])?
                         ('
                             <div class="atm_track concertOrder_' . $performance['order'] . '">
-                                ' . l("<!-- placeholder -->", "fedora/repository/" . $performance['pid'], array('html' => TRUE)) . '
+                                ' . l("<!-- placeholder -->", "fedora/repository/" . $performance['pid'] . '/MP3', array('html' => TRUE)) . '
                             </div>'):
                         ('  <!-- MP3 is probably in movements -->')
                     )
@@ -374,7 +403,8 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
 
                 $performance['rows'][] = array(
                     array(
-                        'data' => "" //empty cell for formatting
+                        'data' => "", //empty cell for formatting
+                        'class' => 'atm_movement_empty_cell'
                     ),
                     array(
                         'data' => $movement['name'],
@@ -385,7 +415,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                             (!$performance['mp3stat'] && $movement['hasMP3'])?
                             ('
                                 <div class="atm_track">
-                                    ' . l('<!-- placeholder -->', 'fedora/repository/' .  $movement['pid'], array('html' => TRUE)) . '
+                                    ' . l('<!-- placeholder -->', 'fedora/repository/' .  $movement['pid'] . '/MP3', array('html' => TRUE)) . '
                                 </div>
                             '):
                             ("<!-- MP3 in performance, or none -->")
@@ -410,7 +440,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
             array(
                 'data' => '
                     <div class="atm_track">
-                    ' . l("<!-- placeholder -->", 'fedora/repository/' . $lecture['pid'], array('html' => TRUE)) . ' 
+                    ' . l("<!-- placeholder -->", 'fedora/repository/' . $lecture['pid'] . '/MP3', array('html' => TRUE)) . ' 
                     </div>
                 ',
                 'style' => 'float:right;'
@@ -427,7 +457,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
             ),
             array(  //To allow indentation "enforcement" for movements...
                 'data' => "",
-                'width' => '75'
+                'width' => '200'
             ),
             array(
                 'data' => t("Composer")
@@ -474,12 +504,13 @@ function islandora_fjm_preprocess_islandora_fjm_atm_score(&$vars) {
     //$output .= $this->addViewer();
     $modsUrl = $_SERVER['HTTP_HOST'] . url("fedora/repository/$pid/MODS"); 
     $mods = DOMDocument::loadXML(do_curl($modsUrl));
-    $vars['abstract'] = $mods->getElementsByTagName('abstract')->item(0)->nodeValue;
-    $vars['notes'] = array();
+    if ($mods) {
+        $vars['abstract'] = $mods->getElementsByTagName('abstract')->item(0)->nodeValue;
+        $vars['notes'] = array();
 
-    foreach ($mods->getElementsByTagName('note') as $node) {
-        //$output .= "<p>$node->nodeValue</p>";
-        $vars['notes'][] = $node->nodeValue;
+        foreach ($mods->getElementsByTagName('note') as $node) {
+            $vars['notes'][] = $node->nodeValue;
+        }
     }
 }
 
@@ -526,13 +557,16 @@ function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars) {
     $eaccpf = new DOMXPath($eacdoc);
     
     $vars['name'] = array(
-        'first' => $eaccpf->evaluate('string(/eac-cpf/cpfDescription/identity/nameEntry/part[@localType="first"])'),
-        'last' => $eaccpf->evaluate('string(/eac-cpf/cpfDescription/identity/nameEntry/part[@localType="last"])')
+        'first' => $eaccpf->evaluate('string(/eac-cpf/cpfDescription/identity/nameEntry[@localType="primary"]/part[@localType="forename"])'),
+        'last' => $eaccpf->evaluate('string(/eac-cpf/cpfDescription/identity/nameEntry[@localType="primary"]/part[@localType="surname"])')
     );
     $vars['date']['birth'] = $eaccpf->evaluate('string(/eac-cpf/cpfDescription/description/existDates/dateRange/fromDate/@standardDate)');
     $vars['date']['death'] = $eaccpf->evaluate('string(/eac-cpf/cpfDescription/description/existDates/dateRange/toDate/@standardDate');
     
-    $vars['biography'] = $eacdoc->saveXML($eaccpf->evaluate('/eac-cpf/cpfDescription/description/biogHist')->item(0));
+    $vars['biography'] = $eacdoc->saveXML($eaccpf->evaluate('/eac-cpf/cpfDescription/description/biogHist[@localType="primary"]')->item(0));
+    if (strpos($vars['biography'], '&lt;p&gt;')) {
+        $vars['biography'] = html_entity_decode($vars['biography']);
+    }
     
     $vars['performances'] = array(
         'composed' => array(),
@@ -575,7 +609,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars) {
                 'xpath' => '"PDF"',
                 'linkTo' => array(
                     'pid' => array(
-                        'xpath' => 'arr[@name="rels_basedOn_ms"]/str[1]/text()',
+                        'xpath' => 'arr[@name="rels_basedOn_ms"]/str[contains(text(), ":")]/text()',
                         'check' => 'bool[@name="atm_performance_score_pdf_b"]/text()',
                         'failvalue' => '"N/A"'
                     )

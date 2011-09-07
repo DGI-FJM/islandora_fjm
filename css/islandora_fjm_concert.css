@@ -2,6 +2,10 @@ root {
     display: block;
 }
 
+.atm_movement_empty_cell {
+    width: 100px;
+}
+
 div.atm_concert_bottom {
     clear: both;
 }

@@ -14,7 +14,7 @@ drupal_add_css("$base/css/islandora_fjm_flexpaper.css");
     <script type="text/javascript">
         var fp = new FlexPaperViewer(
             "<? echo $flexpaper_path; ?>/FlexPaperViewer",
-            "viewer",
+            "viewer", //ID selector for the div above
             {
                 config : {
                     <? foreach($flexpaper_config as $key => $value): 
