@@ -222,7 +222,14 @@ class SolrResults extends IslandoraSolrResults {
                         case 'piece':
                             $cell = l($docu['piece'], $docu['concert_path']);
                             $row['data'][] = $cell;
-                         break;
+                            break;
+                        case 'author':
+                            $cell = '<ul>';
+                            foreach ($docu['author'] as $author) {
+                                $cell .= '<li>' . $author . '</li>';
+                            }
+                            $cell .= '</ul>';
+                            break;
                         default:
                             $row['data'][] = $docu[$field['name']];
                     }
