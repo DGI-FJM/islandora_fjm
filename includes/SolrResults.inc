@@ -230,7 +230,7 @@ class SolrResults extends IslandoraSolrResults {
             }
 
             //... otherwise, render it with the theme function, to be thrown into a cell.
-            //FIXME (minor):	Kind of inefficient, as it is "preprocessed" twice, but anyway...
+            //FIXME:	Kind of inefficient, as it is "preprocessed" twice, but anyway...
             else {
                 $row['data'][] = theme('islandora_fjm_solr_result', $doc);
             }
@@ -244,6 +244,23 @@ class SolrResults extends IslandoraSolrResults {
         if (!empty($table['Performance']) || !empty($table['Lecture'])) {
             module_load_include('inc', 'islandora_fjm', 'includes/callbacks');
             $output .= FJM::addPlayer();
+        }
+        
+        //Add the accordion stuff to work in Concerts...
+        if (!empty($table['Concert'])) {
+            jquery_ui_add('ui.accordion');
+            drupal_add_js('$(function() {
+                $("div.concert_bottom").each(function(index) {
+                    $(this).accordion({
+                        active: false,
+                        collapsible: true,
+                        autoHeight: false,
+                        header: "h3"
+                    });
+                })
+            });', 'inline');
+            drupal_add_css('sites/all/libraries/jquery.ui/themes/base/ui.theme.css', 'module');
+            drupal_add_css('sites/all/libraries/jquery.ui/themes/base/ui.accordion.css', 'module');
         }
 
         //Render the table for each content type.

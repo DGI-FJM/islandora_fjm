@@ -107,42 +107,58 @@
 						</xsl:call-template>
 						
 					</xsl:when>
-                    <!-- FIXME: this is broken...  gotta find composers differently? -->
 					<xsl:when test="@rdf:resource='info:fedora/atm:personCModel'">
-						<xsl:if test="count(../ns:composed) &gt; 0">
-							<xsl:call-template name="atm_composer">
-								<xsl:with-param name="pid" select="$pid"/>
+                        <!-- Get a list of scores this person has composed:  Create a "composer" index if the list is not empty, and index the scores... -->
+                        <xsl:variable name="SCORE_TF">
+                            <xsl:call-template name="perform_query">
+                                <xsl:with-param name="query" select="concat('
+                                    PREFIX atm-rel: &lt;', $NAMESPACE, '&gt;
+                                    FROM &lt;#ri&gt;
+                                    SELECT $score
+                                    WHERE {
+                                        $score atm-rel:composedBy $person .
+                                        FILTER(sameterm($person, &lt;info:fedora/', $pid, '&gt;))
+                                    }
+                                ')"/>
+                                <xsl:with-param name="lang" select="'sparql'"/>
+                            </xsl:call-template>
+                        </xsl:variable>
+                        <xsl:variable name="SCORES" select="xalan:nodeset($SCORE_TF)"/>
+                        <xsl:if test="count($SCORES/res:sparql/res:results/res:result/res:score) > 0">
+                            <xsl:call-template name="atm_composer">
+                                <xsl:with-param name="pid" select="$pid"/>
+                            </xsl:call-template>
+                        </xsl:if>
+                        <xsl:for-each select="$SCORES/res:sparql/res:results/res:result/res:score">
+                            <xsl:call-template name="fjm-atm">
+								<xsl:with-param name="pid" select="substring-after(@uri, '/')"/>
+								<xsl:with-param name="previous_items" select="concat($previous_items, ' ', $pid)"/>
 							</xsl:call-template>
-						</xsl:if>
-						
+                        </xsl:for-each>
+                    
 						<!-- Get the list of all concerts in which this person has played and which doesn't contain 
 							a performance based on a piece they have composed (not sure if this exclusion will work, 
-							as I do not actually see this situation) and of all the scores they have composed and index them. -->
-						<xsl:variable name="ITEM_TF">
+							as I do not actually see this situation). -->
+						<xsl:variable name="CONCERT_TF">
 							<xsl:call-template name="perform_query">
 								<xsl:with-param name="query" select="concat('
-									select $item from &lt;#ri&gt;
-									where $person &lt;mulgara:is&gt; &lt;fedora:', $pid, '&gt;
-									and 
-									(
-										(
-											($person &lt;', $NAMESPACE, 'playedIn&gt; $performance
-											and $performance &lt;fedora-rels-ext:isMemberOf&gt; $item)
-											minus
-											(
-												$score &lt;', $NAMESPACE, 'composedBy&gt; $person
-												and $performance &lt;', $NAMESPACE, 'basedOn&gt; $score
-											)
-										)
-										or 
-										(
-											$person &lt;', $NAMESPACE, 'composed&gt; $item
-										)
-									)
+									PREFIX atm-rel: &lt;', $NAMESPACE, '&gt;
+                                    PREFIX fedora-rels-ext: &lt;info:fedora/fedora-system:def/relations-external#&gt;
+                                    SELECT $concert
+                                    FROM &lt;#ri&gt;
+                                    WHERE {
+                                        $performerObj atm-rel:player $person ;
+                                                      atm-rel:performance $performance .
+                                        $performance atm-rel:basedOn $score ;
+                                                     fedora-rels-ext:isMemberOf $concert .
+                                        $score atm-rel:composedBy $composer .
+                                        FILTER(!sameterm($person, $composer) &amp;&amp; sameterm($person, &lt;info:fedora/', $pid, '&gt;))
+                                    }
 								')"/>
+                                <xsl:with-param name="lang" select="'sparql'"/>
 							</xsl:call-template>
 						</xsl:variable>
-						<xsl:for-each select="xalan:nodeset($ITEM_TF)/res:sparql/res:results/res:result/res:item">
+						<xsl:for-each select="xalan:nodeset($CONCERT_TF)/res:sparql/res:results/res:result/res:concert">
 							<xsl:call-template name="fjm-atm">
 								<xsl:with-param name="pid" select="substring-after(@uri, '/')"/>
 								<xsl:with-param name="previous_items" select="concat($previous_items, ' ', $pid)"/>
@@ -245,8 +261,8 @@
                       $performance fedora-model:state fedora-model:Active .
                       $composer fedora-model:state fedora-model:Active .
                       OPTIONAL {
-                        $program fedora-rels-ext:isMemberOf $concert .
-                        $program fedora-model:hasModel atm:programCModel
+                        $program fedora-rels-ext:isMemberOf $concert ;
+                                 fedora-model:hasModel atm:programCModel .
                       } .
                       OPTIONAL {
                         $concert dc:description $concertDesc
@@ -317,7 +333,7 @@
 				
 				<xsl:if test="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@', $HOST, ':', $PORT, '/fedora/objects/', substring-after(res:score/@uri, '/') , '/datastreams?format=xml'))/fds:objectDatastreams/fds:datastream[@dsid='PDF']">
 					<field name="atm_digital_objects_ms">Score PDF</field>
-				</xsl:if>
+				</xsl:if>                
 				
 				<xsl:variable name="PERSON_GROUP_MEMBERSHIP">
 					<people><!-- Need a "root" element, so add one. -->
@@ -338,6 +354,11 @@
 					</field>
 				</xsl:for-each>
 			</xsl:for-each>
+            
+            <xsl:call-template name="digital_objects">
+                <xsl:with-param name="objectType" select="'concert'"/>
+                <xsl:with-param name="concert" select="$pid"/>
+            </xsl:call-template>
 			
 			<field name="atm_concert_program_pdf_b">
 				<xsl:choose>
@@ -523,12 +544,11 @@
 			</field>
 			
 			<!-- TODO:  Is this what they want? -->
-			<xsl:if test="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@', $HOST, ':', $PORT, '/fedora/objects/', $pid , '/datastreams?format=xml'))/fds:objectDatastreams/fds:datastream[@dsid='MP3']">
-				<field name="atm_digital_objects_ms">Concert Audio</field>
-			</xsl:if>
-			<xsl:if test="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@', $HOST, ':', $PORT, '/fedora/objects/', substring-after($SCORES/res:score/@uri, '/') , '/datastreams?format=xml'))/fds:objectDatastreams/fds:datastream[@dsid='PDF']">
-				<field name="atm_digital_objects_ms">Score PDF</field>
-			</xsl:if>
+			<xsl:call-template name="digital_objects">
+                <xsl:with-param name="objectType" select="'performance'"/>
+                <xsl:with-param name="performance" select="$pid"/>
+            </xsl:call-template>
+            
 	
 			<xsl:for-each select="$PLAYERS/people/doc">
 				<xsl:variable name="person_pid" select="normalize-space(field[@name='PID']/text())"/>
@@ -601,11 +621,20 @@
 		<xsl:variable name="SCORE_RESULT_TF">
 			<xsl:call-template name="perform_query">
 				<xsl:with-param name="query" select="concat('
-				select $title $composerName $composer from &lt;#ri&gt;
-				where &lt;fedora:', $pid, '&gt; &lt;dc:title&gt; $title
-				and &lt;fedora:', $pid, '&gt; &lt;http://www.example.org/dummy#composedBy&gt; $composer
-				and $composer &lt;dc:title&gt; $composerName
+                    PREFIX dc: &lt;http://purl.org/dc/elements/1.1/&gt;
+                    PREFIX atm-rel: &lt;', $NAMESPACE, '&gt;
+                    PREFIX fjm-titn: &lt;http://digital.march.es/titn#&gt;
+                    SELECT $title $composerName $composer $titn 
+                    FROM &lt;#ri&gt;
+                    WHERE {
+                      $score dc:title $title ;
+                             atm-rel:composedBy $composer .
+                      OPTIONAL{$score fjm-titn:score $titn}.
+                      $composer dc:title $composerName .
+                      FILTER(sameterm($score, &lt;fedora:', $pid, '&gt;))
+                    }
 				')"/>
+                <xsl:with-param name="lang" select="'sparql'"/>
 				<xsl:with-param name="additional_params" select="'&amp;limit=1'"/>
 			</xsl:call-template>
 		</xsl:variable>
@@ -614,7 +643,7 @@
 			<xsl:call-template name="perform_query">
 				<xsl:with-param name="query" select="concat('
 					select $performance $concert from &lt;#ri&gt;
-					where $score &lt;mulgara:is&gt; &lt;fedora:', $pid, '&gt;
+					where $score &lt;mulgara:is&gt; &lt;info:fedora/', $pid, '&gt;
 					and $performance &lt;', $NAMESPACE, 'basedOn&gt; $score
 					and $performance &lt;fedora-rels-ext:isMemberOf&gt; $concert
 					and $performance &lt;fedora-model:state&gt; &lt;fedora-model:Active&gt;
@@ -649,12 +678,12 @@
 			</field>
 			<field name="atm_score_titn_s">
 				<xsl:choose>
-					<xsl:when test="not($SCORE_XML/Obra/titn_partitura)">
+					<xsl:when test="$SCORE_RESULT/res:titn/@bound">
 						<!-- FIXME:  Magic numbers?  Not too bad, I suppose... -->
 						<xsl:value-of select="-1"/>
 					</xsl:when>
 					<xsl:otherwise>
-						<xsl:value-of select="normalize-space($SCORE_XML/Obra/titn_partitura/text())"/>
+						<xsl:value-of select="$SCORE_RESULT/res:titn/text()"/>
 					</xsl:otherwise>
 				</xsl:choose>
 			</field>
@@ -895,6 +924,7 @@
 	</xsl:template>
 	
 	<xsl:template name="atm_performer">
+        <!-- Only a single parameter should be given... -->
 		<xsl:param name="pid" select="'no'"/> <!-- based on "performer pid" -->
 		<xsl:param name="performance" select="'no'"/> <!-- based on "performance pid", and so on -->
 		<xsl:param name="person" select="'no'"/>
@@ -902,47 +932,47 @@
 		<xsl:variable name="PERFORMER_TF">
 			<xsl:call-template name="perform_query">
 				<xsl:with-param name="query">
-					<xsl:value-of select="'
-						select $concert $performerObj $person $personName $instrumentName $instrumentClassName $groupName $concertTitle $cycleName $pieceName $concertOrder from &lt;#ri&gt;
-						where
-					'"/>
-					<!-- choose the performer docs to create depending on the input parameters -->
+					<xsl:value-of select="concat('
+                        PREFIX atm-rel: &lt;', $NAMESPACE, '&gt;
+                        PREFIX atm: &lt;info:fedora/atm:&gt;
+                        PREFIX fedora-rels-ext: &lt;info:fedora/fedora-system:def/relations-external#&gt;
+                        PREFIX fedora-model: &lt;info:fedora/fedora-system:def/model#&gt;
+                        PREFIX dc: &lt;http://purl.org/dc/elements/1.1/&gt;
+						SELECT $concert $performerObj $person $personName $instrumentName $instrumentClassName $groupName $concertTitle $cycleName $pieceName $concertOrder
+						WHERE {
+                            $performerObj atm-rel:performance $performance ;
+                                          atm-rel:player $person ;
+                                          atm-rel:instrument $instrument ;
+                                          atm-rel:group $group .
+                            $performance fedora-rels-ext:isMemberOf $concert ;
+                                         atm-rel:concertOrder $concertOrder ;
+                                         atm-rel:basedOn $score .
+                            $concert dc:title $concertTitle ;
+                                     fedora-rels-ext:isMemberOf $concertCycle .
+                            $concertCycle dc:title $cycleName .
+                            $person dc:title $personName .
+                            $instrument dc:title $instrumentName ;
+                                        fedora-rels-ext:isMemberOf $instrumentClass .
+                            $instrumentClass dc:title $instrumentClassName .
+                            $group dc:title $groupName .
+                            $score dc:title $pieceName .
+                            FILTER(
+					')"/>
+                    <!-- choose the performer docs to create depending on the input parameters -->
 					<xsl:choose>
 						<xsl:when test="not($pid='no')">
-							<xsl:value-of select="concat('
-								$performerObj &lt;mulgara:is&gt; &lt;fedora:', $pid, '
-							')"/>
+							<xsl:value-of select="concat('sameterm($performerObj, &lt;info:fedora/', $pid, '&gt;)')"/>
 						</xsl:when>
 						<xsl:when test="not($performance='no')">
-							<xsl:value-of select="concat('
-								$performance &lt;mulgara:is&gt; &lt;fedora:', $performance, '&gt;
-							')"/>
+							<xsl:value-of select="concat('sameterm($performance, &lt;info:fedora/', $performance, '&gt;)')"/>
 						</xsl:when>
 						<xsl:when test="not($person='no')">
-							<xsl:value-of select="concat('
-								$person &lt;mulgara:is&gt; &lt;fedora:', $person, '&gt;
-							')"/>
+							<xsl:value-of select="concat('sameterm($person, &lt;info:fedora/', $person, '&gt;)')"/>
 						</xsl:when>
 					</xsl:choose>
-					<xsl:value-of select="concat('
-						and $performerObj &lt;', $NAMESPACE, 'performance&gt; $performance
-						and $performerObj &lt;', $NAMESPACE, 'player&gt; $person
-						and $performerObj &lt;', $NAMESPACE, 'played&gt; $instrument
-						and $performerObj &lt;fedora-rels-ext:isMemberOf&gt; $group
-						and $performance &lt;fedora-rels-ext:isMemberOf&gt; $concert
-						and $performance &lt;', $NAMESPACE, 'concertOrder&gt; $concertOrder
-						and $concert &lt;dc:title&gt; $concertTitle
-						and $concert &lt;fedora-rels-ext:isMemberOf&gt; $concertCycle
-						and $concertCycle &lt;dc:title&gt; $cycleName
-						and $person &lt;dc:title&gt; $personName
-						and $instrument &lt;dc:title&gt; $instrumentName
-						and $instrument &lt;fedora-rels-ext:isMemberOf&gt; $instrumentClass
-						and $instrumentClass &lt;dc:title&gt; $instrumentClassName
-						and $group &lt;dc:title&gt; $groupName
-						and $performance &lt;', $NAMESPACE, 'basedOn&gt; $score
-						and $score &lt;dc:title&gt; $pieceName
-					')"/>
+                    <xsl:value-of select="')}'"/>
 				</xsl:with-param>
+                <xsl:with-param name="lang" select="'sparql'"/>
 			</xsl:call-template>
 		</xsl:variable>
 		
@@ -1022,47 +1052,96 @@
 		<xsl:param name="concert"/>
 		
 		<xsl:choose>
-			<xsl:when test="objectType='performance'">
+			<xsl:when test="$objectType='performance'">
 				<xsl:variable name="PERFORMANCE_TF">
 					<xsl:call-template name="perform_query">
-						<xsl:with-param name="query" select="concat('
-							select $performance $score from &lt;#ri&gt;
-							where $performance &lt;mulgara:is&gt; &lt;fedora:', $performance, '&gt;
-							and $score &lt;', $NAMESPACE, 'composedBy&gt; $composer
-							and $performance &lt;', $NAMESPACE, 'basedOn&gt; $score
-							and $performance &lt;fedora-model:state&gt; &lt;fedora-model:Active&gt;
-						')"/>
+                        <xsl:with-param name="query" select="concat('
+                            PREFIX atm-rel: &lt;', $NAMESPACE, '&gt;
+                            PREFIX fedora-rels-ext: &lt;info:fedora/fedora-system:def/relations-external#&gt;
+                            PREFIX fedora-model: &lt;info:fedora/fedora-system:def/model#&gt;
+                            PREFIX fedora-view: &lt;info:fedora/fedora-system:def/view#&gt;
+                            PREFIX dc: &lt;http://purl.org/dc/elements/1.1/&gt;
+                            PREFIX atm: &lt;info:fedora/atm:&gt;
+                            SELECT $score_DSs $perf_DSs $mov_DSs
+                            FROM &lt;#ri&gt;
+                            WHERE {
+                                $performance fedora-model:hasModel atm:performanceCModel ;
+                                             atm-rel:basedOn $score ;
+                                             fedora-model:state fedora-model:Active .
+                                OPTIONAL {
+                                    $performance fedora-view:disseminates $perf_DSs .
+                                    $perf_DSs fedora-view:disseminationType &lt;info:fedora/*/MP3&gt; 
+                                } .
+                                OPTIONAL { 
+                                    $score fedora-view:disseminates $score_DSs .
+                                    $score_DSs fedora-view:disseminationType &lt;info:fedora/*/PDF&gt; 
+                                } .
+                                OPTIONAL {
+                                    $movement fedora-rels-ext:isMemberOf $performance ;
+                                              fedora-model:hasModel atm:movementCModel ;
+                                              fedora-view:disseminates $mov_DSs .
+                                    $mov_DSs fedora-view:disseminationType &lt;info:fedora/*/MP3&gt; .
+                                } .
+                                FILTER(sameterm($performance, &lt;info:fedora/', $performance, '&gt;))
+                            }
+                        ')"/>
+                        <xsl:with-param name="lang" select="'sparql'"/>
 					</xsl:call-template>
 				</xsl:variable>
-				<xsl:for-each select="xalan:nodeset($PERFORMANCE_TF)/res:sparql/res:results/res:result">
-					<xsl:choose>
-						<xsl:when test="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@', $HOST, ':', $PORT, '/fedora/objects/', $performance, '/datastreams?format=xml'))/fds:objectDatastreams/fds:datastream[@dsid='MP3']">
-							<field name="atm_digital_objects_ms">Concert MP3</field>
-						</xsl:when>
-						<xsl:otherwise>
-							<xsl:variable name="MOVEMENT_TF">
-								<!-- Could limit to one result here? -->
-								<xsl:call-template name="perform_query">
-									<xsl:with-param name="query" select="concat('
-										select $movement from &lt;#ri&gt;
-										where $performance &lt;mulgara:is&gt; &lt;fedora:', $performance, '&gt;
-										and $movement &lt;fedora-rels-ext:isMemberOf&gt; $performance
-										and $performance &lt;fedora-model:state&gt; &lt;fedora-model:Active&gt;
-									')"/>
-								</xsl:call-template>
-							</xsl:variable>
-							<xsl:variable name="movement" select="substring-after(xalan:nodeset($MOVEMENT_TF)/res:sparql/res:results/res:result/res:movement[1]/@uri, '/')"/>
-							<xsl:if test="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@', $HOST, ':', $PORT, '/fedora/objects/', $movement, '/datastreams?format=xml'))/fds:objectDatastreams/fds:datastream[@dsid='MP3']">
-								<field name="atm_facet_digital_objects_ms">Concert MP3</field>
-							</xsl:if>
-						</xsl:otherwise>
-					</xsl:choose>
-					
-					<xsl:if test="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@', $HOST, ':', $PORT, '/fedora/objects/', substring-after(res:score/@uri, '/'), '/datastreams?format=xml'))/fds:objectDatastreams/fds:datastream[@dsid='PDF']">
-						<field name="atm_facet_digital_objects_ms">Score PDF</field>
-					</xsl:if>
-				</xsl:for-each>
+				<xsl:variable name="PERFORMANCES" select="xalan:nodeset($PERFORMANCE_TF)/res:sparql/res:results"/>
+                <xsl:if test="count($PERFORMANCES/res:result[./res:perf_DSs/@uri or ./res:mov_DSs/@uri]) > 0">
+                    <field name="atm_digital_objects_ms">Music Audio</field>
+                </xsl:if>
+                <xsl:if test="count($PERFORMANCES/res:result[./res:score_DSs/@uri]) > 0">
+                    <field name="atm_digital_objects_ms">Score PDF</field>
+                </xsl:if>
 			</xsl:when>
+            <xsl:when test="$objectType='concert'">
+                <xsl:variable name="TYPES_TF">
+                    <xsl:call-template name="perform_query">
+                        <xsl:with-param name="query" select="concat('
+                            PREFIX atm-rel: &lt;', $NAMESPACE, '&gt;
+                            PREFIX fedora-rels-ext: &lt;info:fedora/fedora-system:def/relations-external#&gt;
+                            PREFIX fedora-model: &lt;info:fedora/fedora-system:def/model#&gt;
+                            PREFIX fedora-view: &lt;info:fedora/fedora-system:def/view#&gt;
+                            PREFIX dc: &lt;http://purl.org/dc/elements/1.1/&gt;
+                            PREFIX atm: &lt;info:fedora/atm:&gt;
+                            SELECT $lecture $lect_type $performance
+                            FROM &lt;#ri&gt;
+                            WHERE {
+                                {
+                                    $lecture fedora-rels-ext:isMemberOf $concert ;
+                                             fedora-model:hasModel atm:lectureCModel ;
+                                             dc:subject $lect_type .
+                                }
+                                UNION
+                                {
+                                    $performance fedora-rels-ext:isMemberOf $concert ;
+                                                 fedora-model:hasModel atm:performanceCModel ;
+                                                 fedora-view:disseminates $perf_DSs .
+                                    $perf_DSs fedora-view:disseminationType $perf_DT .
+                                    OPTIONAL {
+                                        $movement fedora-rels-ext:isMemberOf $performance ;
+                                                  fedora-model:hasModel atm:movementCModel ;
+                                                  fedora-view:disseminates $mov_DSs .
+                                        $mov_DSs fedora-view:disseminationType $mov_DT .
+                                    }
+                                    FILTER(sameterm($perf_DT, &lt;info:fedora/*/MP3&gt;) || sameterm($mov_DT, &lt;info:fedora/*/MP3&gt;))
+                                }
+                                FILTER(sameterm($concert, &lt;info:fedora/', $concert, '&gt;))
+                            }
+                        ')"/>
+                        <xsl:with-param name="lang" select="'sparql'"/>
+                    </xsl:call-template>
+                </xsl:variable>
+                <xsl:variable name="TYPES" select="xalan:nodeset($TYPES_TF)"/>
+                <xsl:for-each select="$TYPES/res:sparql/res:results/res:result[./res:lecture/@uri]">
+                    <field name="atm_digital_objects_ms"><xsl:value-of select="normalize-space(res:lect_type/text())"/></field>
+                </xsl:for-each>
+                <xsl:if test="count($TYPES/res:sparql/res:results/res:result/res:performance[@uri]) > 0">
+                    <field name="atm_digital_objects_ms">Music Audio</field>
+                </xsl:if>
+            </xsl:when>
 		</xsl:choose>
 			
 			

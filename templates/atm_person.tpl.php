@@ -2,7 +2,7 @@
 /**
  * Template for a person/composer
  */
-dsm($pid);
+dsm($date);
 print theme('islandora_fjm_atm_imagegallery', $pid);
 ?>
 <h2><? echo $name['first'] . " " . $name['last'] ?></h2>

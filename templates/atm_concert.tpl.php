@@ -12,7 +12,7 @@ dsm($concert);
         <p class="atm_concert_description"><? echo $concert['description'] ?></p>
    </div><!--atm_con_top_right -->
    <div class="atm_concert_top_right">
-       <div>
+       <div style="float: left; padding: 15px;">
            <h3><? echo t('Program PDF:')?></h3>
            <p>
                <? 
@@ -25,7 +25,7 @@ dsm($concert);
                ?>
            </p>
        </div>
-       <div>
+       <div style="float: left; padding: 15px;">
            <h3><? echo t('Program in library:') ?></h3>
            <p>
                <?
@@ -58,3 +58,8 @@ dsm($concert);
         ?>
     </div><!--bottom left-->
 </div>
+<? if ($pagenumber != NULL && $pagenumber > 0) : ?>
+<script type="text/javascript">
+    $(function() {$(".concertOrder_<? echo $pagenumber ?>:first > a").click()});
+</script>
+<?endif;?>

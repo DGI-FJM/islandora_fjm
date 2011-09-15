@@ -70,6 +70,7 @@ function islandora_fjm_theme() {
         'islandora_fjm_atm_concert' => array(
             'arguments' => array(
                 'pid' => NULL,
+                'pagenumber' => NULL,
                 'concert' => NULL,
                 'islandoraPath' => drupal_get_path("module", "islandora_fjm"), 
                 'fedoraPath' => variable_get("fedora_base_url", 'http://localhost:8080/fedora')
@@ -161,6 +162,7 @@ function islandora_fjm_theme() {
 }
 
 function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
+    module_load_include('inc', 'islandora_fjm', 'includes/callbacks');
     $result = $vars['item'];
     //dsm($vars);
     $toReturn = array();
@@ -181,6 +183,17 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
                 'pdf' => $result->atm_concert_program_pdf_b,
                 'titn' => $result->atm_concert_program_titn_s
             );
+            $toReturn['composers'] = (is_array($result->atm_concert_composer_ms)?
+                (array_unique($result->atm_concert_composer_ms)):
+                (isset($result->atm_concert_composer_ms)?
+                    array($result->atm_concert_composer_ms):
+                    (NULL)));
+            $toReturn['performers'] = (is_array($result->atm_concert_player_ms)?
+                (array_unique($result->atm_concert_player_ms)):
+                (isset($result->atm_concert_player_ms)?
+                    array($result->atm_concert_player_ms):
+                    (NULL)));
+            dsm($result);
             //FIXME: Generating stuff here seems kinda bad...
     break;
     case "Performance":
@@ -223,7 +236,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
             $toReturn['year'] = $result->atm_performer_year_s;
     break;
     case "Program":
-            $toReturn['concert'] = $result->atm_program_concert_title_s;
+            $toReturn['concert'] = l($result->atm_program_concert_title_s, "fedora/repository/$result->rels_isMemberOf_ms");
             $toReturn['year'] = $result->atm_program_year_s;
             //FIXME (minor):  concert cycle does not need to be multivalued...
             $toReturn['cycle'] = $result->atm_program_concert_cycle_ms;
@@ -338,6 +351,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                 'pid' => $performance_xpath->evaluate("string(str[@name='atm_performance_composer_pid_s']/text())", $node),
                 'name'=> $performance_xpath->evaluate("string(str[@name='atm_performance_composer_name_s']/text())", $node)
             ),
+            'localpdf' => ($performance_xpath->evaluate("string(bool[@name='atm_performance_score_pdf_b']/text())", $node) === 'true'),
             'localpdfscore' => $performance_xpath->evaluate("string(arr[@name='rels_basedOn_ms']/str[contains(text(), ':')]/text())", $node),
             'score_titn' => $performance_xpath->evaluate("string(str[@name='atm_performance_score_titn_s']/text())", $node),
             'order' => $performance_xpath->evaluate("string(arr[@name='rels_concertOrder_ms']/str[1]/text())", $node),
@@ -357,7 +371,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                 ),
                 array(
                     'data' => (
-                        ($performance['localpdfscore'])?
+                        ($performance['localpdf'])?
                         (l(t("PDF"), "fedora/repository/" . $performance['localpdfscore'])):
                         (t("N/A"))) //TODO (minor): Don't know if they want this column populated if there's none.
                 ),
@@ -561,7 +575,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars) {
         'last' => $eaccpf->evaluate('string(/eac-cpf/cpfDescription/identity/nameEntry[@localType="primary"]/part[@localType="surname"])')
     );
     $vars['date']['birth'] = $eaccpf->evaluate('string(/eac-cpf/cpfDescription/description/existDates/dateRange/fromDate/@standardDate)');
-    $vars['date']['death'] = $eaccpf->evaluate('string(/eac-cpf/cpfDescription/description/existDates/dateRange/toDate/@standardDate');
+    $vars['date']['death'] = $eaccpf->evaluate('string(/eac-cpf/cpfDescription/description/existDates/dateRange/toDate/@standardDate)');
     
     $vars['biography'] = $eacdoc->saveXML($eaccpf->evaluate('/eac-cpf/cpfDescription/description/biogHist[@localType="primary"]')->item(0));
     if (strpos($vars['biography'], '&lt;p&gt;')) {

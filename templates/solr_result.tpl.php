@@ -30,7 +30,22 @@ case "Concert":?>
         </div>
     </div>
     <div class="concert_bottom">
-        <? print 'put stuff here' ?>
+        <? if ($item['composers'] != NULL && sizeof($item['composers']) > 0): ?>
+        <h3><a href="#"><? echo t('Composers') ?></a></h3>
+        <ul>
+        <?  foreach ($item['composers'] as $composer) :?>
+            <li><? echo $composer ?></li>
+        <? endforeach; ?>
+        </ul>
+        <?endif;
+        if ($item['performers'] != NULL && sizeof($item['performers']) > 0): ?>
+        <h3><a href="#"><? echo t('Performers') ?></a></h3>
+        <ul>
+        <?  foreach ($item['performers'] as $performer) :?>
+            <li><? echo $performer ?></li>
+        <? endforeach; ?>
+        </ul>
+        <?endif;?>
     </div>
         
 <?	break;

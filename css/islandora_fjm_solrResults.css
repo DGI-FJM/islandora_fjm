@@ -52,7 +52,15 @@ div.atm_track > a.atm_playing {
 
 .atm_solr_result .concert_bottom {
     clear: left;
-    
+    width: 50%;
+}
+
+.atm_solr_result .concert_bottom h3 {
+    font-size: 12px;
+}
+
+.atm_solr_result .concert_bottom li {
+    font-size: 10px;
 }
 
 .item_stat > h4 {

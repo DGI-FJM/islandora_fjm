@@ -18,15 +18,15 @@ $first = true;
 foreach ($images as $image): 
     if($first):
         $first = false;?>
-    <a href="<? echo $image['path']?>" rel="lightbox" id="image_strip_link">
-        <img id="image_strip_big" src="<? echo $image['path']?>" alt="<? $image['alt']?>"></img>
+    <a href="<? echo $image['path']?>" rel="lightbox" id="image_strip_link" title="<? echo $image['alt'] ?>">
+        <img id="image_strip_big" src="<? echo $image['path']?>" title="<? echo $image['alt']?>"></img>
     </a>
     
     <ul class="image_strip">
 <?  endif;
     if(sizeof($images) > 1):?>
         <li>
-            <img src="<? echo $image['thumbnail']?>" alt="<? echo $image['alt']?>" path="<? echo $image['path']?>"></img>
+            <img src="<? echo $image['thumbnail']?>" title="<? echo $image['alt']?>" path="<? echo $image['path']?>"></img>
         </li>
 <?  endif;
     endforeach; ?>
@@ -37,7 +37,8 @@ foreach ($images as $image):
         //  (into another file, that is...)
         $("ul.image_strip > li > img").click(function () {
             $("#image_strip_big").attr("src", $(this).attr("path"));
-            $("#image_strip_big").attr("alt", $(this).attr("alt"));
+            $("#image_strip_big").attr("title", $(this).attr("title"));
+            $("#image_strip_link").attr("title", $(this).attr("title"));
             $("#image_strip_link").attr("href", $(this).attr("path"));
         });
     </script>
