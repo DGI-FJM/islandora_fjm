@@ -193,7 +193,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
                 (isset($result->atm_concert_player_ms)?
                     array($result->atm_concert_player_ms):
                     (NULL)));
-            dsm($result);
+            //dsm($result);
             //FIXME: Generating stuff here seems kinda bad...
     break;
     case "Performance":
@@ -567,7 +567,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars) {
     $eacdoc = new DOMDocument();
     
     if (!$eacdoc->load("http://localhost" . url("fedora/repository/$pid/EAC-CPF"))) {
-        dsm($vars);
+        //dsm($vars);
         return;
     }
     $eaccpf = new DOMXPath($eacdoc);
@@ -652,7 +652,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars) {
                         //If there is a check and it fails, continue to the next 
                         //  column without creating the link.
                         if (isset($col['linkTo']['pid']['check']) && !$xpath->evaluate("string(" . $col['linkTo']['pid']['check'] . ")", $doc)) {
-                            dsm($xpath->evaluate("string(" . $col['linkTo']['pid']['check'] . ")"));
+                            //dsm($xpath->evaluate("string(" . $col['linkTo']['pid']['check'] . ")"));
                             $temp[$col['sField']] = $xpath->evaluate("string(" . $col['linkTo']['pid']['failvalue'] . ")", $doc);
                             continue;
                         }

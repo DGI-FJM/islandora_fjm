@@ -1,7 +1,7 @@
 <?php 
 drupal_add_css("$islandoraPath/css/islandora_fjm_concert.css");
 
-dsm($concert);
+//dsm($concert);
 ?>
 <h2 class="atm_concert_title"><? echo $concert['title'] ?></h2>
 <div class="atm_concert_top">

@@ -5,7 +5,6 @@ $titn_addr = 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=';
 $item_path = 'fedora/repository/' . $item['PID'];
 ?>
 <div class="atm_solr_result">
-<!--<p><? //print $item['type'] ?></p>-->
 <?
 switch($item['type']):
 case "Concert":?>
