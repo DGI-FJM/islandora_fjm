@@ -1,6 +1,6 @@
 <?php
-if(is_callable('dsm'))
-    dsm($item);
+//if(is_callable('dsm'))
+//    dsm($item);
 $titn_addr = 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=';
 $item_path = 'fedora/repository/' . $item['PID'];
 ?>

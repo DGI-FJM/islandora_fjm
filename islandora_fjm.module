@@ -518,7 +518,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_score(&$vars) {
     $vars['title'] = $score_xpath->evaluate("string(str[@name='atm_score_title_s']/text())", $score_result);
     $vars['composer'] = $score_xpath->evaluate("string(str[@name='atm_score_composer_s']/text())", $score_result);
     //$output .= $this->addViewer();
-    $modsUrl = $_SERVER['HTTP_HOST'] . url("fedora/repository/$pid/MODS"); 
+    $modsUrl = 'http://' . $_SERVER['HTTP_HOST'] . url("fedora/repository/$pid/MODS"); 
     $mods = DOMDocument::loadXML(do_curl($modsUrl));
     if ($mods) {
         $vars['abstract'] = $mods->getElementsByTagName('abstract')->item(0)->nodeValue;
@@ -549,7 +549,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_program(&$vars) {
     $vars['concert']['cycle'] = $xpath->evaluate("string(arr[@name='atm_program_concert_cycle_ms']/str[1]/text())", $result);
     $vars['concert']['year'] = $xpath->evaluate("string(str[@name='atm_program_year_s']/text())", $result);
     
-    $modsUrl = $_SERVER['HTTP_HOST'] . url("fedora/repository/$pid/MODS");
+    $modsUrl = 'http://' . $_SERVER['HTTP_HOST'] . url("fedora/repository/$pid/MODS");
     echo $modsUrl;
     $mods = DOMDocument::loadXML(do_curl($modsUrl));
     $vars['toc'] = $mods->getElementsByTagName('tableOfContents')->item(0)->nodeValue;
@@ -566,7 +566,8 @@ function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars) {
     FJM::userAgentHack();
     $eacdoc = new DOMDocument();
     
-    if (!$eacdoc->load("http://localhost" . url("fedora/repository/$pid/EAC-CPF"))) {
+    #FIXME:  Need to deal with the multi-site stuff...
+    if (!$eacdoc->loadXML(do_curl('http://' . $_SERVER['HTTP_HOST'] . url("fedora/repository/$pid/EAC-CPF")))) {
         //dsm($vars);
         return;
     }
