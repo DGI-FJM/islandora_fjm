@@ -27,15 +27,6 @@ case "Concert":?>
             <li><? echo $do ?></li>
         <?  } ?>
         </ul>
-        <!--<div class="item_stat">
-            <h4><? print t("Program:") ?></h4>
-            <p><? print ($item['program']['pdf'])?(t("Available as PDF")):(t("No PDF")) ?></p>
-            <p><? print ($item['program']['titn'] > 0)?(t("Available in Library")):(t("Not in Library")) ?></p>
-        </div>
-        <div class="item_stat">
-            <h4><? print t("Audio:") ?></h4>
-            <p><? print (!empty($item['audio']))?('asdf'):('fdsa') ?></p>
-        </div>-->
     </div>
     <div class="concert_bottom">
         <? if ($item['composers'] != NULL && sizeof($item['composers']) > 0): ?>
