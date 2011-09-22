@@ -175,24 +175,34 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
             $toReturn['name_link'] = l($result->atm_composer_name_s, "fedora/repository/$result->PID");
     break;
     case "Concert":
-            $toReturn['title'] = $result->atm_concert_title_s;
-            $toReturn['cycle'] = $result->atm_concert_cycle_s;
-            $toReturn['date'] = $result->atm_concert_date_dt;
-            $toReturn['icon'] = $result->atm_concert_iconpid_s;
-            $toReturn['program'] = array(
-                'pdf' => $result->atm_concert_program_pdf_b,
-                'titn' => $result->atm_concert_program_titn_s
-            );
-            $toReturn['composers'] = (is_array($result->atm_concert_composer_ms)?
-                (array_unique($result->atm_concert_composer_ms)):
-                (isset($result->atm_concert_composer_ms)?
-                    array($result->atm_concert_composer_ms):
-                    (NULL)));
-            $toReturn['performers'] = (is_array($result->atm_concert_player_ms)?
-                (array_unique($result->atm_concert_player_ms)):
-                (isset($result->atm_concert_player_ms)?
-                    array($result->atm_concert_player_ms):
-                    (NULL)));
+        $toReturn = array_merge($toReturn, 
+            array(
+                'title' => $result->atm_concert_title_s,
+                'cycle' => $result->atm_concert_cycle_s,
+                'date' => $result->atm_concert_date_dt,
+                'icon' => $result->atm_concert_iconpid_s,
+                'program' => array(
+                    'pdf' => $result->atm_concert_program_pdf_b,
+                    'titn' => $result->atm_concert_program_titn_s
+                ),
+                'digital_objects' => (is_array($result->atm_digital_objects_ms)?
+                    array_unique($result->atm_digital_objects_ms):
+                    (isset($result->atm_digital_objects_ms)?
+                        array($result->atm_digital_objects_ms):
+                    NULL)
+                ),
+                'composers' => (is_array($result->atm_concert_composer_ms)?
+                    (array_unique($result->atm_concert_composer_ms)):
+                    (isset($result->atm_concert_composer_ms)?
+                        array($result->atm_concert_composer_ms):
+                        (NULL))),
+                'performers' => (is_array($result->atm_concert_player_ms)?
+                    (array_unique($result->atm_concert_player_ms)):
+                    (isset($result->atm_concert_player_ms)?
+                        array($result->atm_concert_player_ms):
+                        (NULL)))
+            )
+        );
             //dsm($result);
             //FIXME: Generating stuff here seems kinda bad...
     break;

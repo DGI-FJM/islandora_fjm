@@ -1,6 +1,6 @@
 <?php
-//if(is_callable('dsm'))
-//    dsm($item);
+if(is_callable('dsm'))
+    dsm($item);
 $titn_addr = 'http://www.march.es/abnopac/abnetcl.exe?ACC=DOSEARCH&xsqf01=';
 $item_path = 'fedora/repository/' . $item['PID'];
 ?>
@@ -18,7 +18,16 @@ case "Concert":?>
         <p><? print $item['cycle'] ?></p>
     </div>
     <div class="concert_top_right">
-        <div class="item_stat">
+        <h4><? echo t('Available objects:') ?></h4>
+        <ul>
+        <? if (is_null($item['digital_objects'])) { ?>
+            <li><? echo t('None')?></li>
+        <? }
+            else foreach ($item['digital_objects'] as $do) {?>
+            <li><? echo $do ?></li>
+        <?  } ?>
+        </ul>
+        <!--<div class="item_stat">
             <h4><? print t("Program:") ?></h4>
             <p><? print ($item['program']['pdf'])?(t("Available as PDF")):(t("No PDF")) ?></p>
             <p><? print ($item['program']['titn'] > 0)?(t("Available in Library")):(t("Not in Library")) ?></p>
@@ -26,7 +35,7 @@ case "Concert":?>
         <div class="item_stat">
             <h4><? print t("Audio:") ?></h4>
             <p><? print (!empty($item['audio']))?('asdf'):('fdsa') ?></p>
-        </div>
+        </div>-->
     </div>
     <div class="concert_bottom">
         <? if ($item['composers'] != NULL && sizeof($item['composers']) > 0): ?>
