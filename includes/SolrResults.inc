@@ -25,7 +25,6 @@ class SolrResults extends IslandoraSolrResults {
     function __construct() {
         parent::__construct();
         drupal_add_css(drupal_get_path("module", "islandora_fjm") . "/css/islandora_fjm_solrResults.css");
-        dsm(debug_backtrace());
     }
     
     
