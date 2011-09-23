@@ -72,3 +72,9 @@ div.atm_track > a.atm_playing {
     font-size: 75%;
     float: none;
 }
+
+ul.atm_solr_letterblock > li {
+    display: inline;
+    list-style-type: none !important;
+    padding-right: 5px;
+}

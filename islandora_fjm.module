@@ -30,7 +30,7 @@ function islandora_fjm_menu() {
     //TODO:  Might want to look at locking it down?  The callback function restricts to
     //  only .xsd and .xsl, so I don't see a major issue.
     $items['fedora/xml'] = array(
-        'title' => t('Get stored XML'),
+        'title' => 'Get stored XML',
         'page callback' => 'islandora_fjm_display_schema',
         'type' => MENU_CALLBACK,
         'access callback' => TRUE
@@ -191,16 +191,18 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
                         array($result->atm_digital_objects_ms):
                     NULL)
                 ),
-                'composers' => (is_array($result->atm_concert_composer_ms)?
-                    (array_unique($result->atm_concert_composer_ms)):
-                    (isset($result->atm_concert_composer_ms)?
-                        array($result->atm_concert_composer_ms):
-                        (NULL))),
-                'performers' => (is_array($result->atm_concert_player_ms)?
-                    (array_unique($result->atm_concert_player_ms)):
-                    (isset($result->atm_concert_player_ms)?
-                        array($result->atm_concert_player_ms):
-                        (NULL)))
+                'accordion' => array(
+                    t('Composers') => (is_array($result->atm_concert_composer_ms)?
+                        (array_unique($result->atm_concert_composer_ms)):
+                        (isset($result->atm_concert_composer_ms)?
+                            array($result->atm_concert_composer_ms):
+                            (NULL))),
+                    t('Performers') => (is_array($result->atm_concert_player_ms)?
+                        (array_unique($result->atm_concert_player_ms)):
+                        (isset($result->atm_concert_player_ms)?
+                            array($result->atm_concert_player_ms):
+                            (NULL)))
+                )
             )
         );
             //dsm($result);

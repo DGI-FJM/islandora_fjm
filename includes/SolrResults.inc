@@ -5,13 +5,30 @@
  * on content type.
  */
 module_load_include('inc', 'islandora_solr_search', 'IslandoraSolrResults');
+function makeArray($in) {
+    return is_array($in)?
+        $in:
+        (isset($in)?
+            array($in):
+            array()
+        )
+    ;
+}
 
+function filterComposer($var) {
+    dsm($var);
+    return !preg_match("/atm_composer_name_s:.\\*/", $var);
+}
+    
 class SolrResults extends IslandoraSolrResults {
 
     function __construct() {
         parent::__construct();
         drupal_add_css(drupal_get_path("module", "islandora_fjm") . "/css/islandora_fjm_solrResults.css");
+        dsm(debug_backtrace());
     }
+    
+    
 
     /**
      * Override the parent's "print" implementation
@@ -19,6 +36,7 @@ class SolrResults extends IslandoraSolrResults {
      * @var
      */
     function printResults($results) {
+        dsm(debug_backtrace());
         $output = "";
 
         $items = array();
@@ -26,6 +44,11 @@ class SolrResults extends IslandoraSolrResults {
         $title = NULL;
         $recordStart = $results->response->start;
         $limitResults = variable_get('islandora_solr_search_limit_result_fields', 0);
+        if (is_callable("dsm")) {
+            //dsm(var_dump($results));
+            dsm($results->responseHeader);
+            dsm($results->response);
+        }
         
         /**
          * @var array<array<array<string>>> Array of headers to use in drawing the tables.  Also contains a 
@@ -272,8 +295,25 @@ class SolrResults extends IslandoraSolrResults {
 
         //Render the table for each content type.
         foreach ($table as $key => $tab) {
+            //Deliciously hack-ful...  Handle the composers differently, so as to make an 'A-Z' display...
+            if ($key == "Composer" && strpos($results->responseHeader->params->q, 'atm_type_s:"Composer"') !== FALSE) {
+                $output .= '<ul class="atm_solr_letterblock">';
+                $fq_array = array_filter(makeArray($results->responseHeader->params->fq), "filterComposer");
+                foreach (range('A', 'Z') as $letter) {
+                    $output .= '<li>' . l($letter, "islandora/solr/search/" . 
+                        $results->responseHeader->params->q . '/' .
+                        implode('~', 
+                            array_merge(
+                                $fq_array, 
+                                makeArray("atm_composer_name_s:$letter*")
+                            )
+                        )
+                    ) . '</li>';
+                }
+                $output .= '</ul>';
+            }
+            
             if (!empty($tab)) {
-                /*$output .= "<h2>" . $groups[$key] . "</h2>";*/
                 $output .= theme('table', (isset($headers[$key]) ? $headers[$key] : array()), $tab, array(), $groups[$key]);
             }
         }

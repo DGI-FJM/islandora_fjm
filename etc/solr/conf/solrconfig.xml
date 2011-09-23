@@ -411,6 +411,55 @@
     </lst>
   </requestHandler>
 
+  <!-- Some wise-guy likes to create new handlers too much, just so they can check names, even though the names and actual settings they provide should be INDEPENDANT! -->
+  <requestHandler name="fjm" class="solr.SearchHandler" default="true">
+    <!-- default values for query parameters -->
+     <lst name="defaults">
+     <str name="echoParams">explicit</str>
+     <float name="tie">0.01</float>
+     <str name="qf">
+        PID^16.0
+        atm_concert_cycle_mt^4.0
+        <!--atm_program_author_mt^5.0
+        atm_performer_concert_title_mt^5.0
+        atm_score_title_mt^8.0
+        atm_performer_piece_title_mt^8.0
+        atm_performer_name_mt^5.0
+        atm_program_concert_title_mt^5.0
+        atm_performance_concert_name_mt^5.0
+        atm_program_titn_mt^10.0-->
+        atm_concert_program_titn_mt^10.0
+        <!--atm_performer_group_mt^5.0-->
+        atm_concert_group_mt^5.0
+        atm_concert_piece_mt^8.0
+        <!--atm_performer_instrument_mt^2.0
+        atm_score_composer_mt^5.0-->
+        atm_concert_player_mt^4.0
+        <!--atm_score_titn_mt^10.0
+        atm_performance_concert_cycle_mt^4.0
+        atm_performer_concert_cycle_mt^4.0
+        atm_performance_composer_name_mt^5.0
+        atm_performance_player_mt^3.0
+        atm_performance_piece_title_mt^5.0
+        atm_performance_movement_mt^2.0
+        atm_performance_inst_mt^4.0-->
+        atm_concert_composer_mt^5.0
+        atm_concert_instrument_mt^4.0
+        atm_concert_title_mt^5.0
+     </str>
+     <str name="fl">
+        * score
+     </str>
+     <str name="sort">
+       atm_type_s asc
+     </str>
+    </lst>
+    <lst name="appends">
+        <str name="q.alt">
+            atm_type_s:"Concert"
+        </str>
+    </lst>
+  </requestHandler>
 
   <!-- DisMaxRequestHandler allows easy searching across multiple fields
        for simple user-entered phrases.  It's implementation is now

@@ -29,22 +29,18 @@ case "Concert":?>
         </ul>
     </div>
     <div class="concert_bottom">
-        <? if ($item['composers'] != NULL && sizeof($item['composers']) > 0): ?>
-        <h3><a href="#"><? echo t('Composers') ?></a></h3>
-        <ul>
-        <?  foreach ($item['composers'] as $composer) :?>
-            <li><? echo $composer ?></li>
-        <? endforeach; ?>
-        </ul>
-        <?endif;
-        if ($item['performers'] != NULL && sizeof($item['performers']) > 0): ?>
-        <h3><a href="#"><? echo t('Performers') ?></a></h3>
-        <ul>
-        <?  foreach ($item['performers'] as $performer) :?>
-            <li><? echo $performer ?></li>
-        <? endforeach; ?>
-        </ul>
-        <?endif;?>
+        <? 
+        foreach ($item['accordion'] as $type => $values):
+            if ($values != NULL && sizeof($values) > 0): ?>
+                <h3><a href="#"><? echo $type ?></a></h3>
+                <ul>
+                <? sort($values); 
+                foreach ($values as $val) : ?>
+                    <li><? echo $val ?></li>
+                <? endforeach; ?>
+                </ul>
+            <?endif;
+        endforeach;?>
     </div>
         
 <?	break;

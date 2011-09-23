@@ -25,19 +25,6 @@ drupal_add_css("$islandoraPath/css/islandora_fjm_concert.css");
                ?>
            </p>
        </div>
-       <div style="float: left; padding: 15px;">
-           <h3><? echo t('Program in library:') ?></h3>
-           <p>
-               <?
-                   if ($concert['program']['titn']) {
-                       echo l(t('Available'), FJM::getTitnAddr($concert['program']['titn']));
-                   }
-                   else {
-                       echo t('N/A');
-                   }
-               ?>
-           </p>
-       </div>
    </div>
 </div><!--atm_con_top -->
 <div class="atm_concert_bottom">
