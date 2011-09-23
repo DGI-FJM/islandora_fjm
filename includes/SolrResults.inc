@@ -35,7 +35,6 @@ class SolrResults extends IslandoraSolrResults {
      * @var
      */
     function printResults($results) {
-        dsm(debug_backtrace());
         $output = "";
 
         $items = array();
