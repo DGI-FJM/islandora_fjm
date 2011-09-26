@@ -1140,7 +1140,7 @@
                             PREFIX fedora-view: &lt;info:fedora/fedora-system:def/view#&gt;
                             PREFIX dc: &lt;http://purl.org/dc/elements/1.1/&gt;
                             PREFIX atm: &lt;info:fedora/atm:&gt;
-                            SELECT $lecture $lect_type $performance $score
+                            SELECT $lecture $lect_type $performance $score $program
                             FROM &lt;#ri&gt;
                             WHERE {
                                 {

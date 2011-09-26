@@ -1,0 +1,225 @@
+﻿# $Id$
+#
+# Spanish translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  islandora_fjm.module: n/a
+#  templates/atm_person.tpl.php: n/a
+#  includes/SolrResults.inc: n/a
+#  templates/atm_concert.tpl.php: n/a
+#  templates/atm_score.tpl.php: n/a
+#  islandora_fjm.info: n/a
+#  includes/callbacks.inc: n/a
+#  templates/atm_program.tpl.php: n/a
+#  templates/solr_result.tpl.php: n/a
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2011-09-23 14:45-0300\n"
+"PO-Revision-Date: 2011-09-23 14:45-0300\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Spanish <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: islandora_fjm.module:14
+msgid "FJM display"
+msgstr "Visualización FJM"
+
+#: islandora_fjm.module:19
+msgid "Change display based on type."
+msgstr "Cambiar la visualización de resultados en función de su tipo."
+
+#: islandora_fjm.module:84;85;137;138 templates/atm_person.tpl.php:10
+msgid "unknown"
+msgstr "desconocido"
+
+#: islandora_fjm.module:86
+msgid "No abstract"
+msgstr "No hay resumen"
+
+#: islandora_fjm.module:144
+msgid "No biography"
+msgstr "No hay biographía"
+
+#: islandora_fjm.module:195 includes/SolrResults.inc:208
+msgid "Composers"
+msgstr "Compositores"
+
+#: islandora_fjm.module:200 includes/SolrResults.inc:212
+msgid "Performers"
+msgstr "Interpretes"
+
+#: islandora_fjm.module:256;266;395
+msgid "Go"
+msgstr "Pasar"
+
+#: islandora_fjm.module:260;274;389 includes/SolrResults.inc:165;183
+msgid "PDF"
+msgstr "PDF"
+
+#: islandora_fjm.module:390;396 templates/atm_concert.tpl.php:23
+msgid "N/A"
+msgstr "N/A"
+
+#: islandora_fjm.module:484;616 includes/SolrResults.inc:71
+msgid "Piece"
+msgstr "Obra"
+
+#: islandora_fjm.module:491 includes/SolrResults.inc:75;175
+msgid "Composer"
+msgstr "Compositor"
+
+#: islandora_fjm.module:494;636 includes/SolrResults.inc:91 templates/atm_score.tpl.php:15
+msgid "Score"
+msgstr "Partitura"
+
+#: islandora_fjm.module:497
+msgid "Biblio"
+msgstr "Partitura en Biblioteca"
+
+#: islandora_fjm.module:506 includes/SolrResults.inc:127
+msgid "Description"
+msgstr "Descripción"
+
+#: islandora_fjm.module:621 includes/SolrResults.inc:131;145
+msgid "Concert"
+msgstr "Concierto"
+
+#: islandora_fjm.module:631
+msgid "Cycle"
+msgstr "Ciclo"
+
+#: islandora_fjm.module:33
+msgid "Get stored XML"
+msgstr "Descargar del XML"
+
+#: islandora_fjm.info:0
+msgid "FJM extensions"
+msgstr "Extensiones para FJM"
+
+#: islandora_fjm.info:0
+msgid "Solr result formatting by type and ISLANDORACM callbacks"
+msgstr ""
+"Formato los resultados por tipo de Solr y proporcionar devoluciones de "
+"llamada para ISLANDORACM. "
+
+#: islandora_fjm.info:0
+msgid "Fedora Repository"
+msgstr "Fedora Repository"
+
+#: includes/SolrResults.inc:61
+msgid "Image"
+msgstr "Imagen"
+
+#: includes/SolrResults.inc:65;101
+msgid "Name"
+msgstr "Nombre"
+
+#: includes/SolrResults.inc:79;113
+msgid "Concert Title"
+msgstr "Concierto"
+
+#: includes/SolrResults.inc:83;117;149
+msgid "Year"
+msgstr "Año"
+
+#: includes/SolrResults.inc:87;121
+msgid "Concert Series"
+msgstr "Ciclo"
+
+#: includes/SolrResults.inc:95;139
+msgid "Audio"
+msgstr "Audio"
+
+#: includes/SolrResults.inc:105
+msgid "Group"
+msgstr "Grupo"
+
+#: includes/SolrResults.inc:135;153
+msgid "Series"
+msgstr "Ciclo"
+
+#: includes/SolrResults.inc:157
+msgid "Author(s)"
+msgstr "Autor(s)"
+
+#: includes/SolrResults.inc:171
+msgid "Title"
+msgstr "Titulo de la Obra"
+
+#: includes/SolrResults.inc:179
+msgid "Find in library"
+msgstr "En la Biblioteca"
+
+#: includes/SolrResults.inc:209
+msgid "Concerts"
+msgstr "Conciertos"
+
+#: includes/SolrResults.inc:210 templates/atm_concert.tpl.php:43
+msgid "Conferences"
+msgstr "Conferencias"
+
+#: includes/SolrResults.inc:211 templates/atm_concert.tpl.php:40
+msgid "Works"
+msgstr "Obras"
+
+#: includes/SolrResults.inc:213
+msgid "Programs"
+msgstr "Programas"
+
+#: includes/SolrResults.inc:214
+msgid "Scores"
+msgstr "Partituras"
+
+#: includes/callbacks.inc:308
+msgid "Default Image"
+msgstr "Imagen"
+
+#: templates/atm_concert.tpl.php:16
+msgid "Program PDF:"
+msgstr "PDF del programa:"
+
+#: templates/atm_concert.tpl.php:20
+msgid "Available"
+msgstr "Disponible"
+
+#: templates/atm_person.tpl.php:11
+msgid "present/unknown"
+msgstr "al presente/desconocido"
+
+#: templates/atm_person.tpl.php:16
+msgid "Performances played or composed"
+msgstr "Obras realizado y compuestos"
+
+#: templates/atm_program.tpl.php:11
+msgid "Program"
+msgstr "Programa"
+
+#: templates/atm_program.tpl.php:13
+msgid "Table of contents"
+msgstr "Tabla de contenidos"
+
+#: templates/atm_program.tpl.php:17 templates/atm_score.tpl.php:24
+msgid "Notes"
+msgstr "Notas"
+
+#: templates/atm_score.tpl.php:15
+msgid "Download PDF"
+msgstr "Decargar el PDF"
+
+#: templates/atm_score.tpl.php:19
+msgid "Abstract"
+msgstr "Resumen"
+
+#: templates/solr_result.tpl.php:21
+msgid "Available objects:"
+msgstr "Objetos disponibles"
+
+#: templates/solr_result.tpl.php:24
+msgid "None"
+msgstr "Ninguno"
+
