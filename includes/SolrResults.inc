@@ -16,7 +16,9 @@ function makeArray($in) {
 }
 
 function filterComposer($var) {
-    dsm($var);
+    if (is_callable("dsm")) {
+        dsm($var);
+    }
     return !preg_match("/atm_composer_name_s:.\\*/", $var);
 }
     
