@@ -40,7 +40,7 @@
         <!-- Index based on CModel -->
         <xsl:if test="not(contains($previous_items, $pid))">
             <xsl:for-each select="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@',
-                    $HOST, ':', $PORT, 'fedora/objects/', $pid, '/datastreams/RELS-EXT/content'))/rdf:RDF/rdf:Description/*[local-name()='hasModel' and @rdf:resource]">
+                    $HOST, ':', $PORT, '/fedora/objects/', $pid, '/datastreams/RELS-EXT/content'))/rdf:RDF/rdf:Description/*[local-name()='hasModel' and @rdf:resource]">
                 <xsl:choose>
                     <xsl:when test="@rdf:resource='info:fedora/atm:concertCModel'">
                         
@@ -1212,7 +1212,7 @@
         <xsl:param name="suffix" select="'_et'"/> <!-- 'edged' (edge n-gram) text -->
 
         <xsl:variable name="EAC_CPF" select="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@',
-            $HOST, ':', $PORT, 'fedora/objects/', $pid, '/datastreams/', $dsid, '/content'))"/>
+            $HOST, ':', $PORT, '/fedora/objects/', $pid, '/datastreams/', $dsid, '/content'))"/>
         
         <xsl:variable name="cpfDesc" select="$EAC_CPF/eac-cpf/cpfDescription"/>
         <xsl:variable name="nameEntry" select="$cpfDesc/identity/nameEntry[@localType='primary']"/>
