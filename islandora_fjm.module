@@ -164,7 +164,10 @@ function islandora_fjm_theme() {
 function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
     module_load_include('inc', 'islandora_fjm', 'includes/callbacks');
     $result = $vars['item'];
-    //dsm($vars);
+    if (is_callable('dsm')) {
+        global $conf;
+        dsm($conf);
+    }
     $toReturn = array();
 
     switch ($result->atm_type_s) {
