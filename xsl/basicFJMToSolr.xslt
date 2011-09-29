@@ -967,7 +967,9 @@
                 <xsl:with-param name="pid" select="$pid"/>
             </xsl:call-template>
             
-            
+            <xsl:call-template name="rels_ext">
+                <xsl:with-param name="pid" select="$pid"/>
+            </xsl:call-template>
 
         </doc>
     </xsl:template>
