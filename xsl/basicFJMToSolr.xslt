@@ -24,7 +24,7 @@
     <xsl:param name="HOST" select="'localhost'"/>
     <xsl:param name="PORT" select="'8080'"/>
     <xsl:param name="PROT" select="'http'"/>
-    <xsl:param name="URLBASE" select="concat($PROT, '://', $HOST, ':', $PORT)/"/>
+    <xsl:param name="URLBASE" select="concat($PROT, '://', $HOST, ':', $PORT, '/')"/>
     <xsl:param name="REPOSITORYNAME" select="'fedora'"/>
     <xsl:param name="RISEARCH" select="concat($URLBASE, $REPOSITORYNAME, '/risearch',
         '?type=tuples&amp;flush=TRUE&amp;format=Sparql&amp;query=')" />
