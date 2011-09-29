@@ -79,11 +79,11 @@
                             <xsl:with-param name="pid" select="$pid"/>
                         </xsl:call-template>
                         <!-- Index the composer(s?) -->
-                        <xsl:if test="../ns:composedBy/@rdf:resource">
-                            <xsl:call-template name="atm_composer">
-                                <xsl:with-param name="pid" select="substring-after(../ns:composedBy/@rdf:resource, '/')"/>
+                        <xsl:for-each select="../ns:composedBy[@rdf:resource]">
+                            <xsl:call-template name="atm_person">
+                                <xsl:with-param name="pid" select="substring-after(@rdf:resource, '/')"/>
                             </xsl:call-template>
-                        </xsl:if>
+                        </xsl:for-each>
                         <xsl:variable name="CONCERT_TF">
                             <xsl:call-template name="perform_query">
                                 <xsl:with-param name="query" select="concat('
@@ -125,7 +125,7 @@
                         </xsl:variable>
                         <xsl:variable name="SCORES" select="xalan:nodeset($SCORE_TF)"/>
                         <xsl:if test="count($SCORES/res:sparql/res:results/res:result/res:score) > 0">
-                            <xsl:call-template name="atm_composer">
+                            <xsl:call-template name="atm_person">
                                 <xsl:with-param name="pid" select="$pid"/>
                             </xsl:call-template>
                         </xsl:if>
@@ -876,7 +876,7 @@
         </doc>
     </xsl:template>
     
-    <xsl:template name="atm_composer">
+    <xsl:template name="atm_person">
         <xsl:param name="pid" select="'empty'"/>
         
         <xsl:variable name="COMPOSER_TF">
@@ -929,7 +929,6 @@
             </field>
             
             <xsl:for-each select="xalan:nodeset($COMPOSER_TF)/res:sparql/res:results/res:result">
-                <field name="atm_type_s">Composer</field>
                 <field name="atm_composer_name_s">
                     <xsl:value-of select="normalize-space(res:name/text())"/>
                 </field>
@@ -938,7 +937,19 @@
                         <xsl:value-of select="substring-after(res:icon/@uri, '/')"/>
                     </field>
                 </xsl:if>
+                
+                <field name="person_name_s">
+                    <xsl:value-of select="normalize-space(res:name/text())"/>
+                </field>
+                <xsl:if test="res:icon/@uri">
+                    <field name="person_icon_s">
+                        <xsl:value-of select="substring-after(res:icon/@uri, '/')"/>
+                    </field>
+                </xsl:if>
             </xsl:for-each>
+            <xsl:if test="count(xalan:nodeset($CONCERT_TF)/res:sparql/res:results/res:result) &gt; 0">
+                <field name="atm_type_s">Composer</field>
+            </xsl:if>
             <xsl:for-each select="xalan:nodeset($CONCERT_TF)/res:sparql/res:results/res:result">
                 <field name="atm_facet_concert_title_ms">
                     <xsl:value-of select="res:concertName/text()"/>
@@ -1083,6 +1094,10 @@
                     <xsl:with-param name="pid" select="substring-after(res:performerObj/@uri, '/')"/>
                 </xsl:call-template>
             </doc>
+            
+            <xsl:call-template name="atm_person">
+                <xsl:with-param name="pid" select="substring-after(res:person/@uri, '/')"/>
+            </xsl:call-template>
         </xsl:for-each>
     </xsl:template>
     
