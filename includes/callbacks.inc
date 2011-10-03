@@ -180,7 +180,9 @@ class FJM {
 
         //TODO: Get the protocol automatically; this would break if SSL were required...
         //  Then again, is this really required?
-        $hostname = 'http://' . $_SERVER['HTTP_HOST'];
+        //$hostname = 'http://' . $_SERVER['HTTP_HOST'];
+        global $base_url;
+        $hostname = $base_url;
         $toReturn .= '<script type="text/javascript">
             $(function() {
                 $f("atm_player", "/' . $base . '/flowplayer-3.2.7.swf", {
@@ -262,7 +264,7 @@ class FJM {
         $fedoraPath = variable_get('fedora_base_url', 'http://localhost:8080/fedora');
 
         $queryResult = FJM::performSparqlQuery('
-            PREFIX atm-rel: <http://www.example.org/dummy#>
+            PREFIX atm-rel: <http://digital.march.es/atmusica#>
             PREFIX dc: <http://purl.org/dc/elements/1.1/>
             SELECT $label $icon
             FROM <#ri>

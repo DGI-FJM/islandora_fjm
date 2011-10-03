@@ -205,7 +205,8 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
                         (isset($result->atm_concert_player_ms)?
                             array($result->atm_concert_player_ms):
                             (NULL)))
-                )
+                ), 
+                'date' => new DateTime($result->atm_concert_date_dt)
             )
         );
             //dsm($result);
@@ -439,7 +440,8 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                     ),
                     array(
                         'data' => $movement['name'],
-                        'colspan' => '4'
+                        'colspan' => '4',
+                        'class' => 'atm_movement_name'
                     ),
                     array(
                         'data' => (

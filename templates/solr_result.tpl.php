@@ -16,6 +16,7 @@ case "Concert":?>
     <div class="concert_top_center">
         <h3><? print l($item['title'], $item_path) ?></h3>
         <p><? print $item['cycle'] ?></p>
+        <p><? print format_date($item['date']->format('U'), 'custom', 'Y/m/d') ?></p>
     </div>
     <div class="concert_top_right">
         <h4><? echo t('Available objects:') ?></h4>

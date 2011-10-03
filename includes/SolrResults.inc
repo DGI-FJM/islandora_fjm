@@ -83,10 +83,10 @@ class SolrResults extends IslandoraSolrResults {
                     'data' => t('Year'),
                     'name' => 'year'
                 ),
-                array(
+                /*array(
                     'data' => t('Concert Series'),
                     'name' => 'cycle'
-                ),
+                ),*/
                 array(
                     'data' => t('Score'),
                     'name' => 'score_link'

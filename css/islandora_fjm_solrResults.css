@@ -3,8 +3,7 @@ root {
 }
 
 .atm_solr_result p {
-    float: left;
-/*    padding-right: 10px;*/
+    margin: .2em 0 .4em;
 }
 
 .atm_solr_result h3 {
@@ -42,6 +41,10 @@ div.atm_track > a.atm_playing {
 
 .atm_solr_result .concert_top_right {
     float: right;
+}
+
+.atm_solr_result .concert_top_right > p {
+    clear: right;
 }
 
 .atm_solr_result .concert_top_left > img{

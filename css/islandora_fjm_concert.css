@@ -14,3 +14,11 @@ div.atm_concert_bottom_left
 {
     float: left;
 }
+
+.atm_piecename {
+    font-weight: bold;
+}
+
+.atm_movement_name {
+    font-style: italic;
+}
