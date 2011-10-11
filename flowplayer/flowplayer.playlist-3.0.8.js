@@ -38,7 +38,8 @@
 		
 		$.extend(opts, options);
 		wrap = $(wrap);		
-		var manual = self.getPlaylist().length <= 1 || opts.manual; 
+		var manual = self.getPlaylist().length > 1 || opts.manual; 
+                //var manual = false;
 		var els = null;
 		
 		
