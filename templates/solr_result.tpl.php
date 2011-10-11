@@ -7,7 +7,8 @@ $item_path = 'fedora/repository/' . $item['PID'];
 <div class="atm_solr_result">
 <?
 switch($item['type']):
-case "Concert":?>
+case "Concert":
+case "Conciertos":?>
     <div class="concert_top_left">
         <? print l(theme('image', 'fedora/repository/' . $item['icon'] . '/TN', '', '' ,'', false), 
                 'fedora/repository/' . $item['PID'], 

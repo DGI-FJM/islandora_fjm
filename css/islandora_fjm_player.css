@@ -1,0 +1,29 @@
+/* 
+    Document   : islandora_fjm_player
+    Created on : Oct 11, 2011, 1:22:03 PM
+    Author     : adam
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+root { 
+    display: block;
+}
+
+.atm_clips a.progress {
+    font-style: italic;
+    font-weight: bold;
+}
+
+.atm_clips a.paused {
+    font-weight: bold;
+}
+
+.atm_clips a.playing {
+    font-style: italic;
+}

@@ -19,7 +19,7 @@ function filterComposer($var) {
     if (is_callable("dsm")) {
         dsm($var);
     }
-    return !preg_match("/atm_composer_name_s:.\\*/", $var);
+    return !preg_match("/eaccpf_name_forename_es:.\\*/", $var);
 }
     
 class SolrResults extends IslandoraSolrResults {
@@ -56,7 +56,7 @@ class SolrResults extends IslandoraSolrResults {
          * function
          */
         $headers = array(
-            'Composer' => array(
+            'Compositores' => array(
                 array(
                     'data' => t('Image'),
                     'name' => 'icon_image'
@@ -66,7 +66,7 @@ class SolrResults extends IslandoraSolrResults {
                     'name' => 'name_link'
                 )
             ),
-            'Performance' => array(
+            'Obras' => array(
                 array(
                     'data' => t('Piece'),
                     'name' => 'piece'
@@ -96,7 +96,7 @@ class SolrResults extends IslandoraSolrResults {
                     'name' => 'audio'
                 )
             ),
-            'Performer' => array(
+            'Intérpretes' => array(
                 array(
                     'data' => t('Name'),
                     'name' => 'name'
@@ -122,7 +122,7 @@ class SolrResults extends IslandoraSolrResults {
                     'name' => 'cycle'
                 )
             ),
-            'Lecture' => array(
+            'Archivo de voz' => array(
                 array(
                     'data' => t('Description'),
                     'name' => 'description'
@@ -140,7 +140,7 @@ class SolrResults extends IslandoraSolrResults {
                     'name' => 'audio'
                 )
             ),
-            'Program' => array(
+            'Programas de mano' => array(
                 array(
                     'data' => t('Concert'),
                     'name' => 'concert'
@@ -166,7 +166,7 @@ class SolrResults extends IslandoraSolrResults {
                     'name' => 'PDF_link'
                 )
             ),
-            'Score' => array(
+            'Partituras' => array(
                 array(
                     'data' => t('Title'),
                     'name' => 'title'
@@ -191,13 +191,13 @@ class SolrResults extends IslandoraSolrResults {
          * @var array<array>
          */
         $table = array(
-            "Composer" => array(),
-            "Concert" => array(),
-            "Lecture" => array(),
-            "Performance" => array(),
-            "Performer" => array(),
-            "Program" => array(),
-            "Score" => array()
+            "Compositores" => array(),
+            "Conciertos" => array(),
+            "Archivo de voz" => array(),
+            "Obras" => array(),
+            "Intérpretes" => array(),
+            "Programas de mano" => array(),
+            "Partituras" => array()
         );
 
         /**
@@ -205,13 +205,13 @@ class SolrResults extends IslandoraSolrResults {
          * @var array<string> 
          */
         $groups = array(
-            'Composer' => t('Composers'),
-            'Concert' => t('Concerts'),
-            'Lecture' => t('Conferences'),
-            'Performance' => t('Works'),
-            'Performer' => t('Performers'),
-            'Program' => t('Programs'),
-            'Score' => t('Scores')
+            'Compositores' => t('Composers'),
+            'Conciertos' => t('Concerts'),
+            'Archivo de voz' => t('Conferences'),
+            'Obras' => t('Works'),
+            'Intérpretes' => t('Performers'),
+            'Programas de mano' => t('Programs'),
+            'Partituras' => t('Scores')
         );
         foreach ($results->response->docs as $doc) {
             //Setup to pass to preprocessor... (Something of a hack,
@@ -236,9 +236,19 @@ class SolrResults extends IslandoraSolrResults {
                     switch ($field['name']) {
                         case 'audio':
                             $cell = "<div class='atm_track'>";
+                            
+                            $playlist = '[';
+                            $aud = 0;
                             foreach ($docu['audio'] as $audio) {
-                                $cell .= l('<!-- placeholder -->', "fedora/repository/$audio/MP3", array('html' => TRUE));
+                                $playlist .= '{';
+                                $playlist .= "url: \"/fedora/repository/$audio/MP3\",";
+                                $playlist .= 'title: "' . htmlentities($docu['piece'], ENT_QUOTES, 'UTF-8', FALSE) . '",';
+                                $playlist .= 'subTitle: "' . htmlentities($docu['movement'][$aud++], ENT_QUOTES, 'UTF-8', FALSE) . '"';
+                                $playlist .= '},';
                             }
+                            $playlist .= ']';
+                            
+                            $cell .= "<a onClick='\$f().play($playlist);'></a>";                            
                             $cell .= "</div>";
                             $row['data'][] = $cell;
                             break;
@@ -252,6 +262,7 @@ class SolrResults extends IslandoraSolrResults {
                                 $cell .= '<li>' . $author . '</li>';
                             }
                             $cell .= '</ul>';
+                            $row['data'][] = $cell;
                             break;
                         default:
                             $row['data'][] = $docu[$field['name']];
@@ -271,13 +282,14 @@ class SolrResults extends IslandoraSolrResults {
         //Add a player if required by either Lectures or Performances
         //FIXME (minor):  This might be better if left up to a theme function?
         //  Would be a reasonable refactoring?
-        if (!empty($table['Performance']) || !empty($table['Lecture'])) {
+        if (!empty($table['Obras']) || !empty($table['Archivo de voz'])) {
             module_load_include('inc', 'islandora_fjm', 'includes/callbacks');
-            $output .= FJM::addPlayer();
+            //$output .= FJM::addPlayer();
+            $output .= theme('islandora_fjm_atm_flowplayer');
         }
         
         //Add the accordion stuff to work in Concerts...
-        if (!empty($table['Concert'])) {
+        if (!empty($table['Conciertos'])) {
             jquery_ui_add('ui.accordion');
             drupal_add_js('$(function() {
                 $("div.concert_bottom").each(function(index) {
@@ -293,10 +305,11 @@ class SolrResults extends IslandoraSolrResults {
             drupal_add_css('sites/all/libraries/jquery.ui/themes/base/ui.accordion.css', 'module');
         }
 
+        $people = array('Compositores', 'Obras');
         //Render the table for each content type.
         foreach ($table as $key => $tab) {
             //Deliciously hack-ful...  Handle the composers differently, so as to make an 'A-Z' display...
-            if ($key == "Composer" && strpos($results->responseHeader->params->q, 'atm_type_s:"Composer"') !== FALSE) {
+            if (array_search($key, $people) !== FALSE && strpos($results->responseHeader->params->q, "atm_type_s:\"$key\"") !== FALSE) {
                 $output .= '<ul class="atm_solr_letterblock">';
                 $fq_array = array_filter(makeArray($results->responseHeader->params->fq), "filterComposer");
                 foreach (range('A', 'Z') as $letter) {
@@ -305,7 +318,7 @@ class SolrResults extends IslandoraSolrResults {
                         implode('~', 
                             array_merge(
                                 $fq_array, 
-                                makeArray("atm_composer_name_s:$letter*")
+                                makeArray("eaccpf_name_forename_es:$letter*")
                             )
                         )
                     ) . '</li>';

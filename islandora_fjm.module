@@ -157,6 +157,13 @@ function islandora_fjm_theme() {
                 'images' => array()
             ),
             'template' => 'templates/imagegallery'
+        ),
+        'islandora_fjm_atm_flowplayer' => array(
+            'arguments' => array(
+                'selector' => 'ol.atm_clips',
+                'base' => drupal_get_path("module", "islandora_fjm") . '/flowplayer'
+            ),
+            'template' => 'templates/atm_player'
         )
     );
 }
@@ -172,47 +179,50 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
 
     switch ($result->atm_type_s) {
     case "Composer":
+    case "Compositores":
             $toReturn['icon'] = "fedora/repository/" . $result->atm_composer_icon_s . "/TN";
             $toReturn['icon_image'] = theme('image', $toReturn['icon'], '', '', '', FALSE);
             $toReturn['name'] = $result->atm_composer_name_s;
             $toReturn['name_link'] = l($result->atm_composer_name_s, "fedora/repository/$result->PID");
     break;
     case "Concert":
-        $toReturn = array_merge($toReturn, 
-            array(
-                'title' => $result->atm_concert_title_s,
-                'cycle' => $result->atm_concert_cycle_s,
-                'date' => $result->atm_concert_date_dt,
-                'icon' => $result->atm_concert_iconpid_s,
-                'program' => array(
-                    'pdf' => $result->atm_concert_program_pdf_b,
-                    'titn' => $result->atm_concert_program_titn_s
-                ),
-                'digital_objects' => (is_array($result->atm_digital_objects_ms)?
-                    array_unique($result->atm_digital_objects_ms):
-                    (isset($result->atm_digital_objects_ms)?
-                        array($result->atm_digital_objects_ms):
-                    NULL)
-                ),
-                'accordion' => array(
-                    t('Composers') => (is_array($result->atm_concert_composer_ms)?
-                        (array_unique($result->atm_concert_composer_ms)):
-                        (isset($result->atm_concert_composer_ms)?
-                            array($result->atm_concert_composer_ms):
-                            (NULL))),
-                    t('Performers') => (is_array($result->atm_concert_player_ms)?
-                        (array_unique($result->atm_concert_player_ms)):
-                        (isset($result->atm_concert_player_ms)?
-                            array($result->atm_concert_player_ms):
-                            (NULL)))
-                ), 
-                'date' => new DateTime($result->atm_concert_date_dt)
+    case "Conciertos":
+            $toReturn = array_merge($toReturn, 
+                array(
+                    'title' => $result->atm_concert_title_s,
+                    'cycle' => $result->atm_concert_cycle_s,
+                    'date' => $result->atm_concert_date_dt,
+                    'icon' => $result->atm_concert_iconpid_s,
+                    'program' => array(
+                        'pdf' => $result->atm_concert_program_pdf_b,
+                        'titn' => $result->atm_concert_program_titn_s
+                    ),
+                    'digital_objects' => (is_array($result->atm_digital_objects_ms)?
+                        array_unique($result->atm_digital_objects_ms):
+                        (isset($result->atm_digital_objects_ms)?
+                            array($result->atm_digital_objects_ms):
+                        NULL)
+                    ),
+                    'accordion' => array(
+                        t('Composers') => (is_array($result->atm_concert_composer_ms)?
+                            (array_unique($result->atm_concert_composer_ms)):
+                            (isset($result->atm_concert_composer_ms)?
+                                array($result->atm_concert_composer_ms):
+                                (NULL))),
+                        t('Performers') => (is_array($result->atm_concert_player_ms)?
+                            (array_unique($result->atm_concert_player_ms)):
+                            (isset($result->atm_concert_player_ms)?
+                                array($result->atm_concert_player_ms):
+                                (NULL)))
+                    ), 
+                    'date' => new DateTime($result->atm_concert_date_dt)
             )
         );
             //dsm($result);
             //FIXME: Generating stuff here seems kinda bad...
     break;
     case "Performance":
+    case "Obras":
             $toReturn['piece'] = $result->atm_performance_piece_title_s;
             $toReturn['composer'] = l($result->atm_performance_composer_name_s, "fedora/repository/$result->atm_performance_composer_pid_s");
             //FIXME (minor):  If the perfomance is somehow part of multiple entities/concerts,
@@ -224,17 +234,19 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
             $toReturn['cycle'] = $result->atm_performance_concert_cycle_s;
             $toReturn['audio'] = array();
             if ($result->atm_performance_mp3_b) {
-                $toReturn['audio'][] = $result->PID;
+                $toReturn['audio'] = array($result->PID);
             }
             else {
-                foreach ($result->atm_performance_movement_ms as $audio) {
-                    $toReturn['audio'][] = $audio;
-                }
+                $aud = $result->atm_performance_movement_ms;
+                $mov = $result->atm_performance_movement_name_ms;
+                $toReturn['audio'] = is_array($aud)?$aud:array($aud);
+                $toReturn['movement'] = is_array($mov)?$mov:array($mov);
             }
             $toReturn['score'] = $result->rels_basedOn_ms;
             $toReturn['score_link'] = l('Score', "islandora/solr/search/PID:\"". $toReturn['score'] . "\"");
     break;
     case "Lecture":
+    case "Archivo de voz":
             $toReturn['description'] = $result->atm_lecture_title_s;
             $toReturn['concert'] = $result->atm_lecture_concert_title_s;
             $toReturn['year'] = $result->atm_audio_concert_year_s;
@@ -242,6 +254,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
             $toReturn['audio'] = array($result->PID);
     break;
     case "Performer":
+    case "Intérpretes":
             $toReturn['name'] = $result->atm_performer_name_s;
             $toReturn['instrument'] = $result->atm_performer_instrument_s;
             $toReturn['group'] = $result->atm_performer_group_s;
@@ -252,6 +265,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
             $toReturn['year'] = $result->atm_performer_year_s;
     break;
     case "Program":
+    case "Programas de mano":
             $toReturn['concert'] = l($result->atm_program_concert_title_s, "fedora/repository/$result->rels_isMemberOf_ms");
             $toReturn['year'] = $result->atm_program_year_s;
             //FIXME (minor):  concert cycle does not need to be multivalued...
@@ -259,11 +273,12 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
             $toReturn['titn'] = $result->atm_program_titn_s;
             $toReturn['titn_link'] = l(t('Go'), FJM::getTitnAddr($toReturn['titn']));
             $toReturn['author'] = (is_array($result->atm_program_author_ms)?
-                $result->atm_program_author_ms:
+                array_unique($result->atm_program_author_ms):
                 array($result->atm_program_author_ms));
             $toReturn['PDF_link'] = l(t('PDF'), "fedora/repository/$result->PID");
     break;
     case "Score":
+    case "Partituras":
             $toReturn['composer'] = l($result->atm_score_composer_s, "fedora/repository/$result->atm_score_composer_pid_s");
             $toReturn['title'] = $result->atm_score_title_s;
             $toReturn['titn'] = $result->atm_score_titn_s;
@@ -314,7 +329,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
             )
         ),
         array());
-    $performanceResults = FJM::performSolrQ("atm_type_s:\"Performance\" AND rels_isMemberOf_ms:\"$pid\"", 
+    $performanceResults = FJM::performSolrQ("atm_type_s:\"Obras\" AND rels_isMemberOf_ms:\"$pid\"", 
         implode(',', 
             array(
                 "PID",
@@ -333,7 +348,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
             'sort' => 'atm_performance_order_i asc'
         )
     );
-    $lectureResults = FJM::performSolrQ("atm_type_s:\"Lecture\" AND rels_isMemberOf_ms:\"$pid\"",
+    $lectureResults = FJM::performSolrQ("atm_type_s:\"Archivo de voz\" AND rels_isMemberOf_ms:\"$pid\"",
         implode(',',
             array(
                 "PID",
