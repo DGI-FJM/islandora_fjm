@@ -305,7 +305,7 @@ class SolrResults extends IslandoraSolrResults {
             drupal_add_css('sites/all/libraries/jquery.ui/themes/base/ui.accordion.css', 'module');
         }
 
-        $people = array('Compositores', 'Obras');
+        $people = array('Compositores', 'Intérpretes');
         //Render the table for each content type.
         foreach ($table as $key => $tab) {
             //Deliciously hack-ful...  Handle the composers differently, so as to make an 'A-Z' display...
