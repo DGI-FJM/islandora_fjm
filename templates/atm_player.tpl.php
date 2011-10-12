@@ -8,7 +8,7 @@ drupal_add_js("$base/flowplayer.playlist-3.0.8.js");
 drupal_add_css(drupal_get_path('module', 'islandora_fjm') . '/css/islandora_fjm_player.css', 'module'); ?>
 
 <div class="player" id="atm_player"><!-- placeholder --></div>
-<ol class="atm_clips"></ol>
+<ol class="atm_clips" style="display: none;"></ol>
 <script type="text/javascript">
     $(function() {
         $f("atm_player", "/<? echo $base; ?>/flowplayer-3.2.7.swf", {
@@ -33,7 +33,7 @@ drupal_add_css(drupal_get_path('module', 'islandora_fjm') . '/css/islandora_fjm_
             },
             clip: {
                 baseUrl: "<? echo $base_url; ?>",
-                autoPlay: false
+                autoPlay: true
             }
         });
         

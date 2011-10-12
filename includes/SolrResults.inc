@@ -248,7 +248,7 @@ class SolrResults extends IslandoraSolrResults {
                             }
                             $playlist .= ']';
                             
-                            $cell .= "<a onClick='\$f().play($playlist);'></a>";                            
+                            $cell .= "<a onClick='\$f().play($playlist); $(\".atm_clips\").css(\"display\", \"block\");'></a>";                            
                             $cell .= "</div>";
                             $row['data'][] = $cell;
                             break;
