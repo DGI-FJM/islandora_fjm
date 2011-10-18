@@ -210,7 +210,8 @@ class FJM {
                     loop: true,
                     playingClass: "atm_playing",
                     pausedClass: "atm_paused",
-                    progressClass: "atm_buffering"
+                    progressClass: "atm_buffering",
+                    manual: true
                 });
             });
         </script>';
