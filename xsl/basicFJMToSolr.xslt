@@ -291,9 +291,10 @@
             <field name="atm_concert_cycle_s">
                 <xsl:value-of select="normalize-space($SCORES/res:result[1]/res:cycleName/text())"/>
             </field>
+            <!-- Don't really think that this is necessary:
             <field name="atm_facet_concert_title_s">
                 <xsl:value-of select="normalize-space($SCORES/res:result[1]/res:concertTitle/text())"/>
-            </field>
+            </field>-->
             <field name="atm_facet_concert_cycle_s">
                 <xsl:value-of select="normalize-space($SCORES/res:result[1]/res:cycleName/text())"/>
             </field>
