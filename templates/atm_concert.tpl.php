@@ -33,8 +33,8 @@ drupal_add_css("$islandoraPath/css/islandora_fjm_concert.css");
             //TODO:  Need to (better) determine whether or not to show the player...  Or just always show it?
             if (sizeof($concert['performance_rows']) + sizeof($concert['lecture_rows']) > 0)
             {
-                //echo FJM::addPlayer('div.atm_track');
-                echo theme('islandora_fjm_atm_flowplayer', 'div.atm_track');
+                echo FJM::addPlayer('div.atm_track');
+                //echo theme('islandora_fjm_atm_flowplayer', 'div.atm_track');
                 drupal_add_css("$islandoraPath/css/islandora_fjm_playlist.css");
             }
             if (sizeof($concert['performance_rows']) > 0) {

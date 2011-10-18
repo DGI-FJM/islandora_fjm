@@ -38,8 +38,8 @@
 		
 		$.extend(opts, options);
 		wrap = $(wrap);		
-		var manual = self.getPlaylist().length > 1 || opts.manual; 
-                //var manual = false;
+		//var manual = self.getPlaylist().length <= 1 || opts.manual; 
+                var manual = opts.manual;
 		var els = null;
 		
 		
@@ -71,7 +71,7 @@
 			});				
 			
 			bindClicks();
-		} 
+		}
 
 		
 		function play(el, clip)  {

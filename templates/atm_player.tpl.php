@@ -33,13 +33,15 @@ drupal_add_css(drupal_get_path('module', 'islandora_fjm') . '/css/islandora_fjm_
             },
             clip: {
                 baseUrl: "<? echo $base_url; ?>",
-                autoPlay: true
+                autoPlay: false,
+                autoBuffering: true
             }
         });
         
         $f("atm_player").playlist("<? echo $selector; ?>", {
             loop: true,
-            template: "<li><a href=\"${url}\">${title} - ${subTitle}</a></li>"
+            template: "<li><a href=\"${url}\">${title} - ${subTitle}</a></li>",
+            manual: false
         });
     });
 </script>

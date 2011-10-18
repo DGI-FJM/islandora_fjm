@@ -37,6 +37,7 @@ class SolrResults extends IslandoraSolrResults {
      * @var
      */
     function printResults($results) {
+        global $base_url;
         $output = "";
 
         $items = array();
@@ -241,14 +242,15 @@ class SolrResults extends IslandoraSolrResults {
                             $aud = 0;
                             foreach ($docu['audio'] as $audio) {
                                 $playlist .= '{';
-                                $playlist .= "url: \"/fedora/repository/$audio/MP3\",";
+                                $playlist .= "url: \"$base_url/fedora/repository/$audio/MP3\",";
                                 $playlist .= 'title: "' . htmlentities($docu['piece'], ENT_QUOTES, 'UTF-8', FALSE) . '",';
                                 $playlist .= 'subTitle: "' . htmlentities($docu['movement'][$aud++], ENT_QUOTES, 'UTF-8', FALSE) . '"';
                                 $playlist .= '},';
                             }
                             $playlist .= ']';
                             
-                            $cell .= "<a onClick='\$f().play($playlist); $(\".atm_clips\").css(\"display\", \"block\");'></a>";                            
+                            $cell .= "<a onClick='\$f().onPlaylistReplace(function() { $(\".atm_clips\").css(\"display\", \"block\"); }) ; 
+                                \$f().play($playlist);'></a>";                            
                             $cell .= "</div>";
                             $row['data'][] = $cell;
                             break;
