@@ -8,7 +8,7 @@ drupal_add_css("$islandoraPath/css/islandora_fjm_concert.css");
     <? echo theme('islandora_fjm_atm_imagegallery', $pid) ?>
     <div class="atm_concert_top_right">
         <h3 class="atm_concert_cycle"><? echo $concert['cycle'] ?></h3>
-        <p class="atm_concert_date"><? echo format_date($concert['date']->format('U'), 'custom', 'Y/m/d') ?></p>
+        <p class="atm_concert_date"><? echo format_date($concert['date']->format('U'), 'custom', 'd/m/Y') ?></p>
         <p class="atm_concert_description"><? echo $concert['description'] ?></p>
    </div><!--atm_con_top_right -->
    <div class="atm_concert_top_right">

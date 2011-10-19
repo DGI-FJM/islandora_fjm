@@ -51,11 +51,11 @@ msgstr "Compositores"
 
 #: islandora_fjm.module:200 includes/SolrResults.inc:212
 msgid "Performers"
-msgstr "Interpretes"
+msgstr "Intérpretes"
 
 #: islandora_fjm.module:256;266;395
 msgid "Go"
-msgstr "Pasar"
+msgstr "Ir"
 
 #: islandora_fjm.module:260;274;389 includes/SolrResults.inc:165;183
 msgid "PDF"
@@ -145,15 +145,15 @@ msgstr "Ciclo"
 
 #: includes/SolrResults.inc:157
 msgid "Author(s)"
-msgstr "Autor(s)"
+msgstr "Autor(es)"
 
 #: includes/SolrResults.inc:171
 msgid "Title"
-msgstr "Titulo de la Obra"
+msgstr "Título de la Obra"
 
 #: includes/SolrResults.inc:179
 msgid "Find in library"
-msgstr "En la Biblioteca"
+msgstr "En Biblioteca"
 
 #: includes/SolrResults.inc:209
 msgid "Concerts"
@@ -192,8 +192,8 @@ msgid "present/unknown"
 msgstr "al presente/desconocido"
 
 #: templates/atm_person.tpl.php:16
-msgid "Performances played or composed"
-msgstr "Obras realizado y compuestos"
+msgid "Performances in CLAMOR"
+msgstr "Obras en CLAMOR"
 
 #: templates/atm_program.tpl.php:11
 msgid "Program"
@@ -216,8 +216,8 @@ msgid "Abstract"
 msgstr "Resumen"
 
 #: templates/solr_result.tpl.php:21
-msgid "Available objects:"
-msgstr "Objetos disponibles"
+msgid "Available files:"
+msgstr "Archivos disponibles"
 
 #: templates/solr_result.tpl.php:24
 msgid "None"

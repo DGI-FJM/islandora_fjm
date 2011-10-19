@@ -17,10 +17,10 @@ case "Conciertos":?>
     <div class="concert_top_center">
         <h3><? print l($item['title'], $item_path) ?></h3>
         <p><? print $item['cycle'] ?></p>
-        <p><? print format_date($item['date']->format('U'), 'custom', 'Y/m/d') ?></p>
+        <p><? print format_date($item['date']->format('U'), 'custom', 'd/m/Y') ?></p>
     </div>
     <div class="concert_top_right">
-        <h4><? echo t('Available objects:') ?></h4>
+        <h4><? echo t('Available files:') ?></h4>
         <ul>
         <? if (is_null($item['digital_objects'])) { ?>
             <li><? echo t('None')?></li>

@@ -13,7 +13,7 @@ print theme('islandora_fjm_atm_imagegallery', $pid);
 <div class="fjm_person_bio">
     <? echo $biography ?>
 </div>
-<h3><? echo t("Performances played or composed") ?></h3>
+<h3><? echo t("Performances in CLAMOR") ?></h3>
 <? 
 print theme('table', $performance_headers, $performances['associated']);
 ?>
