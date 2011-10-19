@@ -33,7 +33,7 @@ drupal_add_css(drupal_get_path('module', 'islandora_fjm') . '/css/islandora_fjm_
             },
             clip: {
                 baseUrl: "<? echo $base_url; ?>",
-                autoPlay: false,
+                autoPlay: true,
                 autoBuffering: true
             }
         });
