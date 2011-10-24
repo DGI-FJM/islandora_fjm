@@ -1,5 +1,110 @@
 <?php
 
+/**
+ * Similar to node_load, accepts an array of parameters, but returns an array
+ *  of nodes instead of the original first only.  (Useful when iterating over
+ *  all nodes of a given type).
+ * 
+ * @author Adam Vessey
+ *    Modified from node_load in node.module
+ * @param array $param
+ * @return array Containing 'node' objects. 
+ */
+function islandora_fjm_loadnodes($param = array('march_menus')) {
+  $nodes = array();
+  
+  if (is_numeric($param)) {
+    $cond = 'n.nid = %d';
+    $arguments[] = $param;
+  }
+  elseif (is_array($param)) {
+    // Turn the conditions into a query.
+    foreach ($param as $key => $value) {
+      $cond[] = 'n.'. db_escape_table($key) ." = '%s'";
+      $arguments[] = $value;
+    }
+    $cond = implode(' AND ', $cond);
+  }
+  else {
+    return FALSE;
+  }
+
+  // Retrieve a field list based on the site's schema.
+  $fields = drupal_schema_fields_sql('node', 'n');
+  $fields = array_merge($fields, drupal_schema_fields_sql('node_revisions', 'r'));
+  $fields = array_merge($fields, array('u.name', 'u.picture', 'u.data'));
+  // Remove fields not needed in the query: n.vid and r.nid are redundant,
+  // n.title is unnecessary because the node title comes from the
+  // node_revisions table.  We'll keep r.vid, r.title, and n.nid.
+  $fields = array_diff($fields, array('n.vid', 'n.title', 'r.nid'));
+  $fields = implode(', ', $fields);
+  // Rename timestamp field for clarity.
+  $fields = str_replace('r.timestamp', 'r.timestamp AS revision_timestamp', $fields);
+  // Change name of revision uid so it doesn't conflict with n.uid.
+  $fields = str_replace('r.uid', 'r.uid AS revision_uid', $fields);
+
+  $query = "SELECT $fields 
+    FROM {node} n 
+      INNER JOIN {users} u ON u.uid = n.uid 
+      INNER JOIN {node_revisions} r ON r.vid = n.vid
+    WHERE ";
+  
+  $result = db_query($query . $cond, $arguments);
+  
+  while($node_result = db_fetch_object($result)) {
+    if ($node_result->nid) {
+    // Call the node specific callback (if any) and piggy-back the
+    // results to the node or overwrite some values.
+      if ($extra = node_invoke($node_result, 'load')) {
+        foreach ($extra as $key => $value) {
+          $node_result->$key = $value;
+        }
+      }
+
+      if ($extra = node_invoke_nodeapi($node_result, 'load')) {
+        foreach ($extra as $key => $value) {
+          $node_result->$key = $value;
+        }
+      }
+    }
+    $nodes[] = $node_result;
+  }
+
+  return $nodes;
+}
+
+function islandora_fjm_cron() {
+  $doc = new DOMDocument();
+  /*$nodes = node_load(array(
+      'type' => 'march_menus'
+  ));*/
+  $nodes = islandora_fjm_loadnodes(array(
+      'type' => 'march_menus'
+  ));
+
+  foreach($nodes as $node) {
+    $doc->loadHTMLFile($node->field_link[0]['url']);
+    
+    $url_info = parse_url($node->field_link[0]['url']);
+    
+    $xpath = new DOMXPath($doc);
+    $scraped = $xpath->query("//*[@id='" .$node->field_element_id[0]['value'] . "']")->item(0);
+    foreach($xpath->query(".//a[starts-with(@href, '/')]", $scraped) as $rel_link) {
+      $rel_link->setAttribute('href', t('!prot://!host!path', array(
+          '!prot' => $url_info['scheme'], 
+          '!host' => $url_info['host'], 
+          '!path' => $rel_link->getAttribute('href')
+        )));
+    }
+    
+    $doc = new DOMDocument();
+    $imp = $doc->importNode($scraped, TRUE);
+    $doc->appendChild($imp);
+    $node->body = $doc->saveHTML();
+    node_save($node);
+  }
+}
+
 function islandora_fjm_islandora_solr_primary_display() {
   return array(
     // 'machine-name' = array(
@@ -168,6 +273,19 @@ function islandora_fjm_theme() {
     );
 }
 
+function islandora_fjm_get_pid_from_array(&$array) {
+  if (is_array($array)) {
+    foreach($array as $key => $value) {
+      if (strpos($value, ':')) {
+        return $value;
+      }
+    }
+  }
+  else {
+    return $array;
+  }
+}
+
 function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
     module_load_include('inc', 'islandora_fjm', 'includes/callbacks');
     $result = $vars['item'];
@@ -243,7 +361,8 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
                 $toReturn['movement'] = is_array($mov)?$mov:array($mov);
             }
             $toReturn['score'] = $result->rels_basedOn_ms;
-            $toReturn['score_link'] = l('Score', "islandora/solr/search/PID:\"". $toReturn['score'] . "\"");
+            //FIXME (MAJOR): Need to select the PID from the rels_basedOn_ms array...
+            $toReturn['score_link'] = l('Score', "fedora/repository/". islandora_fjm_get_pid_from_array($toReturn['score']), array('attributes' => array('class' => 'pdf', 'target' => '_blank')));
     break;
     case "Lecture":
     case "Archivo de voz":
