@@ -73,23 +73,36 @@ function islandora_fjm_loadnodes($param = array('march_menus')) {
   return $nodes;
 }
 
+/**
+ * Function to update the Menu with external markup.
+ * 
+ */
 function islandora_fjm_cron() {
   $doc = new DOMDocument();
-  /*$nodes = node_load(array(
-      'type' => 'march_menus'
-  ));*/
+
+  //Grab the nodes to modify (using our modification of node_load
   $nodes = islandora_fjm_loadnodes(array(
       'type' => 'march_menus'
   ));
 
+  //Process the nodes:
   foreach($nodes as $node) {
+    //Grab the page containing the markup
     $doc->loadHTMLFile($node->field_link[0]['url']);
     
+    //Parse it, so as to be able to fix relative links
     $url_info = parse_url($node->field_link[0]['url']);
     
+    //XPath is nice. :P
     $xpath = new DOMXPath($doc);
+    
+    //Select the element being scraped
     $scraped = $xpath->query("//*[@id='" .$node->field_element_id[0]['value'] . "']")->item(0);
+    
+    //Select all the links in the element being scraped which are relative to the host...
     foreach($xpath->query(".//a[starts-with(@href, '/')]", $scraped) as $rel_link) {
+      //And make them absolute
+      //FIXME (minor):  A different port would break this...
       $rel_link->setAttribute('href', t('!prot://!host!path', array(
           '!prot' => $url_info['scheme'], 
           '!host' => $url_info['host'], 
@@ -97,10 +110,18 @@ function islandora_fjm_cron() {
         )));
     }
     
+    //'Output':
+    //Create a new DOMDoc
     $doc = new DOMDocument();
+    
+    //Import the scraped node... 
     $imp = $doc->importNode($scraped, TRUE);
+    //...into the root node
     $doc->appendChild($imp);
+    
+    //Write out the scraped content
     $node->body = $doc->saveHTML();
+    //And save it to the node.
     node_save($node);
   }
 }
@@ -120,7 +141,7 @@ function islandora_fjm_islandora_solr_primary_display() {
       'module' => 'islandora_fjm',
       'file' => 'includes/SolrResults.inc',
       'class' => "SolrResults",
-      'function' => "displayResults",
+      'function' => "displayFJMResults",
       'description' => t("Change display based on type."),
     ),
   );

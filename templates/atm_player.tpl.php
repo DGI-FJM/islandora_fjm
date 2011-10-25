@@ -10,38 +10,50 @@ drupal_add_css(drupal_get_path('module', 'islandora_fjm') . '/css/islandora_fjm_
 <div class="player" id="atm_player"><!-- placeholder --></div>
 <ol class="atm_clips" style="display: none;"></ol>
 <script type="text/javascript">
-    $(function() {
-        $f("atm_player", "/<? echo $base; ?>/flowplayer-3.2.7.swf", {
-            plugins: {
-                controls: {
-                    all: false,
-                    //Play button here is a Bad Idea (also happens to avoid a bug:
-                    //  When the player\' play button was clicked first, 
-                    //  the CSS was not being changed, and as such the icons 
-                    //  for tracks were not changing; however, if the track icon was
-                    //  clicked first, then the button in the player would
-                    //  work to change the CSS)
-                    play: true,
-                    autoHide: false,
-                    scrubber: true,
-                    time: true,
-                    height: 30
-                },
-                audio: {
-                    url: "/<? echo $base; ?>/flowplayer.audio-3.2.2.swf"
-                }
-            },
-            clip: {
-                baseUrl: "<? echo $base_url; ?>",
-                autoPlay: true,
-                autoBuffering: true
-            }
-        });
+  $(function() {
+    $f("atm_player", "/<? echo $base; ?>/flowplayer-3.2.7.swf", {
+      plugins: {
+        controls: {
+          all: false,
+          //Play button here is a Bad Idea (also happens to avoid a bug:
+          //  When the player\' play button was clicked first, 
+          //  the CSS was not being changed, and as such the icons 
+          //  for tracks were not changing; however, if the track icon was
+          //  clicked first, then the button in the player would
+          //  work to change the CSS)
+          play: true,
+          autoHide: false,
+          scrubber: true,
+          time: true,
+          height: 30
+        },
+        audio: {
+          url: "/<? echo $base; ?>/flowplayer.audio-3.2.2.swf"
+        },
+        content: {
+          url: "/<? echo $base; ?>/flowplayer.content-3.2.0.swf",
+          top: 15,
+          left: 15,
+          right: 15,
+          bottom: 15
+        }
+      },
+      clip: {
+        baseUrl: "<? echo $base_url; ?>",
+        autoPlay: true,
+        autoBuffering: true
+      },
+      onStart: function (song) {
+        var meta = song.metaData;
         
-        $f("atm_player").playlist("<? echo $selector; ?>", {
-            loop: true,
-            template: "<li><a href=\"${url}\">${title} - ${subTitle}</a></li>",
-            manual: false
-        });
+        this.getPlugin('content').setHtml('Whatever...');
+      }
     });
+
+    $f("atm_player").playlist("<? echo $selector; ?>", {
+      loop: true,
+      template: "<li><a href=\"${url}\">${title} - ${subTitle}</a></li>",
+      manual: false
+    });
+  });
 </script>

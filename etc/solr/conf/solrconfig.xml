@@ -436,11 +436,12 @@
      </str>
      <str name="sort">
        atm_type_s asc,
-       eaccpf_name_surname_es asc,
-       eaccpf_name_forename_es asc,
+       eaccpf_name_surname_mt asc,
+       eaccpf_name_forename_mt asc,
        atm_concert_date_dt desc,
-       atm_facet_piece_s asc,
-       atm_performance_piece_title_s asc
+       atm_program_date_dt desc,
+       atm_facet_piece_mt asc,
+       atm_performance_piece_title_mt asc
      </str>
     </lst>
     <lst name="appends">

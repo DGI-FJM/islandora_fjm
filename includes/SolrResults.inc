@@ -5,21 +5,17 @@
  * on content type.
  */
 module_load_include('inc', 'islandora_solr_search', 'IslandoraSolrResults');
+
+//FIXME (minor):  Should change local references to use the moved function.
 function makeArray($in) {
-    return is_array($in)?
-        $in:
-        (isset($in)?
-            array($in):
-            array()
-        )
-    ;
+  return IslandoraSolrResults::makeArray($in);
 }
 
 function filterComposer($var) {
     if (is_callable("dsm")) {
         dsm($var);
     }
-    return !preg_match("/eaccpf_name_forename_es:.\\*/", $var);
+    return !preg_match("/eaccpf_name_surname_es:.\\*/", $var);
 }
     
 class SolrResults extends IslandoraSolrResults {
@@ -29,7 +25,67 @@ class SolrResults extends IslandoraSolrResults {
         drupal_add_css(drupal_get_path("module", "islandora_fjm") . "/css/islandora_fjm_solrResults.css");
     }
     
-    
+
+    function displayFJMResults($solrQueryProcessor) {
+      $apacheSolrResult = $solrQueryProcessor->solrResult;
+      $total = (int) $apacheSolrResult->response->numFound;
+
+      $end = min(($solrQueryProcessor->solrLimit + $solrQueryProcessor->solrStart), $total);
+
+      // Initialize drupal-style pager
+      islandora_solr_search_pager_init($total, $solrQueryProcessor->solrLimit);
+
+      $output .= $this->addSecondaries();
+
+      $title = '';
+      $field = 'atm_type_s';
+      $map = array(
+        'Archivo de voz' => t('List of Voice Archives'),
+        'Obras' => t('List of Works'),
+        'Compositores' => t('List of Composers'), 
+        'Intérpretes' => t('List of Performers'),
+        'Programas de mano' => t('List of Programs'),
+        'Partituras' => t('List of Scores'),
+        'Conciertos' => t('List of Concerts')
+      );
+      foreach (makeArray($solrQueryProcessor->solrParams['fq']) as $filter) {
+        if(strpos($filter, $field) === 0) {
+          //Assuming form of $field:"$title", gotta get rid of the field name and puctuation.
+          $title = $map[substr($filter, strlen($field) + 2, -1)];
+          break;
+        }
+      }
+      
+      
+      //$title should have been translated, so I should be good.
+      $output .= '<h2>'.t($title).'</h2>';
+      $output .= '<div id="islandora_solr_result_count">(' . ($solrQueryProcessor->solrStart + ($total > 0?1:0)) . ' - ' . $end . ' of ' . $total . ')</div>';
+      $output .= '<div class="content">';
+
+  //    drupal_set_message(print_r($secondary_display_profiles,1));
+      // Render Drupal pager (top of search results)
+      $output .= theme('pager', NULL, $solrQueryProcessor->solrLimit, 0, NULL, 5);
+
+      /*
+       * Then, here, we need to build links to the current query under the secondary query display
+       * profile for each such profile which uses the hook.
+       *
+       * The link should basically be $theCurrentURL with &proile=<profile_name> tacked on.
+       *
+       * Also, perhaps there's no difference between primary and secondary profiles?
+       */
+      $output .= $this->printResults($apacheSolrResult);
+      if (variable_get('islandora_solr_search_debug_mode', FALSE)) {
+          $output .= $this->printDebugOutput($solrResult);
+      }
+
+      // Render Drupal pager (bottom of search results)
+      $output .= theme('pager', NULL, $solrQueryProcessor->solrLimit, 0, NULL, 5);
+
+
+      $output .= "</div>"; // class = "content"
+      return $output;
+    }
 
     /**
      * Override the parent's "print" implementation
@@ -47,6 +103,7 @@ class SolrResults extends IslandoraSolrResults {
         $limitResults = variable_get('islandora_solr_search_limit_result_fields', 0);
         if (is_callable("dsm")) {
             //dsm(var_dump($results));
+            dsm($results);
             dsm($results->responseHeader);
             dsm($results->response);
         }
@@ -118,10 +175,10 @@ class SolrResults extends IslandoraSolrResults {
                     'data' => t('Year'),
                     'name' => 'year'
                 ),
-                array(
+                /*array(
                     'data' => t('Concert Series'),
                     'name' => 'cycle'
-                )
+                )*/
             ),
             'Archivo de voz' => array(
                 array(
@@ -132,10 +189,10 @@ class SolrResults extends IslandoraSolrResults {
                     'data' => t('Concert'),
                     'name' => 'concert'
                 ),
-                array(
+                /*array(
                     'data' => t('Series'),
                     'name' => 'cycle'
-                ),
+                ),*/
                 array(
                     'data' => t('Audio'),
                     'name' => 'audio'
@@ -150,10 +207,10 @@ class SolrResults extends IslandoraSolrResults {
                     'data' => t('Year'),
                     'name' => 'year'
                 ),
-                array(
+                /*array(
                     'data' => t('Series'),
                     'name' => 'cycle'
-                ),
+                ),*/
                 array(
                     'data' => t('Author(s)'),
                     'name' => 'author'
@@ -320,7 +377,7 @@ class SolrResults extends IslandoraSolrResults {
                         implode('~', 
                             array_merge(
                                 $fq_array, 
-                                makeArray("eaccpf_name_forename_es:$letter*")
+                                makeArray("eaccpf_name_surname_es:$letter*")
                             )
                         )
                     ) . '</li>';
