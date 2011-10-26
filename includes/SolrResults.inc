@@ -300,14 +300,25 @@ class SolrResults extends IslandoraSolrResults {
                             foreach ($docu['audio'] as $audio) {
                                 $playlist .= '{';
                                 $playlist .= "url: \"$base_url/fedora/repository/$audio/MP3\",";
-                                $playlist .= 'title: "' . htmlentities($docu['piece'], ENT_QUOTES, 'UTF-8', FALSE) . '",';
-                                $playlist .= 'subTitle: "' . htmlentities($docu['movement'][$aud++], ENT_QUOTES, 'UTF-8', FALSE) . '"';
+                                if($type === 'Obras') {
+                                  $playlist .= 'title: "' . htmlentities($docu['piece'], ENT_QUOTES, 'UTF-8', FALSE) . '",';
+                                  $playlist .= 'subTitle: "' . htmlentities($docu['movement'][$aud++], ENT_QUOTES, 'UTF-8', FALSE) . '"';
+                                }
+                                else { //$type === Conferencia
+                                  $playlist .= 'title: "' . htmlentities($docu['description'], ENT_QUOTES, 'UTF-8', FALSE) . '",';
+                                  $playlist .= 'subTitle: ""';
+                                }
                                 $playlist .= '},';
                             }
                             $playlist .= ']';
-                            $nowPlaying = htmlentities(theme('islandora_fjm_atm_now_playing', $docu['piece'], $docu['players']), ENT_QUOTES, 'UTF-8', FALSE);
                             
-                            $cell .= <<< EOT
+                            if($type === 'Obras') {
+                              $nowPlaying = htmlentities(theme('islandora_fjm_atm_now_playing', $docu['piece'], $docu['players']), ENT_QUOTES, 'UTF-8', FALSE);
+                            }
+                            else { // $type === 'Conferencia'
+                              $nowPlaying = htmlentities('<p>' . $docu['description'] . '</p>', ENT_QUOTES, 'UTF-8', FALSE);
+                            }
+                              $cell .= <<< EOT
 <a onClick='
   \$f().play($playlist); 
   \$f().onStart(function() {
