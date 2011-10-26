@@ -299,8 +299,19 @@ function islandora_fjm_theme() {
                 'base' => drupal_get_path("module", "islandora_fjm") . '/flowplayer'
             ),
             'template' => 'templates/atm_player'
+        ),
+        'islandora_fjm_atm_now_playing' => array(
+            'arguments' => array(
+                'piece' => NULL,
+                'players' => NULL
+            ),
+            'template' => 'templates/atm_now_playing'
         )
     );
+}
+
+function islandora_fjm_preprocess_islandora_fjm_atm_now_playing(&$vars) {
+  dsm($vars);
 }
 
 function islandora_fjm_get_pid_from_array(&$array) {
@@ -389,6 +400,11 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
                 $mov = $result->atm_performance_movement_name_ms;
                 $toReturn['audio'] = is_array($aud)?$aud:array($aud);
                 $toReturn['movement'] = is_array($mov)?$mov:array($mov);
+            }
+            $players = FJM::makeArray($result->atm_performance_player_ms);
+            $instrument = FJM::makeArray($result->atm_performance_inst_ms);
+            for ($i = 0; $i < count($players); $i++) {
+              $toReturn['players'][$players[$i]][] = $instrument[$i];
             }
             $toReturn['score'] = $result->rels_basedOn_ms;
             //FIXME (MAJOR): Need to select the PID from the rels_basedOn_ms array...

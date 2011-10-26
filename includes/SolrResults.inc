@@ -305,9 +305,15 @@ class SolrResults extends IslandoraSolrResults {
                                 $playlist .= '},';
                             }
                             $playlist .= ']';
+                            $nowPlaying = htmlentities(theme('islandora_fjm_atm_now_playing', $docu['piece'], $docu['players']), ENT_QUOTES, 'UTF-8', FALSE);
                             
-                            $cell .= "<a onClick='\$f().onPlaylistReplace(function() { $(\".atm_clips\").css(\"display\", \"block\"); }) ; 
-                                \$f().play($playlist);'></a>";                            
+                            $cell .= <<< EOT
+<a onClick='
+  \$f().play($playlist); 
+  \$f().onStart(function() {
+    this.getPlugin("content").setHtml("$nowPlaying"); 
+  });'></a>
+EOT;
                             $cell .= "</div>";
                             $row['data'][] = $cell;
                             break;

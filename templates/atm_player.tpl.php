@@ -1,11 +1,12 @@
 <?php  
 global $base_url;
-$hostname = $base_url; 
+$hostname = $base_url;
+$mod_base = drupal_get_path('module', 'islandora_fjm');
 
 //FIXME: This should probably be moved elsewhere...
 drupal_add_js("$base/flowplayer-3.2.6.min.js");
 drupal_add_js("$base/flowplayer.playlist-3.0.8.js"); 
-drupal_add_css(drupal_get_path('module', 'islandora_fjm') . '/css/islandora_fjm_player.css', 'module'); ?>
+drupal_add_css($mod_base . '/css/islandora_fjm_player.css', 'module'); ?>
 
 <div class="player" id="atm_player"><!-- placeholder --></div>
 <ol class="atm_clips" style="display: none;"></ol>
@@ -15,13 +16,8 @@ drupal_add_css(drupal_get_path('module', 'islandora_fjm') . '/css/islandora_fjm_
       plugins: {
         controls: {
           all: false,
-          //Play button here is a Bad Idea (also happens to avoid a bug:
-          //  When the player\' play button was clicked first, 
-          //  the CSS was not being changed, and as such the icons 
-          //  for tracks were not changing; however, if the track icon was
-          //  clicked first, then the button in the player would
-          //  work to change the CSS)
           play: true,
+          playlist: true,
           autoHide: false,
           scrubber: true,
           time: true,
@@ -32,10 +28,9 @@ drupal_add_css(drupal_get_path('module', 'islandora_fjm') . '/css/islandora_fjm_
         },
         content: {
           url: "/<? echo $base; ?>/flowplayer.content-3.2.0.swf",
-          top: 15,
-          left: 15,
-          right: 15,
-          bottom: 15
+          stylesheet: "/<? echo $mod_base ;?>/css/islandora_fjm_player.css",
+          width: '95%',
+          height: '60%'
         }
       },
       clip: {
@@ -43,11 +38,9 @@ drupal_add_css(drupal_get_path('module', 'islandora_fjm') . '/css/islandora_fjm_
         autoPlay: true,
         autoBuffering: true
       },
-      onStart: function (song) {
-        var meta = song.metaData;
-        
-        this.getPlugin('content').setHtml('Whatever...');
-      }
+      onPlaylistReplace: function(){ 
+        $("<? echo $selector; ?>").show(); 
+      } 
     });
 
     $f("atm_player").playlist("<? echo $selector; ?>", {

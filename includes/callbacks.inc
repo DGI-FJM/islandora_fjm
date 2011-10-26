@@ -31,6 +31,11 @@ class FJM {
         }
     }
     
+    static function makeArray($in) {
+      module_load_include('inc', 'islandora_solr_search', 'IslandoraSolrResults');
+      return IslandoraSolrResults::makeArray($in);
+    }
+    
     /**
      * Performs the given RI query.
      * Might be duplicating code from the Fedora API (I seem to recall something

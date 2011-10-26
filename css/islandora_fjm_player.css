@@ -15,6 +15,10 @@ root {
     display: block;
 }
 
+#atm_player {
+  height: 130px;
+}
+
 .atm_clips a.progress {
     font-style: italic;
     font-weight: bold;
@@ -26,4 +30,14 @@ root {
 
 .atm_clips a.playing {
     font-style: italic;
+}
+
+h3.player-content {
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+p.player-content {
+  color: white;
 }
