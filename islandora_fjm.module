@@ -75,16 +75,18 @@ function islandora_fjm_loadnodes($param = array('march_menus')) {
 
 /**
  * Function to update the Menu with external markup.
- * 
+ * Happens in this implementation of hook_cron...  Perhaps it should be moved?
+ * @todo:  Move menu functionality into separate function.
+ * @param $node_select array Selector as per node_load.  For use in this \
+ *   function, these nodes need a Link field named field_link, and a text field \
+ *   of the element to select named 'field_element_id'
  */
-function islandora_fjm_cron() {
-  $doc = new DOMDocument();
-
+function islandora_fjm_scraper($node_select = array('type' => 'march_menus')) {
   //Grab the nodes to modify (using our modification of node_load
-  $nodes = islandora_fjm_loadnodes(array(
-      'type' => 'march_menus'
-  ));
+  $nodes = islandora_fjm_loadnodes($node_select);
 
+  $doc = new DOMDocument();
+  
   //Process the nodes:
   foreach($nodes as $node) {
     //Grab the page containing the markup
@@ -124,6 +126,13 @@ function islandora_fjm_cron() {
     //And save it to the node.
     node_save($node);
   }
+}
+
+/**
+ * Implementation of hook_cron()
+ */
+function islandora_fjm_cron() {
+  islandora_fjm_scraper();
 }
 
 function islandora_fjm_islandora_solr_primary_display() {
