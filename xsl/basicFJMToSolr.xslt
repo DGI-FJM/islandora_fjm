@@ -49,7 +49,7 @@
                             <xsl:with-param name="pid" select="$pid"/>
                         </xsl:call-template>
                         <!-- index performances, lectures, and programs -->
-                        <xsl:variable name="ITEM_TF">
+                        <!--<xsl:variable name="ITEM_TF">
                             <xsl:call-template name="perform_query">
                                 <xsl:with-param name="query" select="concat('
                                 select $item from &lt;#ri&gt;
@@ -64,7 +64,7 @@
                                 <xsl:with-param name="pid" select="substring-after(@uri, '/')"/>
                                 <xsl:with-param name="previous_items" select="concat($previous_items, ' ', $pid)"/>
                             </xsl:call-template>
-                        </xsl:for-each>
+                        </xsl:for-each>-->
                     </xsl:when>
                     <xsl:when test="@rdf:resource='info:fedora/atm:performanceCModel'">
                         <xsl:call-template name="atm_performance">
@@ -80,7 +80,7 @@
                             <xsl:with-param name="pid" select="$pid"/>
                         </xsl:call-template>
                         <!-- Index the composer(s?) -->
-                        <xsl:for-each select="../ns:composedBy[@rdf:resource]">
+                        <!--<xsl:for-each select="../ns:composedBy[@rdf:resource]">
                             <xsl:call-template name="atm_person">
                                 <xsl:with-param name="pid" select="substring-after(@rdf:resource, '/')"/>
                             </xsl:call-template>
@@ -100,13 +100,12 @@
                                 <xsl:with-param name="pid" select="substring-after(@uri, '/')"/>
                                 <xsl:with-param name="previous_items" select="concat($previous_items, ' ', $pid)"/>
                             </xsl:call-template>
-                        </xsl:for-each>
+                        </xsl:for-each>-->
                     </xsl:when>
                     <xsl:when test="@rdf:resource='info:fedora/atm:programCModel'">
                         <xsl:call-template name="atm_program">
                             <xsl:with-param name="pid" select="$pid"/>
-                        </xsl:call-template>
-                        
+                        </xsl:call-template> 
                     </xsl:when>
                     <xsl:when test="@rdf:resource='info:fedora/atm:personCModel'">
                         <!-- Get a list of scores this person has composed:  Create a "composer" index if the list is not empty, and index the scores... -->
@@ -136,17 +135,17 @@
                                 <xsl:with-param name="pid" select="$pid"/>
                             </xsl:call-template>
                         </xsl:if>
-                        <xsl:for-each select="$SCORES/res:sparql/res:results/res:result/res:obj">
+                       <!-- <xsl:for-each select="$SCORES/res:sparql/res:results/res:result/res:obj">
                             <xsl:call-template name="fjm-atm">
                                 <xsl:with-param name="pid" select="substring-after(@uri, '/')"/>
                                 <xsl:with-param name="previous_items" select="concat($previous_items, ' ', $pid)"/>
                             </xsl:call-template>
-                        </xsl:for-each>
+                        </xsl:for-each>-->
                     
                         <!-- Get the list of all concerts in which this person has played and which doesn't contain 
                             a performance based on a piece they have composed (not sure if this exclusion will work, 
                             as I do not actually see this situation). -->
-                        <xsl:variable name="CONCERT_TF">
+                        <!--<xsl:variable name="CONCERT_TF">
                             <xsl:call-template name="perform_query">
                                 <xsl:with-param name="query" select="concat('
                                     PREFIX atm-rel: &lt;', $NAMESPACE, '&gt;
@@ -170,13 +169,13 @@
                                 <xsl:with-param name="pid" select="substring-after(@uri, '/')"/>
                                 <xsl:with-param name="previous_items" select="concat($previous_items, ' ', $pid)"/>
                             </xsl:call-template>
-                        </xsl:for-each>
+                        </xsl:for-each>-->
                     </xsl:when>
                     <xsl:when test="@rdf:resource='info:fedora/atm:lectureCModel'">
                         <xsl:call-template name="atm_lecture">
                             <xsl:with-param name="pid" select="$pid"/>
                         </xsl:call-template>
-                        <xsl:variable name="ITEM_TF">
+                        <!--<xsl:variable name="ITEM_TF">
                             <xsl:call-template name="perform_query">
                                 <xsl:with-param name="query" select="concat('
                                     select $item from &lt;#ri&gt;
@@ -191,13 +190,13 @@
                                 <xsl:with-param name="pid" select="substring-after(@uri, '/')"/>
                                 <xsl:with-param name="previous_items" select="concat($previous_items, ' ', $pid)"/>
                             </xsl:call-template>
-                        </xsl:for-each>
+                        </xsl:for-each>-->
                     </xsl:when>
                     <xsl:when test="@rdf:resource='info:fedora/atm:movementCModel'">
                         <xsl:call-template name="atm_movement">
                             <xsl:with-param name="pid" select="$pid"/>
                         </xsl:call-template>
-                        <xsl:variable name="ITEM_TF">
+                        <!--<xsl:variable name="ITEM_TF">
                             <xsl:call-template name="perform_query">
                                 <xsl:with-param name="query" select="concat('
                                     select $performance from &lt;#ri&gt;
@@ -212,8 +211,14 @@
                                 <xsl:with-param name="pid" select="substring-after(@uri, '/')"/>
                                 <xsl:with-param name="previous_items" select="concat($previous_items, ' ', $pid)"/>
                             </xsl:call-template>
-                        </xsl:for-each>
+                        </xsl:for-each>-->
                     </xsl:when>
+                    <!-- Handled in the performance...
+                    <xsl:when test="@rdf:resource='info:fedora/atm:performerCModel'">
+                        <xsl:call-template name="atm_performer">
+                            <xsl:with-param name="pid" select="$pid"/>
+                        </xsl:call-template>
+                    </xsl:when>-->
                     <xsl:otherwise>
                         <doc>
                             <field name="PID">
