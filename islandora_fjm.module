@@ -747,14 +747,15 @@ function islandora_fjm_preprocess_islandora_fjm_atm_program(&$vars) {
     $vars['concert']['year'] = $xpath->evaluate("string(str[@name='atm_program_year_s']/text())", $result);
     
     $modsUrl = 'http://' . $_SERVER['HTTP_HOST'] . url("fedora/repository/$pid/MODS");
-    echo $modsUrl;
     $mods = DOMDocument::loadXML(do_curl($modsUrl));
-    $vars['toc'] = $mods->getElementsByTagName('tableOfContents')->item(0)->nodeValue;
-    $vars['notes'] = array();
+    if ($mods) {
+      $vars['toc'] = $mods->getElementsByTagName('tableOfContents')->item(0)->nodeValue;
+      $vars['notes'] = array();
 
-    foreach ($mods->getElementsByTagName('note') as $node) {
-        //$output .= "<p>$node->nodeValue</p>";
-        $vars['notes'][] = $node->nodeValue;
+      foreach ($mods->getElementsByTagName('note') as $node) {
+          //$output .= "<p>$node->nodeValue</p>";
+          $vars['notes'][] = $node->nodeValue;
+      }
     }
 }
 

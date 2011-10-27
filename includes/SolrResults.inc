@@ -37,7 +37,7 @@ class SolrResults extends IslandoraSolrResults {
 
       $output .= $this->addSecondaries();
 
-      $title = '';
+      $title = $map['Conciertos'];
       $field = 'atm_type_s';
       $map = array(
         'Archivo de voz' => t('List of Voice Archives'),
