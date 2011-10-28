@@ -13,7 +13,7 @@ function makeArray($in) {
 
 function filterComposer($var) {
     if (is_callable("dsm")) {
-        dsm($var);
+        //dsm($var);
     }
     return !preg_match("/eaccpf_name_surname_es:.\\*/", $var);
 }
@@ -102,10 +102,10 @@ class SolrResults extends IslandoraSolrResults {
         $recordStart = $results->response->start;
         $limitResults = variable_get('islandora_solr_search_limit_result_fields', 0);
         if (is_callable("dsm")) {
-            //dsm(var_dump($results));
+            /*dsm(var_dump($results));
             dsm($results);
             dsm($results->responseHeader);
-            dsm($results->response);
+            dsm($results->response);*/
         }
         
         /**
@@ -275,6 +275,7 @@ class SolrResults extends IslandoraSolrResults {
             'Programas de mano' => t('Programs'),
             'Partituras' => t('Scores')
         );
+        $js_data = array('islandora_fjm' => array('piece' => array()));
         foreach ($results->response->docs as $doc) {
             //Setup to pass to preprocessor... (Something of a hack,
             //  using the preprocessor function in this way)
@@ -290,6 +291,7 @@ class SolrResults extends IslandoraSolrResults {
 
             //Row to add to table
             $row = array('data' => array());
+            
 
             //If its an acutal table we're to add to...
             if (isset($headers[$type])) {
@@ -299,36 +301,49 @@ class SolrResults extends IslandoraSolrResults {
                         case 'audio':
                             $cell = "<div class='atm_track'>";
                             
-                            $playlist = '[';
+                            $playlist = array();
                             $aud = 0;
                             foreach ($docu['audio'] as $audio) {
-                                $playlist .= '{';
-                                $playlist .= "url: \"$base_url/fedora/repository/$audio/MP3\",";
+                                $entry = array();
+                                $entry["url"] = "$base_url/fedora/repository/$audio/MP3";
                                 if($type === 'Obras') {
-                                  $playlist .= 'title: "' . htmlentities($docu['piece'], ENT_QUOTES, 'UTF-8', FALSE) . '",';
-                                  $playlist .= 'subTitle: "' . htmlentities($docu['movement'][$aud++], ENT_QUOTES, 'UTF-8', FALSE) . '"';
+                                  $entry['title'] = $docu['piece'];
+                                  $entry['subTitle'] = (!empty($docu['movement'][$aud])?$docu['movement'][$aud]:"");
+                                  $aud++;
                                 }
                                 else { //$type === Conferencia
-                                  $playlist .= 'title: "' . htmlentities($docu['description'], ENT_QUOTES, 'UTF-8', FALSE) . '",';
-                                  $playlist .= 'subTitle: ""';
+                                  $entry['title'] = $docu['description'];
+                                  $entry['subTitle'] = "";
                                 }
-                                $playlist .= '},';
+                                $playlist[] = $entry;
                             }
-                            $playlist .= ']';
+                            
                             
                             if($type === 'Obras') {
-                              $nowPlaying = htmlentities(theme('islandora_fjm_atm_now_playing', $docu['piece'], $docu['players']), ENT_QUOTES, 'UTF-8', FALSE);
+                              $nowPlaying = theme('islandora_fjm_atm_now_playing', $docu['piece'], $docu['players']);
                             }
                             else { // $type === 'Conferencia'
-                              $nowPlaying = htmlentities('<p>' . $docu['description'] . '</p>', ENT_QUOTES, 'UTF-8', FALSE);
+                              $nowPlaying = '<p>' . $docu['description'] . '</p>';
                             }
-                              $cell .= <<< EOT
+                            $index = count($js_data['islandora_fjm']['piece']);
+                            $js_data['islandora_fjm']['piece'][] = array(
+                              'playlist' => $playlist, 
+                              'now_playing' => $nowPlaying
+                            );
+                            
+                            $cell .= "<a onClick='Drupal.settings.islandora_fjm.play($index);'></a>";
+/*                              $cell .= <<< EOT
 <a onClick='
   \$f().play($playlist); 
-  \$f().onStart(function() {
+  \$f().onStart(function(clip) {
     this.getPlugin("content").setHtml("$nowPlaying"); 
-  });'></a>
-EOT;
+    if (typeof _tracker != "undefined") {
+        //object exists ... execute code here.
+        _tracker._trackEvent('Audio', 'Play', clip.url);
+    }
+  });
+  '></a>
+EOT;*/
                             $cell .= "</div>";
                             $row['data'][] = $cell;
                             break;
@@ -365,7 +380,8 @@ EOT;
         if (!empty($table['Obras']) || !empty($table['Archivo de voz'])) {
             module_load_include('inc', 'islandora_fjm', 'includes/callbacks');
             //$output .= FJM::addPlayer();
-            $output .= theme('islandora_fjm_atm_flowplayer');
+            drupal_add_js($js_data, 'setting');
+            $output .= theme('islandora_fjm_atm_flowplayer');   
         }
         
         //Add the accordion stuff to work in Concerts...

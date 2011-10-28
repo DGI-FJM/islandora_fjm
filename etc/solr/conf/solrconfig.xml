@@ -440,7 +440,8 @@
        eaccpf_name_forename_mts asc,
        atm_concert_date_dt desc,
        atm_program_date_dt desc,
-       atm_facet_piece_mts asc
+       atm_facet_piece_mts asc,
+       atm_performance_piece_title_mts asc
      </str>
     </lst>
     <lst name="appends">
