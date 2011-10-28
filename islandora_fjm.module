@@ -296,7 +296,8 @@ function islandora_fjm_theme() {
         'islandora_fjm_atm_flowplayer' => array(
             'arguments' => array(
                 'selector' => 'ol.atm_clips',
-                'base' => drupal_get_path("module", "islandora_fjm") . '/flowplayer'
+                'base' => drupal_get_path("module", "islandora_fjm") . '/flowplayer',
+                'trackingCode' => variable_get('googleanalytics_account', NULL)
             ),
             'template' => 'templates/atm_player'
         ),
