@@ -194,6 +194,10 @@ class SolrResults extends IslandoraSolrResults {
                     'name' => 'cycle'
                 ),*/
                 array(
+                    'data' => t('Year'),
+                    'name' => 'year'
+                ),
+                array(
                     'data' => t('Audio'),
                     'name' => 'audio'
                 )
@@ -220,7 +224,7 @@ class SolrResults extends IslandoraSolrResults {
                     'name' => 'titn_link'
                 ),*/
                 array(
-                    'data' => t('PDF'),
+                    'data' => t('Program'),
                     'name' => 'PDF_link'
                 )
             ),
@@ -238,7 +242,7 @@ class SolrResults extends IslandoraSolrResults {
                     'name' => 'titn_link'
                 ),
                 array(
-                    'data' => t('PDF'),
+                    'data' => t('Score'),
                     'name' => 'PDF_link'
                 )
             )

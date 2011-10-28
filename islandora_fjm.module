@@ -440,7 +440,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
             $toReturn['author'] = (is_array($result->atm_program_author_ms)?
                 array_unique($result->atm_program_author_ms):
                 array($result->atm_program_author_ms));
-            $toReturn['PDF_link'] = l(t('PDF'), "fedora/repository/$result->PID");
+            $toReturn['PDF_link'] = l(t('PDF'), "fedora/repository/$result->PID", array('attributes' => array('class' => 'pdf', 'target' => '_blank')));
     break;
     case "Score":
     case "Partituras":
@@ -455,7 +455,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
                  */ 
                 "";
             $toReturn['pdf'] = $result->atm_score_pdf_b;
-            $toReturn['PDF_link'] = ($toReturn['pdf'])? l(t('PDF'), "fedora/repository/$result->PID") : 
+            $toReturn['PDF_link'] = ($toReturn['pdf'])? l(t('PDF'), "fedora/repository/$result->PID", array('attributes' => array('class' => 'pdf', 'target' => '_blank'))) : 
                 /**
                  * @todo REMOVEME: Field to be left blank without link... 
                  * (http://support.discoverygarden.ca/attachments/download/480/CLAMOR_site_feedback.docx) 
@@ -570,7 +570,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                 array(
                     'data' => (
                         ($performance['localpdf'])?
-                        (l(t("PDF"), "fedora/repository/" . $performance['localpdfscore'])):
+                        (l(t("PDF"), "fedora/repository/" . $performance['localpdfscore'], array('attributes' => array('class' => 'pdf', 'target' => '_blank')))):
                         (t("N/A"))) //TODO (minor): Don't know if they want this column populated if there's none.
                 ),
                 array(

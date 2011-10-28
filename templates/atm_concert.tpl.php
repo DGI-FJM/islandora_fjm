@@ -17,7 +17,7 @@ drupal_add_css("$islandoraPath/css/islandora_fjm_concert.css");
            <p>
                <? 
                    if ($concert['program']['pid']) { 
-                       echo l(t('Available'), 'fedora/repository/' . $concert['program']['pid']);
+                       echo l(t('Available'), 'fedora/repository/' . $concert['program']['pid'], array('attributes' => array('class' => 'pdf')));
                    }
                    else {
                        echo t('N/A');

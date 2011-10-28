@@ -135,7 +135,7 @@
                                 <xsl:with-param name="pid" select="$pid"/>
                             </xsl:call-template>
                         </xsl:if>
-                       <!-- <xsl:for-each select="$SCORES/res:sparql/res:results/res:result/res:obj">
+                        <!--<xsl:for-each select="$SCORES/res:sparql/res:results/res:result/res:obj">
                             <xsl:call-template name="fjm-atm">
                                 <xsl:with-param name="pid" select="substring-after(@uri, '/')"/>
                                 <xsl:with-param name="previous_items" select="concat($previous_items, ' ', $pid)"/>
