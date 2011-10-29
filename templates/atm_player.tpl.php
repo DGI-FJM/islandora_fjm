@@ -13,17 +13,13 @@ drupal_add_css($mod_base . '/css/islandora_fjm_player.css', 'module'); ?>
 <script type="text/javascript">
   <? if(!empty($trackingCode)): ?>
   function update_ga(event, url, time) {
-    if (typeof _gat != "undefined") {
-        //object exists ... execute code here.
-        var _tracker = _gat._getTracker('<? echo $trackingCode; ?>');
-    }
-
-    if (typeof _tracker != 'undefined') {
+    if (typeof _gaq != "undefined") {
       if (time != null) {
-        _tracker._trackEvent('Audio', event, url, time);
+        //_tracker._trackEvent('Audio', event, url, time);
+        _gaq.push(['_trackEvent', 'Audio', event, url, time])
       }
       else {
-        _tracker._trackEvent('Audio', event, url);
+        _gaq.push(['_trackEvent', 'Audio', event, url]);
       }
     }
   }
