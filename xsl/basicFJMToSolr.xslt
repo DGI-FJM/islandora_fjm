@@ -684,6 +684,12 @@
                 <field name="pOrder_s">
                     <xsl:value-of select="res:pOrder/text()"/>
                 </field>
+                <field name="cOrder_i">
+                    <xsl:value-of select="res:cOrder/text()"/>
+                </field>
+                <field name="pOrder_i">
+                    <xsl:value-of select="res:pOrder/text()"/>
+                </field>
             </xsl:for-each>
         </doc>
     </xsl:template>
