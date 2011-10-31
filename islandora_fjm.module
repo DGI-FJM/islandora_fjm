@@ -416,7 +416,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
     case "Archivo de voz":
             $toReturn['description'] = $result->atm_lecture_title_s;
             $toReturn['concert'] = $result->atm_lecture_concert_title_s;
-            $toReturn['year'] = $result->atm_audio_concert_year_s;
+            $toReturn['year'] = $result->atm_facet_year_s;
             $toReturn['cycle'] = $result->atm_lecture_concert_cycle_s;
             $toReturn['audio'] = array($result->PID);
     break;
@@ -439,7 +439,8 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
             $toReturn['cycle'] = $result->atm_program_concert_cycle_ms;
             $toReturn['titn'] = $result->atm_program_titn_s;
             $toReturn['titn_link'] = l(t('Go'), FJM::getTitnAddr($toReturn['titn']));
-            $toReturn['author'] = FJM::makeArray($result->atm_program_author_ms);
+            //FIXME (minor): Index should not contain multiple copies of the same author, so this 'array_unique' should not be necessary
+            $toReturn['author'] = array_unique(FJM::makeArray($result->atm_program_author_ms));
             $toReturn['PDF_link'] = l(t('PDF'), "fedora/repository/$result->PID", array('attributes' => array('class' => 'pdf', 'target' => '_blank')));
     break;
     case "Score":
@@ -802,7 +803,20 @@ function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars) {
                 'data' => t('Piece'),
                 'sField' => 'title',
                 'xpath' => 'str[@name="atm_performance_piece_title_s"]/text()',
+                'linkTo' => array(
+                    'pid' => array(
+                        'xpath' => 'arr[@name="rels_isMemberOf_ms"]/str[1]/text()'
+                    )
+                )
             ),
+            
+            array(
+                'data' => t('Year'),
+                'sField' => 'year',
+                'xpath' => 'str[@name="atm_performance_year_s"]/text()'
+            ),
+            /* @todo:  Remove
+             * @removeme: Not needed, as per http://support.discoverygarden.ca/issues/1492
             array(
                 'data' => t('Concert'),
                 'sField' => 'concert',
@@ -829,7 +843,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars) {
                         'failvalue' => '"N/A"'
                     )
                 )
-            )
+            )*/
         )
     );
     
@@ -884,4 +898,24 @@ function islandora_fjm_preprocess_islandora_fjm_atm_imagegallery(&$vars) {
     $pid = $vars['pid'];
     
     $vars['images'] = FJM::getRelatedImagesByPid($pid);    
+}
+
+function islandora_fjm_preprocess_page(&$vars) {
+  $classes = explode(' ', $vars['body_classes']);
+  //Kinda gross looking, due to the manner of argument/path parsing...  Oh well.
+  switch (arg(0)) {
+    case 'islandora':
+      switch (arg(1)) {
+        case 'solr':
+        switch (arg(2)) {
+          case 'search':
+            $classes[] = 'page-islandora-solr-search-clamor';
+            break;
+        }
+        break;
+      }
+      break;
+  }
+  $vars['classes_array'] = $classes;
+  $vars['body_classes'] = implode(' ', $classes);
 }
