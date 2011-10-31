@@ -600,7 +600,8 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                     'rels_hasModel_ms:"atm:movementCModel" AND rels_isMemberOf_ms:"' . $performance['pid'] . '"', 
                     'PID,title_s,hasMP3_b',
                     array(
-                        'sort' => 'pOrder_s asc'
+                        'sort' => 'pOrder_i asc',
+                        'rows' => '1000'
                     )
                 )
             );
