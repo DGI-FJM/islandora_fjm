@@ -76,7 +76,7 @@ class SolrResults extends IslandoraSolrResults {
        */
       $output .= $this->printResults($apacheSolrResult);
       if (variable_get('islandora_solr_search_debug_mode', FALSE)) {
-          $output .= $this->printDebugOutput($solrResult);
+          $output .= $this->printDebugOutput($apacheSolrResult);
       }
 
       // Render Drupal pager (bottom of search results)

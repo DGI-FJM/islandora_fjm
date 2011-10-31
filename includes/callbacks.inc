@@ -54,7 +54,7 @@ class FJM {
         $queryUrl .= "?type=tuples&flush=TRUE&format=Sparql" . (($limit > 0)?("&limit=$limit"):("")) . "&offset=$offset&lang=$type&query=" . urlencode($query);
         $doc = DOMDocument::loadXML(do_curl($queryUrl));
         if(is_callable('dsm'))
-            dsm($query);
+            //dsm($query);
         return ((!$doc)?(new DOMDocument()):($doc));
     }
     static function performItqlQuery($query, $limit = -1, $offset = 0) {
@@ -86,7 +86,7 @@ class FJM {
         }
         $doc = DOMDocument::loadXML(do_curl($solrUrl));
         if (is_callable("dsm")) {
-            dsm($solrUrl);
+            //dsm($solrUrl);
             $error = error_get_last();
             if (!empty($error)) {
                 dsm($error);
@@ -106,7 +106,7 @@ class FJM {
         }
         $doc = DOMDocument::loadXML(do_curl($solrUrl));
         if (is_callable("dsm")) {
-            dsm($solrUrl);
+            //dsm($solrUrl);
             $error = error_get_last();
             if (!empty($error)) {
                 dsm($error);
