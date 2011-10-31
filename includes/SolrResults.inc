@@ -345,11 +345,11 @@ class SolrResults extends IslandoraSolrResults {
   '></a>
 EOT;*/
                             $cell .= "</div>";
-                            $row['data'][] = $cell;
+                            $row['data'][]['data'] = $cell;
                             break;
                         case 'piece':
                             $cell = l($docu['piece'], $docu['concert_path']);
-                            $row['data'][] = $cell;
+                            $row['data'][]['data'] = $cell;
                             break;
                         case 'author':
                             $cell = '<ul>';
@@ -357,10 +357,10 @@ EOT;*/
                                 $cell .= '<li>' . $author . '</li>';
                             }
                             $cell .= '</ul>';
-                            $row['data'][] = $cell;
+                            $row['data'][]['data'] = $cell;
                             break;
                         default:
-                            $row['data'][] = $docu[$field['name']];
+                            $row['data'][]['data'] = $docu[$field['name']];
                     }
                 }
             }
@@ -368,7 +368,7 @@ EOT;*/
             //... otherwise, render it with the theme function, to be thrown into a cell.
             //FIXME:	Kind of inefficient, as it is "preprocessed" twice, but anyway...
             else {
-                $row['data'][] = theme('islandora_fjm_solr_result', $doc);
+                $row['data'][]['data'] = theme('islandora_fjm_solr_result', $doc);
             }
 
             $table[$type][] = $row;
@@ -404,8 +404,8 @@ EOT;*/
         $people = array('Compositores', 'Intérpretes');
         //Render the table for each content type.
         foreach ($table as $key => $tab) {
-            //Deliciously hack-ful...  Handle the composers differently, so as to make an 'A-Z' display...
-            if (array_search($key, $people) !== FALSE && strpos($results->responseHeader->params->q, "atm_type_s:\"$key\"") !== FALSE) {
+            //Deliciously hack-ful...  Handle the people differently, so as to make an 'A-Z' display...
+            if (array_search($key, $people) !== FALSE && array_search("atm_type_s:\"$key\"", makeArray($results->responseHeader->params->fq)) !== FALSE) {
                 $output .= '<ul class="atm_solr_letterblock">';
                 $fq_array = array_filter(makeArray($results->responseHeader->params->fq), "filterComposer");
                 foreach (range('A', 'Z') as $letter) {
@@ -422,8 +422,18 @@ EOT;*/
                 $output .= '</ul>';
             }
             
-            if (!empty($tab)) {
-                $output .= theme('table', (isset($headers[$key]) ? $headers[$key] : array()), $tab, array(), $groups[$key]);
+            if (!empty($tab)) {              
+              foreach($tab as &$contents) {
+                $count = count($contents['data']);
+                //dsm($contents);
+                if ($count > 0) {
+                  $contents['data'][0]['class'] .= ' col-first';
+                  $contents['data'][$count - 1]['class'] .= ' col-last';
+                }
+                //dsm($contents);
+              }
+                $output .= theme('table', (isset($headers[$key]) ? $headers[$key] : array()), $tab, array('class' => "atm_browse_table atm_$key"), $groups[$key]);
+              
             }
         }
 

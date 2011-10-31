@@ -297,6 +297,9 @@ function islandora_fjm_theme() {
             'arguments' => array(
                 'selector' => 'ol.atm_clips',
                 'base' => drupal_get_path("module", "islandora_fjm") . '/flowplayer',
+                //@todo:  Move this variable get, as it gets cached...  Changing 
+                //  (or setting) the code is not reflected until template cache 
+                //  is rebuilt.
                 'trackingCode' => variable_get('googleanalytics_account', NULL)
             ),
             'template' => 'templates/atm_player'
@@ -312,7 +315,7 @@ function islandora_fjm_theme() {
 }
 
 function islandora_fjm_preprocess_islandora_fjm_atm_now_playing(&$vars) {
-  if (is_callable('dsm')) { dsm($vars); }
+  //if (is_callable('dsm')) { dsm($vars); }
 }
 
 function islandora_fjm_get_pid_from_array(&$array) {
@@ -331,10 +334,10 @@ function islandora_fjm_get_pid_from_array(&$array) {
 function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
     module_load_include('inc', 'islandora_fjm', 'includes/callbacks');
     $result = $vars['item'];
-    if (is_callable('dsm')) {
+    /*if (is_callable('dsm')) {
         global $conf;
         dsm($conf);
-    }
+    }*/
     $toReturn = array();
 
     switch ($result->atm_type_s) {
@@ -378,7 +381,6 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
                     'date' => new DateTime($result->atm_concert_date_dt)
             )
         );
-            //dsm($result);
             //FIXME: Generating stuff here seems kinda bad...
     break;
     case "Performance":
@@ -408,7 +410,6 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
               $toReturn['players'][$players[$i]][] = $instrument[$i];
             }
             $toReturn['score'] = $result->rels_basedOn_ms;
-            //FIXME (MAJOR): Need to select the PID from the rels_basedOn_ms array...
             $toReturn['score_link'] = l('Score', "fedora/repository/". islandora_fjm_get_pid_from_array($toReturn['score']), array('attributes' => array('class' => 'pdf', 'target' => '_blank')));
     break;
     case "Lecture":
@@ -438,9 +439,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
             $toReturn['cycle'] = $result->atm_program_concert_cycle_ms;
             $toReturn['titn'] = $result->atm_program_titn_s;
             $toReturn['titn_link'] = l(t('Go'), FJM::getTitnAddr($toReturn['titn']));
-            $toReturn['author'] = (is_array($result->atm_program_author_ms)?
-                array_unique($result->atm_program_author_ms):
-                array($result->atm_program_author_ms));
+            $toReturn['author'] = FJM::makeArray($result->atm_program_author_ms);
             $toReturn['PDF_link'] = l(t('PDF'), "fedora/repository/$result->PID", array('attributes' => array('class' => 'pdf', 'target' => '_blank')));
     break;
     case "Score":
