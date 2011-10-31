@@ -6,8 +6,8 @@
 <div class='leftcolumn'>
 <?
 echo theme('islandora_fjm_atm_imagegallery', $pid);
-?><h3><? echo t("Performances in CLAMOR") ?></h3>
-<div class='performance_table'><?
+?><div class='performance_table'>
+<h3><? echo t("Performances in CLAMOR") ?></h3><?
 echo theme('table', $performance_headers, $performances['associated']);
 ?></div>
 </div>
