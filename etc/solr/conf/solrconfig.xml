@@ -422,26 +422,29 @@
      <float name="tie">0.01</float>
      <str name="qf">
         PID^16.0
-        atm_concert_cycle_mt^4.0
-        atm_concert_program_titn_mt^10.0
+        atm_concert_cycle_mts^4.0
+        atm_concert_program_titn_mts^10.0
         atm_concert_group_mt^5.0
         atm_concert_piece_mt^8.0
         atm_concert_player_mt^4.0
         atm_concert_composer_mt^5.0
         atm_concert_instrument_mt^4.0
-        atm_concert_title_mt^5.0
+        atm_concert_title_mts^5.0
      </str>
      <str name="fl">
         * score
      </str>
      <str name="sort">
        atm_type_s asc,
-       eaccpf_name_surname_mts asc,
-       eaccpf_name_forename_mts asc,
+       eaccpf_name_surname_et asc,
+       eaccpf_name_forename_ete asc,
        atm_concert_date_dt desc,
        atm_program_date_dt desc,
        atm_facet_piece_mts asc,
-       atm_performance_piece_title_mts asc
+       atm_performance_piece_title_mts asc,
+       atm_performer_year_s desc,
+       atm_score_title_s asc,
+       atm_facet_year_s desc
      </str>
     </lst>
     <lst name="appends">
