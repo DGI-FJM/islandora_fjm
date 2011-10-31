@@ -53,8 +53,9 @@ class FJM {
         $queryUrl = variable_get('fedora_repository_url', 'http://localhost:8080/fedora/risearch');
         $queryUrl .= "?type=tuples&flush=TRUE&format=Sparql" . (($limit > 0)?("&limit=$limit"):("")) . "&offset=$offset&lang=$type&query=" . urlencode($query);
         $doc = DOMDocument::loadXML(do_curl($queryUrl));
-        if(is_callable('dsm'))
+        if(is_callable('dsm')) {
             //dsm($query);
+        }
         return ((!$doc)?(new DOMDocument()):($doc));
     }
     static function performItqlQuery($query, $limit = -1, $offset = 0) {
