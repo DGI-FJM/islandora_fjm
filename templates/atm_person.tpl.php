@@ -2,6 +2,7 @@
 /**
  * Template for a person/composer
  */
+drupal_set_title(t('Composers'));
 ?>
 <div class='leftcolumn'>
 <?
