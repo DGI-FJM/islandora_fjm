@@ -37,7 +37,7 @@ class SolrResults extends IslandoraSolrResults {
 
       $output .= $this->addSecondaries();
 
-      
+      $title = $map['Conciertos'];
       $field = 'atm_type_s';
       $map = array(
         'Archivo de voz' => t('List of Voice Archives'),
@@ -48,7 +48,6 @@ class SolrResults extends IslandoraSolrResults {
         'Partituras' => t('List of Scores'),
         'Conciertos' => t('List of Concerts')
       );
-      $title = $map['Conciertos'];
       foreach (makeArray($solrQueryProcessor->solrParams['fq']) as $filter) {
         if(strpos($filter, $field) === 0) {
           //Assuming form of $field:"$title", gotta get rid of the field name and puctuation.
@@ -59,7 +58,7 @@ class SolrResults extends IslandoraSolrResults {
       
       
       //$title should have been translated, so I should be good.
-      drupal_set_title(t($title));
+      $output .= '<h2>'.t($title).'</h2>';
       $output .= '<div id="islandora_solr_result_count">(' . ($solrQueryProcessor->solrStart + ($total > 0?1:0)) . ' - ' . $end . ' of ' . $total . ')</div>';
       $output .= '<div class="content">';
 

@@ -5,7 +5,10 @@
      * @param string $abstract Short description (taken from MODS?)
      * @param array<string> $notes An array of notes (taken from MODS?)
      */
-drupal_set_title($title); ?>
+
+?>
+
+<h2><? echo $title ?></h2>
 <h3><? echo $composer ?></h3>
 <? echo theme('islandora_fjm_flexpaper', $pid) ?>
 <div class="islandora_fjm_download">
