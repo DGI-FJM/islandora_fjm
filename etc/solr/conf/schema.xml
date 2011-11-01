@@ -340,6 +340,7 @@
  <copyField source="*_s" dest="*_ms"/>
  <copyField source="*_s" dest="*_mts"/>
  <copyField source="*_es" dest="*_et"/>
+ <copyField source="*_es" dest="*_mts"/>
  <copyField source="*_et" dest="*_ms"/>
  <copyField source="*_ms" dest="*_mt"/>
  

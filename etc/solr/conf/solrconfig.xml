@@ -436,8 +436,8 @@
      </str>
      <str name="sort">
        atm_type_s asc,
-       eaccpf_name_surname_et asc,
-       eaccpf_name_forename_ete asc,
+       eaccpf_name_surname_mts asc,
+       eaccpf_name_forename_mts asc,
        atm_concert_date_dt desc,
        atm_program_date_dt desc,
        atm_facet_piece_mts asc,
