@@ -37,7 +37,6 @@ class SolrResults extends IslandoraSolrResults {
 
       $output .= $this->addSecondaries();
 
-      $title = $map['Conciertos'];
       $field = 'atm_type_s';
       $map = array(
         'Archivo de voz' => t('List of Voice Archives'),
@@ -48,6 +47,7 @@ class SolrResults extends IslandoraSolrResults {
         'Partituras' => t('List of Scores'),
         'Conciertos' => t('List of Concerts')
       );
+      $title = $map['Conciertos'];
       foreach (makeArray($solrQueryProcessor->solrParams['fq']) as $filter) {
         if(strpos($filter, $field) === 0) {
           //Assuming form of $field:"$title", gotta get rid of the field name and puctuation.
