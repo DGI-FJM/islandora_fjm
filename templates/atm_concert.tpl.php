@@ -48,7 +48,7 @@ drupal_set_title(t('Concerts'));
           echo theme('table', $concert['headers']['lecture'], $concert['lecture_rows'], array('class' => 'atm_concert_lecture_table'));
         }
         else {
-          echo theme('table', array(), array(t('No items')), array('class' => 'atm_concert_lecture_table'));
+          echo theme('table', array(), array(array(t('No items'))), array('class' => 'atm_concert_lecture_table'));
         }
       ?>
     </div>
@@ -59,7 +59,7 @@ drupal_set_title(t('Concerts'));
           echo theme('table', $concert['headers']['performance'], $concert['performance_rows'], array('class' => 'atm_concert_performance_table'));
         }
         else {
-          echo theme('table', array(), array(t('No items')), array('class' => 'atm_concert_performance_table'));
+          echo theme('table', array(), array(array(t('No items'))), array('class' => 'atm_concert_performance_table'));
         }
       ?>
     </div><!--bottom right-->
