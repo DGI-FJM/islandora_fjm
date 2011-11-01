@@ -42,15 +42,16 @@ drupal_set_title(t('Concerts'));
   </div> <!-- atm_con_mid -->
   <div class="atm_concert_bottom">
     <div class="atm_concert_bottom_left">
-      <!-- What's supposed to go here again? -->
+      <? 
+        if (sizeof($concert['lecture_rows']) > 0) {
+            echo theme('table', $concert['headers']['lecture'], $concert['lecture_rows'], array('class' => 'atm_concert_lecture_table'), t('Conferences'));
+        }
+      ?>
     </div>
     <div class="atm_concert_bottom_right">
       <?
         if (sizeof($concert['performance_rows']) > 0) {
             echo theme('table', $concert['headers']['performance'], $concert['performance_rows'], array('class' => 'atm_concert_performance_table'), t('Works'));
-        }
-        if (sizeof($concert['lecture_rows']) > 0) {
-            echo theme('table', $concert['headers']['lecture'], $concert['lecture_rows'], array('class' => 'atm_concert_lecture_table'), t('Conferences'));
         }
       ?>
     </div><!--bottom right-->
