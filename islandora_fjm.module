@@ -410,7 +410,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
               $toReturn['players'][$players[$i]][] = $instrument[$i];
             }
             $toReturn['score'] = $result->rels_basedOn_ms;
-            $toReturn['score_link'] = l('Score', "fedora/repository/". islandora_fjm_get_pid_from_array($toReturn['score']), array('attributes' => array('class' => 'pdf', 'target' => '_blank')));
+            $toReturn['score_link'] = $result->atm_performance_score_pdf_b ? l('Score', "fedora/repository/". islandora_fjm_get_pid_from_array($toReturn['score']), array('attributes' => array('class' => 'pdf', 'target' => '_blank'))): t('N/A');
     break;
     case "Lecture":
     case "Archivo de voz":
