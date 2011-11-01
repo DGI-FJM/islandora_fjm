@@ -4,7 +4,7 @@ drupal_set_title(t('Concerts'));
 //dsm($concert);
 ?>
 <div class="islandora_fjm_concert">
-  
+  <h2><? echo $concert['title']; ?></h2>
   <div class="atm_concert_top">
     <div class="leftcolumn">
       <div class="block">
