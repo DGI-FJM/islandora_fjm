@@ -6,10 +6,10 @@ drupal_set_title(t('Concerts'));
 <div class="islandora_fjm_concert">
   
   <div class="atm_concert_top">
-    <div class="atm_concert_top_left">
+    <div class="leftcolumn">
       <? echo theme('islandora_fjm_atm_imagegallery', $pid) ?>
     </div>
-    <div class="atm_concert_top_right">
+    <div class="rightcolumn">
       <div class="islandora_fjm_description">
         <h3 class="atm_concert_cycle"><? echo $concert['cycle'] ?></h3>
         <p class="atm_concert_date"><? echo format_date($concert['date']->format('U'), 'custom', 'd/m/Y') ?></p>
@@ -20,7 +20,7 @@ drupal_set_title(t('Concerts'));
    <div class="clearfix"></div>
   </div>
   <div class="atm_concert_mid">
-    <div class="atm_concert_mid_left">
+    <div class="leftcolumn">
       <h3><? 
          if ($concert['program']['pid']) { 
            echo l(t('Program PDF Available'), 'fedora/repository/' . $concert['program']['pid'], array('attributes' => array('class' => 'pdf')));
@@ -30,7 +30,7 @@ drupal_set_title(t('Concerts'));
          }
        ?></h3>
     </div>
-    <div id="flowplayer" class="atm_concert_mid_right">
+    <div id="flowplayer" class="rightcolumn">
       <? 
       //TODO:  Need to (better) determine whether or not to show the player...  Or just always show it?
       if (sizeof($concert['performance_rows']) + sizeof($concert['lecture_rows']) > 0)
@@ -43,7 +43,7 @@ drupal_set_title(t('Concerts'));
     </div>
   </div> <!-- atm_con_mid -->
   <div class="atm_concert_bottom">
-    <div class="atm_concert_bottom_left">
+    <div class="leftcolumn">
       <h3><? echo t('Voice archive'); ?></h3>
       <? 
         if (sizeof($concert['lecture_rows']) > 0) {
@@ -54,7 +54,7 @@ drupal_set_title(t('Concerts'));
         }
       ?>
     </div>
-    <div class="atm_concert_bottom_right">
+    <div class="rightcolumn">
       <h3><? echo t('Works'); ?></h3>
       <?
         if (sizeof($concert['performance_rows']) > 0) {
