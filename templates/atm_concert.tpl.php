@@ -42,16 +42,24 @@ drupal_set_title(t('Concerts'));
   </div> <!-- atm_con_mid -->
   <div class="atm_concert_bottom">
     <div class="atm_concert_bottom_left">
+      <h3><? echo t('Voice archive'); ?></h3>
       <? 
         if (sizeof($concert['lecture_rows']) > 0) {
-            echo theme('table', $concert['headers']['lecture'], $concert['lecture_rows'], array('class' => 'atm_concert_lecture_table'), t('Conferences'));
+          echo theme('table', $concert['headers']['lecture'], $concert['lecture_rows'], array('class' => 'atm_concert_lecture_table'));
+        }
+        else {
+          echo theme('table', array(), array(t('No items')), array('class' => 'atm_concert_lecture_table'));
         }
       ?>
     </div>
     <div class="atm_concert_bottom_right">
+      <h3><? echo t('Works'); ?></h3>
       <?
         if (sizeof($concert['performance_rows']) > 0) {
-            echo theme('table', $concert['headers']['performance'], $concert['performance_rows'], array('class' => 'atm_concert_performance_table'), t('Works'));
+          echo theme('table', $concert['headers']['performance'], $concert['performance_rows'], array('class' => 'atm_concert_performance_table'));
+        }
+        else {
+          echo theme('table', array(), array(t('No items')), array('class' => 'atm_concert_performance_table'));
         }
       ?>
     </div><!--bottom right-->
