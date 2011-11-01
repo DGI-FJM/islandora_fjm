@@ -12,7 +12,7 @@
 		xmlns:uvalibadmin="http://dl.lib.virginia.edu/bin/admin/admin.dtd/">
 	<xsl:output method="xml" indent="yes" encoding="UTF-8"/>
 	<!-- FIXME:  I figure relative URLs should work...  They didn't want to work, and absolute ones aren't nice -->
-	<xsl:include href="http://localhost/fedora/xml/xsl/basicFJMToSolr.xslt"/>
+	<xsl:include href="file:/var/www/drupal/sites/default/modules/islandora_fjm/xsl/basicFJMToSolr.xslt"/>
 		
 	<xsl:param name="REPOSITORYNAME" select="repositoryName"/>
 	<xsl:param name="FEDORASOAP" select="repositoryName"/>

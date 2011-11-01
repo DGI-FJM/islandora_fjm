@@ -511,7 +511,8 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
             )
         ),
         array(
-            'sort' => 'atm_performance_order_i asc'
+            'sort' => 'atm_performance_order_i asc',
+            'rows' => '1000'
         )
     );
     $lectureResults = FJM::performSolrQ("atm_type_s:\"Archivo de voz\" AND rels_isMemberOf_ms:\"$pid\"",
@@ -519,7 +520,10 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
             array(
                 "PID",
                 "atm_lecture_title_s"
-            )
+            )   
+        ),
+        array(
+            'rows' => '1000'
         )
     );
     $concert_xpath = new DOMXPath($concertResults);

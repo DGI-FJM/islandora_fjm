@@ -19,7 +19,7 @@
             exclude-result-prefixes="exts m rdf res fds ns xalan set">
     <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
     <!-- FIXME:  I figure relative URLs should work...  They didn't want to work, and absolute ones aren't nice (Xalan has this as an unresolved major bug since 2005.  See Apache's JIRA (XALANJ-2000 or so))...  This is currently relying on a minor (?) hack in Islandora. -->
-    <xsl:include href="http://localhost/fedora/xml/xsl/url_util.xslt"/>
+    <xsl:include href="file:/var/www/drupal/sites/default/modules/islandora_fjm/xsl/url_util.xslt"/>
     
     <!-- FIXME:  Should probably get these as parameters, or sommat -->
     <xsl:param name="HOST" select="'localhost'"/>
@@ -1024,18 +1024,26 @@
                     PREFIX fedora-rels-ext: &lt;info:fedora/fedora-system:def/relations-external#&gt;
                     PREFIX fedora-model: &lt;info:fedora/fedora-system:def/model#&gt;
                     PREFIX dc: &lt;http://purl.org/dc/elements/1.1/&gt;
-                    SELECT $performance $concert $concertName $concertCycle
+                    SELECT $performance $concert $concertName $concertCycle $composer $performer
                     FROM &lt;#ri&gt;
                     WHERE {
-                        $score atm-rel:composedBy $composer .
-                        $performance atm-rel:basedOn $score ;
-                                     fedora-rels-ext:isMemberOf $concert ;
+                        OPTIONAL {
+                            $score atm-rel:composedBy $composer .
+                            $performance atm-rel:basedOn $score . 
+                            FILTER(sameterm($composer, &lt;info:fedora/', $pid, '&gt;)) 
+                        } .
+                        OPTIONAL {
+                            $performer atm-rel:player $performerObj .
+                            $performerObj atm-rel:performance $performance .
+                            FILTER(sameterm($performer, &lt;info:fedora/', $pid, '&gt;))
+                        } .
+                        $performance fedora-rels-ext:isMemberOf $concert ;
                                      fedora-model:state fedora-model:Active .
                         $concert fedora-rels-ext:isMemberOf $cycle ;
                                  fedora-model:state fedora-model:Active ;
                                  dc:title $concertName .
                         $cycle dc:title $concertCycle .
-                        FILTER(sameterm($composer, &lt;info:fedora/', $pid, '&gt;))
+                        
                     }
                 ')"/>
                 <xsl:with-param name="lang">sparql</xsl:with-param>
@@ -1069,8 +1077,11 @@
                     </field>
                 </xsl:if>
             </xsl:for-each>
-            <xsl:if test="count(xalan:nodeset($CONCERT_TF)/res:sparql/res:results/res:result) &gt; 0">
-                <field name="atm_type_s">Compositores</field>
+            <xsl:if test="count(xalan:nodeset($CONCERT_TF)/res:sparql/res:results/res:result[res:composer/@uri]) &gt; 0">
+                <field name="atm_type_ms">Compositores</field>
+            </xsl:if>
+            <xsl:if test="count(xalan:nodeset($CONCERT_TF)/res:sparql/res:results/res:result[res:performer/@uri]) &gt; 0">
+                <field name="atm_type_ms">Intérprete</field>
             </xsl:if>
             <xsl:for-each select="xalan:nodeset($CONCERT_TF)/res:sparql/res:results/res:result">
                 <field name="atm_facet_concert_title_ms">
@@ -1079,6 +1090,22 @@
                 <field name="atm_facet_concert_cycle_ms">
                     <xsl:value-of select="res:concertCycle/text()"/>
                 </field>
+                <field name="atm_person_concert_pid_ms">
+                    <xsl:value-of select="substring-after(res:concert/@uri, '/')"/>
+                </field>
+                
+                <xsl:variable name="date" select="document(concat($PROT, '://', $FEDORAUSERNAME, ':', $FEDORAPASSWORD, '@',
+                $HOST, ':', $PORT, '/fedora/objects/', substring-after(res:concert/@uri, '/'), '/datastreams/CustomXML/content'))/Concierto/FECHA/text()"/>
+                <xsl:if test="$date">
+                    <!-- FIXME (minor): Really, this should be done through the use of date faceting in solr, based on the _dt above (an actual date/time value)...  Same for other instances of similar code (grabbing the year from the date) -->
+                    <field name="atm_person_year_ms">
+                        <xsl:value-of select="substring($date, 1, 4)"/>
+                    </field>
+                    <field name="atm_facet_concert_year_ms">
+                        <xsl:value-of select="substring($date, 1, 4)"/>
+                    </field>
+                </xsl:if>
+                
                 <xsl:call-template name="digital_objects">
                     <xsl:with-param name="objectType" select="'performance'"/>
                     <xsl:with-param name="performance" select="substring-after(res:performance/@uri, '/')"/>
