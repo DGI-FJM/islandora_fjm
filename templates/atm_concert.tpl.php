@@ -6,26 +6,28 @@ drupal_set_title(t('Concerts'));
 <div class="islandora_fjm_concert">
   
   <div class="atm_concert_top">
+    <div class="atm_concert_top_left">
       <? echo theme('islandora_fjm_atm_imagegallery', $pid) ?>
-      <div class="atm_concert_top_right">
-        <div class="islandora_fjm_description">
-          <h3 class="atm_concert_cycle"><? echo $concert['cycle'] ?></h3>
-          <p class="atm_concert_date"><? echo format_date($concert['date']->format('U'), 'custom', 'd/m/Y') ?></p>
-          <p class="atm_concert_description"><? echo $concert['description'] ?></p>
-        </div>
-        <div id="flowplayer">
-        <? 
-        //TODO:  Need to (better) determine whether or not to show the player...  Or just always show it?
-        if (sizeof($concert['performance_rows']) + sizeof($concert['lecture_rows']) > 0)
-        {
-            echo FJM::addPlayer('div.atm_track');
-            //echo theme('islandora_fjm_atm_flowplayer', 'div.atm_track');
-            drupal_add_css("$islandoraPath/css/islandora_fjm_playlist.css");
-        }
-        ?>
-        </div>
-     </div><!--atm_con_top_right -->
-     <div class="clearfix"></div>
+    </div>
+    <div class="atm_concert_top_right">
+      <div class="islandora_fjm_description">
+        <h3 class="atm_concert_cycle"><? echo $concert['cycle'] ?></h3>
+        <p class="atm_concert_date"><? echo format_date($concert['date']->format('U'), 'custom', 'd/m/Y') ?></p>
+        <p class="atm_concert_description"><? echo $concert['description'] ?></p>
+      </div>
+      <div id="flowplayer">
+      <? 
+      //TODO:  Need to (better) determine whether or not to show the player...  Or just always show it?
+      if (sizeof($concert['performance_rows']) + sizeof($concert['lecture_rows']) > 0)
+      {
+          echo FJM::addPlayer('div.atm_track');
+          //echo theme('islandora_fjm_atm_flowplayer', 'div.atm_track');
+          drupal_add_css("$islandoraPath/css/islandora_fjm_playlist.css");
+      }
+      ?>
+      </div>
+   </div><!--atm_con_top_right -->
+   <div class="clearfix"></div>
   </div>
   <div class="atm_concert_mid">
     <h3><? echo t('Program PDF:')?></h3>
