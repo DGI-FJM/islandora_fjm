@@ -201,7 +201,7 @@ class FJM {
                             //  for tracks were not changing; however, if the track icon was
                             //  clicked first, then the button in the player would
                             //  work to change the CSS)
-                            //play: true,
+                            play: true,
                             autoHide: false,
                             scrubber: true,
                             time: true,

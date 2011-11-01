@@ -15,7 +15,22 @@ drupal_set_title(t('Concerts'));
         <p class="atm_concert_date"><? echo format_date($concert['date']->format('U'), 'custom', 'd/m/Y') ?></p>
         <p class="atm_concert_description"><? echo $concert['description'] ?></p>
       </div>
-      <div id="flowplayer">
+      
+   </div><!--atm_con_top_right -->
+   <div class="clearfix"></div>
+  </div>
+  <div class="atm_concert_mid">
+    <div class="atm_concert_mid_left">
+      <h3><? 
+         if ($concert['program']['pid']) { 
+           echo l(t('Program PDF Available'), 'fedora/repository/' . $concert['program']['pid'], array('attributes' => array('class' => 'pdf')));
+         }
+         else {
+           echo t('N/A');
+         }
+       ?></h3>
+    </div>
+    <div id="flowplayer" class="atm_concert_mid_right">
       <? 
       //TODO:  Need to (better) determine whether or not to show the player...  Or just always show it?
       if (sizeof($concert['performance_rows']) + sizeof($concert['lecture_rows']) > 0)
@@ -25,22 +40,7 @@ drupal_set_title(t('Concerts'));
           drupal_add_css("$islandoraPath/css/islandora_fjm_playlist.css");
       }
       ?>
-      </div>
-   </div><!--atm_con_top_right -->
-   <div class="clearfix"></div>
-  </div>
-  <div class="atm_concert_mid">
-    <h3><? echo t('Program PDF:')?></h3>
-    <p>
-     <? 
-       if ($concert['program']['pid']) { 
-         echo l(t('Available'), 'fedora/repository/' . $concert['program']['pid'], array('attributes' => array('class' => 'pdf')));
-       }
-       else {
-         echo t('N/A');
-       }
-     ?>
-    </p>
+    </div>
   </div> <!-- atm_con_mid -->
   <div class="atm_concert_bottom">
     <div class="atm_concert_bottom_left">
