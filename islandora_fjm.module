@@ -581,7 +581,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                 array(
                     'data'=> (
                         (!empty($performance['score_titn']))?
-                        (l(t("Go"), FJM::getTitnAddr($performance['score_titn']))):
+                        (l(t("Go"), FJM::getTitnAddr($performance['score_titn']), array('attributes' => array('target' => '_blank')))):
                         (t("N/A")) //TODO (minor): Don't know if they want this column populated if there's none.
                     )
                 ),
