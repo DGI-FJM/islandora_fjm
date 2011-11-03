@@ -1,5 +1,41 @@
 <?php
-
+/**
+ * Similar to Python's zip function, which takes a number of sequences (arrays), 
+ * and produces a single sequence of sequences (tuples).
+ * @return array 
+ */
+function zip() {
+  $args = func_get_args();
+  $arrayToReturn = array();
+  $arraysToZip = array();
+  $lengths = array();
+  $key = null;
+  foreach ($args as &$arg) {
+    if (is_array($arg)) {
+      if (!empty($key)) {
+        $arraysToZip[$key] = $arg;
+      }
+      else {
+        $arraysToZip[] = $arg;
+      }
+      $lengths[] = count($arg);
+      $key = null;
+    }
+    else if (is_string($arg)) {
+      $key = $arg;
+    }
+  }
+  
+  for($i = 0; $i < min($lengths); $i++) {
+    $tuple = array();
+    foreach($arraysToZip as $key => &$toZip) {
+      $tuple[$key] =& $toZip[$i];
+    }
+    $arrayToReturn[] = $tuple;
+  }
+  
+  return $arrayToReturn;
+}
 /**
  * Similar to node_load, accepts an array of parameters, but returns an array
  *  of nodes instead of the original first only.  (Useful when iterating over
@@ -297,10 +333,6 @@ function islandora_fjm_theme() {
             'arguments' => array(
                 'selector' => 'ol.atm_clips',
                 'base' => drupal_get_path("module", "islandora_fjm") . '/flowplayer',
-                //@todo:  Move this variable get, as it gets cached...  Changing 
-                //  (or setting) the code is not reflected until template cache 
-                //  is rebuilt.
-                'trackingCode' => variable_get('googleanalytics_account', NULL)
             ),
             'template' => 'templates/atm_player'
         ),
@@ -401,8 +433,8 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
             else {
                 $aud = $result->atm_performance_movement_ms;
                 $mov = $result->atm_performance_movement_name_ms;
-                $toReturn['audio'] = is_array($aud)?$aud:array($aud);
-                $toReturn['movement'] = is_array($mov)?$mov:array($mov);
+                $toReturn['audio'] = FJM::makeArray($aud);
+                $toReturn['movement'] = FJM::makeArray($mov);
             }
             $players = FJM::makeArray($result->atm_performance_player_ms);
             $instrument = FJM::makeArray($result->atm_performance_inst_ms);
@@ -479,6 +511,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
  * @param array $vars 
  */
 function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
+  global $base_url;
     $pid = $vars['pid'];
     //$concert = array();
     
@@ -495,7 +528,16 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
             )
         ),
         array());
-    $performanceResults = FJM::performSolrQ("atm_type_s:\"Obras\" AND rels_isMemberOf_ms:\"$pid\"", 
+    $solr = new Apache_Solr_Service('localhost', 8080);
+    $perf_results = $solr->search("*:*", 0, 1000, array(
+      'sort' => 'atm_performance_order_i asc',
+      'fq' => array(
+          'atm_type_s:"Obras"',
+          "rels_isMemberOf_ms:\"$pid\""
+      )
+    ));
+    dsm($perf_results->response);
+    /*$performanceResults = FJM::performSolrQ("atm_type_s:\"Obras\" AND rels_isMemberOf_ms:\"$pid\"", 
         implode(',', 
             array(
                 "PID",
@@ -505,6 +547,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                 "atm_performance_mp3_b",
                 "rels_basedOn_ms",
                 "atm_performance_movement_ms",
+                "atm_performance_movement_name_ms",
                 "atm_performance_composer_pid_s",
                 "rels_concertOrder_ms",
                 "atm_performance_score_titn_s"
@@ -514,7 +557,8 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
             'sort' => 'atm_performance_order_i asc',
             'rows' => '1000'
         )
-    );
+    );*/
+    
     $lectureResults = FJM::performSolrQ("atm_type_s:\"Archivo de voz\" AND rels_isMemberOf_ms:\"$pid\"",
         implode(',',
             array(
@@ -528,7 +572,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
     );
     $concert_xpath = new DOMXPath($concertResults);
     $concert_doc = $concert_xpath->query('/response/result[@name="response"]/doc')->item(0);
-    $performance_xpath = new DOMXPath($performanceResults);
+    //$performance_xpath = new DOMXPath($performanceResults);
     $lecture_xpath = new DOMXPath($lectureResults);
     $concert = array(
         'title' => $concert_xpath->evaluate('string(str[@name="atm_concert_title_s"]/text())', $concert_doc),
@@ -545,22 +589,32 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
         )
     );
     
-    foreach ($performance_xpath->query("/response/result[@name='response']/doc") as $node) {
-        
+    $js_data = array('islandora_fjm' => array('piece' => array(), 'lecture' => array()));
+    foreach($perf_results->response->docs as &$doc) {
         $performance = array(
-            'pid' => $performance_xpath->evaluate("string(str[@name='PID']/text())", $node),
-            'piece' => $performance_xpath->evaluate("string(str[@name='atm_performance_piece_title_s']/text())", $node),
+            'pid' => $doc->PID,
+            'piece' => $doc->atm_performance_piece_title_s,
             'composer' => array(
-                'pid' => $performance_xpath->evaluate("string(str[@name='atm_performance_composer_pid_s']/text())", $node),
-                'name'=> $performance_xpath->evaluate("string(str[@name='atm_performance_composer_name_s']/text())", $node)
+                'pid' => $doc->atm_performance_composer_pid_s,
+                'name'=> $doc->atm_performance_composer_name_s
             ),
-            'localpdf' => ($performance_xpath->evaluate("string(bool[@name='atm_performance_score_pdf_b']/text())", $node) === 'true'),
-            'localpdfscore' => $performance_xpath->evaluate("string(arr[@name='rels_basedOn_ms']/str[contains(text(), ':')]/text())", $node),
-            'score_titn' => $performance_xpath->evaluate("string(str[@name='atm_performance_score_titn_s']/text())", $node),
-            'order' => $performance_xpath->evaluate("string(arr[@name='rels_concertOrder_ms']/str[1]/text())", $node),
-            'mp3stat' => ($performance_xpath->evaluate("string(bool[@name='atm_performance_mp3_b']/text())", $node) == 'true'),
-            'movements' => array()
+            'localpdf' => ($doc->atm_performance_score_pdf_b === TRUE),
+            'localpdfscore' => islandora_fjm_get_pid_from_array(FJM::makeArray($doc->rels_basedOn_ms)),
+            'score_titn' => $doc->atm_performance_score_titn_s,
+            'order' => $doc->rels_concertOrder_ms,
+            'mp3stat' => ($doc->atm_performance_mp3_b === TRUE),
+            'movements' => zip(
+              'pid', FJM::makeArray($doc->atm_performance_movement_ms),
+              'name', FJM::makeArray($doc->atm_performance_movement_name_ms),
+              'hasMP3', FJM::makeArray($doc->atm_performance_movement_mp3_ms)
+            )
         );
+        
+        $players = FJM::makeArray($doc->atm_performance_player_ms);
+        $instrument = FJM::makeArray($doc->atm_performance_inst_ms);
+        for ($i = 0; $i < count($players); $i++) {
+          $performance['players'][$players[$i]][] = $instrument[$i];
+        }
         
         $performance['rows'] = array(
             array(
@@ -590,7 +644,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                         ($performance['mp3stat'])?
                         ('
                             <div class="atm_track concertOrder_' . $performance['order'] . '">
-                                ' . l("<!-- placeholder -->", "fedora/repository/" . $performance['pid'] . '/MP3', array('html' => TRUE)) . '
+                                <a onClick="Drupal.settings.islandora_fjm.play(&quot;piece&quot;, ' . count($js_data['islandora_fjm']['piece']) . ', 0);"><!-- placeholder --></a>
                             </div>'):
                         ('  <!-- MP3 is probably in movements -->')
                     )
@@ -598,51 +652,60 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
             )
         );
         
-        if ($performance_xpath->evaluate("count(arr[@name='atm_performance_movement_ms']/str)", $node) > 0) {
-            $movements = new DOMXPath(
-                FJM::performSolrQ(
-                    'rels_hasModel_ms:"atm:movementCModel" AND rels_isMemberOf_ms:"' . $performance['pid'] . '"', 
-                    'PID,title_s,hasMP3_b',
-                    array(
-                        'sort' => 'pOrder_i asc',
-                        'rows' => '1000'
+        foreach ($performance['movements'] as $key => &$movement) {
+            $performance['rows'][] = array(
+                array(
+                    'data' => "", //empty cell for formatting
+                    'class' => 'atm_movement_empty_cell'
+                ),
+                array(
+                    'data' => $movement['name'],
+                    'colspan' => '4',
+                    'class' => 'atm_movement_name'
+                ),
+                array(
+                    'data' => (
+                        (!$performance['mp3stat'] && $movement['hasMP3'])?
+                        ('
+                            <div class="atm_track">
+                              <a onClick="Drupal.settings.islandora_fjm.play(&quot;piece&quot;, ' . count($js_data['islandora_fjm']['piece']) . ', ' . $key . ');"><!-- placeholder --></a>
+                            </div>
+                        '):
+                        ("<!-- MP3 in performance, or none -->")
                     )
                 )
             );
-
-            foreach ($movements->query("/response/result[@name='response']/doc") as $mov_node) {
-                $movement = array(
-                    'pid' => //$movements->evaluate("substring-after(r:movement/@uri, '/')", $mov_node),
-                        $movements->evaluate("string(str[@name='PID']/text())", $mov_node),
-                    'name' => //$movements->evaluate("string(r:name/text())", $mov_node)
-                        $movements->evaluate("string(str[@name='title_s']/text())", $mov_node),
-                    'hasMP3' => $movements->evaluate("string(bool[@name='hasMP3_b']/text())", $mov_node)
-                );
-
-                $performance['rows'][] = array(
-                    array(
-                        'data' => "", //empty cell for formatting
-                        'class' => 'atm_movement_empty_cell'
-                    ),
-                    array(
-                        'data' => $movement['name'],
-                        'colspan' => '4',
-                        'class' => 'atm_movement_name'
-                    ),
-                    array(
-                        'data' => (
-                            (!$performance['mp3stat'] && $movement['hasMP3'])?
-                            ('
-                                <div class="atm_track">
-                                    ' . l('<!-- placeholder -->', 'fedora/repository/' .  $movement['pid'] . '/MP3', array('html' => TRUE)) . '
-                                </div>
-                            '):
-                            ("<!-- MP3 in performance, or none -->")
-                        )
-                    )
-                );
-            }
         }
+        
+        if ($performance['mp3stat'] || !empty($performance['movements'])) {
+          $playlist = array();
+          if ($performance['mp3stat']) {
+            $playlist[] = array(
+              'url' => t("!base/fedora/repository/!pid/MP3", array(
+                '!pid' => $performance['pid'],
+                '!base' => $base_url)),
+              'title'=> $performance['piece'],
+              'now_playing' => theme('islandora_fjm_atm_now_playing', $performance['piece'], $performance['players'])
+            );
+          }
+          else {
+            foreach($performance['movements'] as &$movement) {
+              if($movement['hasMP3']) {
+                $playlist[] = array(
+                  'url' => t("!base/fedora/repository/!pid/MP3", array(
+                    '!pid' => $movement['pid'],
+                    '!base' => $base_url)),
+                  'title'=> $performance['piece'],
+                  'subTitle' => $movement['name'],
+                  'now_playing' => theme('islandora_fjm_atm_now_playing', $performance['piece'], $performance['players'])
+                );
+              }
+            }
+          }
+          $js_data['islandora_fjm']['piece'][] = $playlist;
+        }
+
+        
         
         $concert['performance'][] = $performance;
         $concert['performance_rows'] = array_merge($concert['performance_rows'], $performance['rows']);
@@ -654,20 +717,32 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
             'description' => $lecture_xpath->evaluate("string(str[@name='atm_lecture_title_s']/text())", $node),
         );
         
+        $playlist = array(
+            array(
+                'url' => t("!base/fedora/repository/!pid/MP3", array(
+                    '!pid' => $lecture['pid'],
+                    '!base' => $base_url)),
+                'title' => substr($lecture['description'], 0, 20),
+                'now_playing' => '<p>' . $lecture['description'] . '</p>'
+            )
+        );
         $lecture['row'] = array(
             $lecture['description'],
             array(
                 'data' => '
                     <div class="atm_track">
-                    ' . l("<!-- placeholder -->", 'fedora/repository/' . $lecture['pid'] . '/MP3', array('html' => TRUE)) . ' 
+                      <a onClick="Drupal.settings.islandora_fjm.play(&quot;lecture&quot;, ' . count($js_data['islandora_fjm']['lecture']) . ', 0);"><!-- placeholder --></a>
                     </div>
                 ',
                 'style' => 'float:right;'
             )
         );
+        $js_data['islandora_fjm']['lecture'][] = $playlist;
         $concert['lecture'][] = $lecture;
         $concert['lecture_rows'][] = $lecture['row'];
     }
+    
+    drupal_add_js($js_data, 'setting');
     
     $concert['headers'] = array(
         'performance' => array(

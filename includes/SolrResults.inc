@@ -309,29 +309,28 @@ class SolrResults extends IslandoraSolrResults {
                                 if($type === 'Obras') {
                                   $entry['title'] = $docu['piece'];
                                   $entry['subTitle'] = (!empty($docu['movement'][$aud])?$docu['movement'][$aud]:"");
+                                  $entry['now_playing'] = theme('islandora_fjm_atm_now_playing', $docu['piece'], $docu['players']);
                                   $aud++;
                                 }
                                 else { //$type === Conferencia
                                   $entry['title'] = $docu['description'];
                                   $entry['subTitle'] = "";
+                                  $entry['now_playing'] = '<p>' . $docu['description'] . '</p>';
                                 }
                                 $playlist[] = $entry;
                             }
                             
                             
-                            if($type === 'Obras') {
+                            /*if($type === 'Obras') {
                               $nowPlaying = theme('islandora_fjm_atm_now_playing', $docu['piece'], $docu['players']);
                             }
                             else { // $type === 'Conferencia'
                               $nowPlaying = '<p>' . $docu['description'] . '</p>';
-                            }
-                            $index = count($js_data['islandora_fjm']['piece']);
-                            $js_data['islandora_fjm']['piece'][] = array(
-                              'playlist' => $playlist, 
-                              'now_playing' => $nowPlaying
-                            );
+                            }*/
+                            $index = count($js_data['islandora_fjm']['audio']);
+                            $js_data['islandora_fjm']['audio'][] = $playlist;
                             
-                            $cell .= "<a onClick='Drupal.settings.islandora_fjm.play($index);'></a>";
+                            $cell .= "<a onClick='Drupal.settings.islandora_fjm.play(&quot;audio&quot;, $index, 0);'></a>";
 /*                              $cell .= <<< EOT
 <a onClick='
   \$f().play($playlist); 

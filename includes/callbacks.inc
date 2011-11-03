@@ -175,6 +175,12 @@ class FJM {
         return $output;
     }
     
+    /**
+     * @deprecated in favour of the theme'd version
+     * @global type $base_url
+     * @param type $selector
+     * @return string 
+     */
     static function addPlayer($selector = 'div.atm_track') {
         //FJM::userAgentHack();
         $islandoraPath = drupal_get_path("module", "islandora_fjm");
@@ -202,6 +208,7 @@ class FJM {
                             //  clicked first, then the button in the player would
                             //  work to change the CSS)
                             play: true,
+                            volume:true,
                             autoHide: false,
                             scrubber: true,
                             time: true,

@@ -474,14 +474,20 @@
                     PREFIX atm: &lt;fedora:atm:&gt;
                     PREFIX fedora-rels-ext: &lt;info:fedora/fedora-system:def/relations-external#&gt;
                     PREFIX fedora-model: &lt;info:fedora/fedora-system:def/model#&gt;
+                    PREFIX fedora-view: &lt;info:fedora/fedora-system:def/view#&gt;
                     PREFIX dc: &lt;http://purl.org/dc/elements/1.1/&gt;
                     PREFIX fjm-titn: &lt;http://digital.march.es/titn#&gt;
-                    SELECT $movement_pid $order $movementName
+                    SELECT $movement_pid $order $movementName $movementMP3
                     WHERE {
                         $movement_pid fedora-rels-ext:isMemberOf $performance ;
                                       atm-rel:pieceOrder $order ;
                                       dc:title $movementName ;
                                       fedora-model:state fedora-model:Active .
+                        OPTIONAL {
+                            $movement_pid fedora-view:disseminates $DSs .
+                            $DSs fedora-view:disseminationType $movementMP3 .
+                            FILTER(sameterm($movementMP3, &lt;info:fedora/*/MP3&gt;))
+                        }
                         FILTER(sameterm($performance, &lt;info:fedora/', $pid, '&gt;))
                     }
                     ORDER BY $order
@@ -511,6 +517,12 @@
                     </field>
                     <field name="atm_performance_movement_name_ms">
                         <xsl:value-of select="res:movementName/text()"/>
+                    </field>
+                    <field name="atm_performance_movement_mp3_b">
+                        <xsl:choose>
+                            <xsl:when test="res:movementMP3/@uri">true</xsl:when>
+                            <xsl:otherwise>false</xsl:otherwise>
+                        </xsl:choose>
                     </field>
                 </xsl:for-each>
                 
