@@ -484,9 +484,8 @@
                                       dc:title $movementName ;
                                       fedora-model:state fedora-model:Active .
                         OPTIONAL {
-                            $movement_pid fedora-view:disseminates $DSs .
-                            $DSs fedora-view:disseminationType $movementMP3 .
-                            FILTER(sameterm($movementMP3, &lt;info:fedora/*/MP3&gt;))
+                            $movement_pid fedora-view:disseminates $movementMP3 .
+                            $movementMP3 fedora-view:disseminationType &lt;info:fedora/*/MP3&gt; .
                         }
                         FILTER(sameterm($performance, &lt;info:fedora/', $pid, '&gt;))
                     }
@@ -518,7 +517,7 @@
                     <field name="atm_performance_movement_name_ms">
                         <xsl:value-of select="res:movementName/text()"/>
                     </field>
-                    <field name="atm_performance_movement_mp3_b">
+                    <field name="atm_performance_movement_mp3_ms">
                         <xsl:choose>
                             <xsl:when test="res:movementMP3/@uri">true</xsl:when>
                             <xsl:otherwise>false</xsl:otherwise>

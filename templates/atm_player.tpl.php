@@ -4,11 +4,11 @@ $hostname = $base_url;
 $mod_base = drupal_get_path('module', 'islandora_fjm');
 $trackingCode = variable_get('googleanalytics_account', NULL);
 //FIXME: This should probably be moved elsewhere...  As well as the later inline JS...
-drupal_add_js("$base/flowplayer-3.2.6.min.js");
-drupal_add_js("$base/flowplayer.playlist-3.0.8.js"); 
+drupal_add_js("$base/flowplayer-3.2.6.min.js", 'module');
+drupal_add_js("$base/flowplayer.playlist-3.0.8.js", 'module'); 
 drupal_add_css($mod_base . '/css/islandora_fjm_player.css', 'module'); ?>
 
-<div class="player" id="atm_player"><!-- placeholder --></div>
+<div class="player" id="atm_player"></div>
 <ol class="atm_clips" style="display: none;"></ol>
 <script type="text/javascript">
   
@@ -52,7 +52,7 @@ drupal_add_css($mod_base . '/css/islandora_fjm_player.css', 'module'); ?>
       },
       clip: {
         baseUrl: "<? echo $base_url; ?>",
-        autoPlay: true,
+        autoPlay: false,
         autoBuffering: true,
         onStop: function(clip) {
           update_ga('Stop', clip.url, parseInt(this.getTime()));
@@ -68,19 +68,41 @@ drupal_add_css($mod_base . '/css/islandora_fjm_player.css', 'module'); ?>
             if (Drupal.settings.islandora_fjm[Drupal.settings.islandora_fjm.current_type].length > Drupal.settings.islandora_fjm.current_index) {
               this.setPlaylist(Drupal.settings.islandora_fjm[Drupal.settings.islandora_fjm.current_type][Drupal.settings.islandora_fjm.current_index]).play(0);
             }
+            else {
+              this.stop();
+            }
+          }
+          else {
+            this.play(clip.index + 1);
           }
         },
         onStart: function(clip) {
           update_ga('Play', clip.url, null);
-          if (typeof clip.now_playing != 'undefined') {
-            this.getPlugin('content').setHtml(clip.now_playing);
-          }
         },
         subTitle: ''
       },
-      onPlaylistReplace: function(){ 
-        $("<? echo $selector; ?>").show(); 
-      } 
+      onPlaylistReplace: function(clips){ 
+        $("<? echo $selector; ?>").show();
+        //var index = Drupal.settings.islandora_fjm.current_index;
+        if (clips.length > 0 && typeof clips[0].now_playing != 'undefined') {
+          this.getPlugin('content').setHtml(clips[0].now_playing);
+        }
+      },
+      onLoad: function() {
+        var types = ['lecture', 'audio', 'piece'];
+        //alert(types);
+        $.each(types, function(index, value) {
+          //alert(value);
+          if (typeof Drupal.settings.islandora_fjm[value] != 'undefined') {   
+            var playlist = Drupal.settings.islandora_fjm[value];
+            if (playlist.length > 0) {
+              Drupal.settings.islandora_fjm.current_type = value;
+              Drupal.settings.islandora_fjm.current_index = 0;
+              $f().setPlaylist(playlist[0]);
+            }
+          }
+        });
+      }
     });
 
     $f("atm_player").playlist("<? echo $selector; ?>", {

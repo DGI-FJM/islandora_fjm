@@ -536,7 +536,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
           "rels_isMemberOf_ms:\"$pid\""
       )
     ));
-    dsm($perf_results->response);
+    //dsm($perf_results->response);
     /*$performanceResults = FJM::performSolrQ("atm_type_s:\"Obras\" AND rels_isMemberOf_ms:\"$pid\"", 
         implode(',', 
             array(
@@ -609,6 +609,8 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
               'hasMP3', FJM::makeArray($doc->atm_performance_movement_mp3_ms)
             )
         );
+        //dsm($performance);
+        //dsm((array)$doc);
         
         $players = FJM::makeArray($doc->atm_performance_player_ms);
         $instrument = FJM::makeArray($doc->atm_performance_inst_ms);
@@ -665,7 +667,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                 ),
                 array(
                     'data' => (
-                        (!$performance['mp3stat'] && $movement['hasMP3'])?
+                        (!$performance['mp3stat'] && $movement['hasMP3'] === 'true')?
                         ('
                             <div class="atm_track">
                               <a onClick="Drupal.settings.islandora_fjm.play(&quot;piece&quot;, ' . count($js_data['islandora_fjm']['piece']) . ', ' . $key . ');"><!-- placeholder --></a>
@@ -690,7 +692,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
           }
           else {
             foreach($performance['movements'] as &$movement) {
-              if($movement['hasMP3']) {
+              if($movement['hasMP3'] === 'true') {
                 $playlist[] = array(
                   'url' => t("!base/fedora/repository/!pid/MP3", array(
                     '!pid' => $movement['pid'],
