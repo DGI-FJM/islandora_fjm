@@ -11,9 +11,6 @@ drupal_set_title(t('Scores'));
   <h2><? echo $title ?></h2>
   <h3><? echo $composer ?></h3>
   <? echo theme('islandora_fjm_flexpaper', $pid) ?>
-  <div class="islandora_fjm_download">
-      <? echo l(t('Download PDF'), "fedora/repository/$pid/PDF/download/" . t("Score") . " - $title.pdf") ?>
-  </div>
   <div class="islandora_fjm_description">
   <? if(!empty($abstract)): ?>
       <h4><? echo t("Abstract") ?></h4>
@@ -28,5 +25,8 @@ drupal_set_title(t('Scores'));
   endforeach; 
   endif;
   ?>
+  </div>
+  <div class="islandora_fjm_download">
+      <? echo l(t('Download PDF'), "fedora/repository/$pid/PDF/download/" . t("Score") . " - $title.pdf") ?>
   </div>
 </div>

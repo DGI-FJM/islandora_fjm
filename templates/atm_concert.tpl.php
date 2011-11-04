@@ -80,7 +80,11 @@ drupal_set_title(t('Concerts'));
   </div>
   <? if ($pagenumber != NULL && $pagenumber > 0) : ?>
   <script type="text/javascript">
-      $(function() {$(".concertOrder_<? echo $pagenumber ?>:first > a").click()});
+      $(function() {
+        $f().onLoad(function() {
+          $("div.atm_track.concertOrder_<? echo $pagenumber; ?>:first > a").click();
+        });
+      });
   </script>
   <?endif;?>
 </div>

@@ -447,7 +447,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
     case "Lecture":
     case "Archivo de voz":
             $toReturn['description'] = $result->atm_lecture_title_s;
-            $toReturn['concert'] = $result->atm_lecture_concert_title_s;
+            $toReturn['concert'] = l($result->atm_lecture_concert_title_s, 'fedora/repository/' . islandora_fjm_get_pid_from_array(FJM::makeArray($result->rels_isMemberOf_ms)));
             $toReturn['year'] = $result->atm_facet_year_s;
             $toReturn['cycle'] = $result->atm_lecture_concert_cycle_s;
             $toReturn['audio'] = array($result->PID);
@@ -669,7 +669,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                     'data' => (
                         (!$performance['mp3stat'] && $movement['hasMP3'] === 'true')?
                         ('
-                            <div class="atm_track">
+                            <div class="atm_track concertOrder_' . $performance['order'] . '">
                               <a onClick="Drupal.settings.islandora_fjm.play(&quot;piece&quot;, ' . count($js_data['islandora_fjm']['piece']) . ', ' . $key . ');"><!-- placeholder --></a>
                             </div>
                         '):
@@ -697,9 +697,10 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
                   'url' => t("!base/fedora/repository/!pid/MP3", array(
                     '!pid' => $movement['pid'],
                     '!base' => $base_url)),
-                  'title'=> $performance['piece'],
-                  'subTitle' => $movement['name'],
-                  'now_playing' => theme('islandora_fjm_atm_now_playing', $performance['piece'], $performance['players'])
+                  'title'=> t('!piece - !movement', array(
+                    '!piece' => $performance['piece'],
+                    '!movement' => $movement['name'])),
+                  'now_playing' => theme('islandora_fjm_atm_now_playing', $performance['piece'], $performance['players']),
                 );
               }
             }

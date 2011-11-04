@@ -107,7 +107,7 @@ drupal_add_css($mod_base . '/css/islandora_fjm_player.css', 'module'); ?>
 
     $f("atm_player").playlist("<? echo $selector; ?>", {
       loop: true,
-      template: "<li><a href=\"${url}\">${title} - ${subTitle}</a></li>",
+      template: "<li><a href=\"${url}\">${title}</a></li>",
       manual: false
     });
    });
