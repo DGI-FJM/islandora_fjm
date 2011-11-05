@@ -436,14 +436,14 @@
      </str>
      <str name="sort">
         atm_type_s asc,
-        eaccpf_name_surname_emt asc,
-        eaccpf_name_forename_emt asc,
+        eaccpf_name_surname_mlt asc,
+        eaccpf_name_forename_mlt asc,
         atm_concert_date_dt desc,
         atm_program_date_dt desc,
-        atm_facet_piece_mts asc,
-        atm_performance_piece_title_mts asc,
+        atm_facet_piece_mlt asc,
+        atm_performance_piece_title_mlt asc,
         atm_performer_year_s desc,
-        atm_score_title_s asc,
+        atm_score_title_mlt asc,
         atm_facet_year_s desc
      </str>
     </lst>
