@@ -1499,12 +1499,15 @@
                 <xsl:with-param name="str" select="normalize-space($query)"/>
             </xsl:call-template>
         </xsl:variable>
-        <xsl:variable name="full_query" select="document(concat($RISEARCH, $encoded_query, '&amp;lang=', $lang,  $additional_params))"/>
+        <xsl:for-each select="document(concat($RISEARCH, $encoded_query, '&amp;lang=', $lang,  $additional_params))">
+            <?xalan-doc-cache-off?>
+            <xsl:copy-of select="*"/>
+        </xsl:for-each>
         <!-- Doesn't work, as I input this into a variable...  Blargh
         <xsl:comment>
             <xsl:value-of select="$full_query"/>
-        </xsl:comment>-->
-        <xsl:copy-of select="$full_query"/>
+        </xsl:comment>
+        <xsl:copy-of select="$full_query"/>-->
     </xsl:template>
     
     <xsl:template name="rels_ext">
