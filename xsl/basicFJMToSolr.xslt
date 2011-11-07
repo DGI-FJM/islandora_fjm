@@ -1035,26 +1035,18 @@
                     PREFIX fedora-rels-ext: &lt;info:fedora/fedora-system:def/relations-external#&gt;
                     PREFIX fedora-model: &lt;info:fedora/fedora-system:def/model#&gt;
                     PREFIX dc: &lt;http://purl.org/dc/elements/1.1/&gt;
-                    SELECT $performance $concert $concertName $concertCycle $composer $performer
+                    SELECT $performance $concert $concertName $concertCycle $composer
                     FROM &lt;#ri&gt;
                     WHERE {
-                        OPTIONAL {
-                            $score atm-rel:composedBy $composer .
-                            $performance atm-rel:basedOn $score . 
-                            FILTER(sameterm($composer, &lt;info:fedora/', $pid, '&gt;)) 
-                        } .
-                        OPTIONAL {
-                            $performer atm-rel:player $performerObj .
-                            $performerObj atm-rel:performance $performance .
-                            FILTER(sameterm($performer, &lt;info:fedora/', $pid, '&gt;))
-                        } .
                         $performance fedora-rels-ext:isMemberOf $concert ;
                                      fedora-model:state fedora-model:Active .
                         $concert fedora-rels-ext:isMemberOf $cycle ;
                                  fedora-model:state fedora-model:Active ;
                                  dc:title $concertName .
                         $cycle dc:title $concertCycle .
-                        
+                        $score atm-rel:composedBy $composer .
+                        $performance atm-rel:basedOn $score . 
+                        FILTER(sameterm($composer, &lt;info:fedora/', $pid, '&gt;)) 
                     }
                 ')"/>
                 <xsl:with-param name="lang">sparql</xsl:with-param>
@@ -1088,12 +1080,12 @@
                     </field>
                 </xsl:if>
             </xsl:for-each>
-            <xsl:if test="count(xalan:nodeset($CONCERT_TF)/res:sparql/res:results/res:result[res:composer/@uri]) &gt; 0">
-                <field name="atm_type_ms">Compositores</field>
+            <xsl:if test="count(xalan:nodeset($CONCERT_TF)/res:sparql/res:results/res:result[res:composer[@uri]]) &gt; 0">
+                <field name="atm_type_s">Compositores</field>
             </xsl:if>
-            <xsl:if test="count(xalan:nodeset($CONCERT_TF)/res:sparql/res:results/res:result[res:performer/@uri]) &gt; 0">
+            <!--<xsl:if test="count(xalan:nodeset($CONCERT_TF)/res:sparql/res:results/res:result[res:performer[@uri]]) &gt; 0">
                 <field name="atm_type_ms">Intérprete</field>
-            </xsl:if>
+            </xsl:if>-->
             <xsl:for-each select="xalan:nodeset($CONCERT_TF)/res:sparql/res:results/res:result">
                 <field name="atm_facet_concert_title_ms">
                     <xsl:value-of select="res:concertName/text()"/>

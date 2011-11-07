@@ -308,13 +308,12 @@ class SolrResults extends IslandoraSolrResults {
                                 $entry["url"] = "$base_url/fedora/repository/$audio/MP3";
                                 if($type === 'Obras') {
                                   $entry['title'] = $docu['piece'];
-                                  $entry['subTitle'] = (!empty($docu['movement'][$aud])?$docu['movement'][$aud]:"");
+                                  $entry['title'] .= (!empty($docu['movement'][$aud])? ' - ' . $docu['movement'][$aud]:"");
                                   $entry['now_playing'] = theme('islandora_fjm_atm_now_playing', $docu['piece'], $docu['players']);
                                   $aud++;
                                 }
                                 else { //$type === Conferencia
-                                  $entry['title'] = $docu['description'];
-                                  $entry['subTitle'] = "";
+                                  $entry['title'] = substr($docu['description'], 0, 100);
                                   $entry['now_playing'] = '<p>' . $docu['description'] . '</p>';
                                 }
                                 $playlist[] = $entry;
