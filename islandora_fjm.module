@@ -314,7 +314,7 @@ function islandora_fjm_theme() {
                 'biography' => t('No biography'),
                 'default_image' => url("fedora/repository/atm:defaultPersonImage"),
                 'performances' => array(),
-                'performance_headers' => array("blah")
+                'performance_headers' => array("empty")
             ),
             'template' => 'templates/atm_person'
         ),
@@ -879,7 +879,8 @@ function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars) {
                 array( //fields
                     "atm_performance_piece_title_s",
                     "atm_performance_year_s",
-                    "rels_isMemberOf_ms"
+                    "rels_isMemberOf_ms",
+                    "atm_performance_order_i"
                 ),
                 array( //otherParams
                     'rows' => 1000,
@@ -898,6 +899,9 @@ function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars) {
                 'linkTo' => array(
                     'pid' => array(
                         'xpath' => 'arr[@name="rels_isMemberOf_ms"]/str[1]/text()'
+                    ),
+                    'page' => array(
+                        'xpath' => 'number(int[@name="atm_performance_order_i"]/text())'
                     )
                 )
             ),
@@ -962,7 +966,11 @@ function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars) {
                             continue;
                         }
                         
-                        $temp[$col['sField']] = l($temp[$col['sField']], "fedora/repository/" . $xpath->evaluate("string(" . $col['linkTo']['pid']['xpath'] . ")", $doc));
+                        $temp[$col['sField']] = l(
+                          $temp[$col['sField']], 
+                          "fedora/repository/".$xpath->evaluate("string(".$col['linkTo']['pid']['xpath'].")", $doc).(
+                            (isset($col['linkTo']['page']['xpath'])? '/-/-/' . $xpath->evaluate($col['linkTo']['page']['xpath'], $doc):'')
+                           ));
                     }
                 }
                 //elseif(yadda yadda){}
