@@ -883,7 +883,7 @@ function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars) {
                 ),
                 array( //otherParams
                     'rows' => 1000,
-                    'sort' => 'atm_performance_piece_title_mlt asc'
+                    'sort' => 'atm_performance_piece_title_mlt asc,atm_performance_year_s desc'
                 )))
     );
     //Define headers (presumably for a couple of tables), as well as how to get
