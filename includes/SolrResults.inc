@@ -182,6 +182,10 @@ class SolrResults extends IslandoraSolrResults {
             ),
             'Archivo de voz' => array(
                 array(
+                    'data' => t('Year'),
+                    'name' => 'year'
+                ),
+                array(
                     'data' => t('Description'),
                     'name' => 'description'
                 ),
@@ -193,10 +197,6 @@ class SolrResults extends IslandoraSolrResults {
                     'data' => t('Series'),
                     'name' => 'cycle'
                 ),*/
-                array(
-                    'data' => t('Year'),
-                    'name' => 'year'
-                ),
                 array(
                     'data' => t('Audio'),
                     'name' => 'audio'
