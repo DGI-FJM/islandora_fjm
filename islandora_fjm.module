@@ -874,7 +874,12 @@ function islandora_fjm_preprocess_islandora_fjm_atm_person(&$vars) {
     //Get a list of all performances in which this person has either composed
     //  the piece being played, or has played in the piece.
     $performances = array(
-        'associated' => new DOMXPath(FJM::performSolrQ("atm_performance_composer_pid_s:\"$pid\" OR atm_performance_performer_pid_ms:\"$pid\"", "*"))
+        'associated' => new DOMXPath(FJM::performSolrQ(
+                "atm_performance_composer_pid_s:\"$pid\" OR atm_performance_performer_pid_ms:\"$pid\"", 
+                "*",
+                array(
+                    'rows' => 1000
+                )))
     );
     //Define headers (presumably for a couple of tables), as well as how to get
     //  values for the given column out of the xpath objects created previously,

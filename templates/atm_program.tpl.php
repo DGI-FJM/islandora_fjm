@@ -21,6 +21,8 @@ drupal_set_title(t('Programs'));
   <? foreach($notes as $note): ?>
   <p><? echo $note ?></p>
   <? endforeach; 
-  endif;
-  echo l('Download PDF', "fedora/repository/$pid/PDF/download/" . t("Program") . " - " . $concert['title'], array('attributes' => array('class' => 'pdf')));?>
+  endif;?>
+  <div class="pdf">
+  <? echo l('Download PDF', "fedora/repository/$pid/PDF/download/" . t("Program for !title.pdf", array('!title' => $concert['title'])));?>
+  </div>
 </div>

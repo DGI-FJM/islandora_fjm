@@ -69,6 +69,7 @@ class FJM {
     /**
      *  May need a great deal more work...  Performs a basic solr query...
      *    Should probably pass in built arrays.
+     * @deprecated deprecated in favour of performSolrQ()
      * @param type $type
      * @param type $query
      * @param type $fields
@@ -97,14 +98,34 @@ class FJM {
     }
     
     //Version getting rid of the "type" stuff...  Got a little too specific.
+    /**
+     *
+     * @param string $query Query string for Solr
+     * @param mixed $fields Either a CSV string or an array of fields to return
+     * @param array $otherParams
+     * @return DOMDocument containing the results (or empty if an error occured) 
+     */
     static function performSolrQ($query, $fields = "PID",
             $otherParams = array()) {
         FJM::userAgentHack();
-        $solrUrl = variable_get('fedora_solr_search_url', 'http://localhost:8080/solr') . '/select?q=';
-        $solrUrl .= urlencode($query) . '&fl=' . urlencode($fields);
-        foreach ($otherParams as $key => $value) {
-            $solrUrl .= "&$key=" . urlencode($value);
+        $solrUrl = variable_get('fedora_solr_search_url', 'http://localhost:8080/solr') . '/select?';
+        $otherParams['q'] = $query;
+        
+        if (is_array($fields)) {
+          $otherParams['fl'] = implode(',', $fields);
         }
+        else {
+          $otherParams['fl'] = $fields;
+        }
+        
+        $otherParams['fl'] = $fields;
+
+        $safe_params = array();
+        foreach ($otherParams as $key => &$value) {
+            $safe_params[] = "$key=" . urlencode($value);
+        }
+        $solrUrl .= implode('&', $safe_params);
+        
         $doc = DOMDocument::loadXML(do_curl($solrUrl));
         if (is_callable("dsm")) {
             //dsm($solrUrl);

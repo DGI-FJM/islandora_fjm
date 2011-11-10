@@ -26,7 +26,7 @@ drupal_set_title(t('Scores'));
   endif;
   ?>
   </div>
-  <div class="islandora_fjm_download">
-      <? echo l(t('Download PDF'), "fedora/repository/$pid/PDF/download/" . t("Score") . " - $title.pdf") ?>
+  <div class="pdf">
+      <? echo l(t('Download PDF'), "fedora/repository/$pid/PDF/download/" . t("Score for !title.pdf", array('!title' => $title))) ?>
   </div>
 </div>
