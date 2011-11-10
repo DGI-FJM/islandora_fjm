@@ -117,8 +117,6 @@ class FJM {
         else {
           $otherParams['fl'] = $fields;
         }
-        
-        $otherParams['fl'] = $fields;
 
         $safe_params = array();
         foreach ($otherParams as $key => &$value) {

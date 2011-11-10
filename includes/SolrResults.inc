@@ -276,100 +276,103 @@ class SolrResults extends IslandoraSolrResults {
             'Partituras' => t('Scores')
         );
         $js_data = array('islandora_fjm' => array('piece' => array()));
-        foreach ($results->response->docs as $doc) {
-            //Setup to pass to preprocessor... (Something of a hack,
-            //  using the preprocessor function in this way)
-            $toPass = array();
-            $toPass['item'] = $doc;
+        $docs = $results->response->docs;
+        if(is_array($docs)) {
+          foreach ($docs as $doc) {
+              //Setup to pass to preprocessor... (Something of a hack,
+              //  using the preprocessor function in this way)
+              $toPass = array();
+              $toPass['item'] = $doc;
 
-            //NOTE:  Pass by reference, so toPass is(/should be) modified!
-            islandora_fjm_preprocess_islandora_fjm_solr_result($toPass);
+              //NOTE:  Pass by reference, so toPass is(/should be) modified!
+              islandora_fjm_preprocess_islandora_fjm_solr_result($toPass);
 
-            //Use preprocessed document...
-            $type = $toPass['item']['type'];
-            $docu = $toPass['item'];
+              //Use preprocessed document...
+              $type = $toPass['item']['type'];
+              $docu = $toPass['item'];
 
-            //Row to add to table
-            $row = array('data' => array());
-            
+              //Row to add to table
+              $row = array('data' => array());
 
-            //If its an acutal table we're to add to...
-            if (isset($headers[$type])) {
-                //...  put the stuff into the proper field...
-                foreach ($headers[$type] as $field) {
-                    switch ($field['name']) {
-                        case 'audio':
-                            $cell = "<div class='atm_track'>";
-                            
-                            $playlist = array();
-                            $aud = 0;
-                            foreach ($docu['audio'] as $audio) {
-                                $entry = array();
-                                $entry["url"] = "$base_url/fedora/repository/$audio/MP3";
-                                if($type === 'Obras') {
-                                  $entry['title'] = $docu['piece'];
-                                  $entry['title'] .= (!empty($docu['movement'][$aud])? ' - ' . $docu['movement'][$aud]:"");
-                                  $entry['now_playing'] = theme('islandora_fjm_atm_now_playing', $docu['piece'], $docu['players']);
-                                  $aud++;
-                                }
-                                else { //$type === Conferencia
-                                  $entry['title'] = substr($docu['description'], 0, 100);
-                                  $entry['now_playing'] = '<p>' . $docu['description'] . '</p>';
-                                }
-                                $playlist[] = $entry;
-                            }
-                            
-                            
-                            /*if($type === 'Obras') {
-                              $nowPlaying = theme('islandora_fjm_atm_now_playing', $docu['piece'], $docu['players']);
-                            }
-                            else { // $type === 'Conferencia'
-                              $nowPlaying = '<p>' . $docu['description'] . '</p>';
-                            }*/
-                            $index = count($js_data['islandora_fjm']['audio']);
-                            $js_data['islandora_fjm']['audio'][] = $playlist;
-                            
-                            $cell .= "<a onClick='Drupal.settings.islandora_fjm.play(&quot;audio&quot;, $index, 0);'></a>";
-/*                              $cell .= <<< EOT
-<a onClick='
-  \$f().play($playlist); 
-  \$f().onStart(function(clip) {
-    this.getPlugin("content").setHtml("$nowPlaying"); 
-    if (typeof _tracker != "undefined") {
-        //object exists ... execute code here.
-        _tracker._trackEvent('Audio', 'Play', clip.url);
-    }
-  });
-  '></a>
-EOT;*/
-                            $cell .= "</div>";
-                            $row['data'][]['data'] = $cell;
-                            break;
-                        case 'piece':
-                            $cell = l($docu['piece'], $docu['concert_path']);
-                            $row['data'][]['data'] = $cell;
-                            break;
-                        case 'author':
-                            $cell = '<ul>';
-                            foreach ($docu['author'] as $author) {
-                                $cell .= '<li>' . $author . '</li>';
-                            }
-                            $cell .= '</ul>';
-                            $row['data'][]['data'] = $cell;
-                            break;
-                        default:
-                            $row['data'][]['data'] = $docu[$field['name']];
-                    }
-                }
-            }
 
-            //... otherwise, render it with the theme function, to be thrown into a cell.
-            //FIXME:	Kind of inefficient, as it is "preprocessed" twice, but anyway...
-            else {
-                $row['data'][]['data'] = theme('islandora_fjm_solr_result', $doc);
-            }
+              //If its an acutal table we're to add to...
+              if (isset($headers[$type])) {
+                  //...  put the stuff into the proper field...
+                  foreach ($headers[$type] as $field) {
+                      switch ($field['name']) {
+                          case 'audio':
+                              $cell = "<div class='atm_track'>";
 
-            $table[$type][] = $row;
+                              $playlist = array();
+                              $aud = 0;
+                              foreach ($docu['audio'] as $audio) {
+                                  $entry = array();
+                                  $entry["url"] = "$base_url/fedora/repository/$audio/MP3";
+                                  if($type === 'Obras') {
+                                    $entry['title'] = $docu['piece'];
+                                    $entry['title'] .= (!empty($docu['movement'][$aud])? ' - ' . $docu['movement'][$aud]:"");
+                                    $entry['now_playing'] = theme('islandora_fjm_atm_now_playing', $docu['piece'], $docu['players']);
+                                    $aud++;
+                                  }
+                                  else { //$type === Conferencia
+                                    $entry['title'] = substr($docu['description'], 0, 100);
+                                    $entry['now_playing'] = '<p>' . $docu['description'] . '</p>';
+                                  }
+                                  $playlist[] = $entry;
+                              }
+
+
+                              /*if($type === 'Obras') {
+                                $nowPlaying = theme('islandora_fjm_atm_now_playing', $docu['piece'], $docu['players']);
+                              }
+                              else { // $type === 'Conferencia'
+                                $nowPlaying = '<p>' . $docu['description'] . '</p>';
+                              }*/
+                              $index = count($js_data['islandora_fjm']['audio']);
+                              $js_data['islandora_fjm']['audio'][] = $playlist;
+
+                              $cell .= "<a onClick='Drupal.settings.islandora_fjm.play(&quot;audio&quot;, $index, 0);'></a>";
+  /*                              $cell .= <<< EOT
+  <a onClick='
+    \$f().play($playlist); 
+    \$f().onStart(function(clip) {
+      this.getPlugin("content").setHtml("$nowPlaying"); 
+      if (typeof _tracker != "undefined") {
+          //object exists ... execute code here.
+          _tracker._trackEvent('Audio', 'Play', clip.url);
+      }
+    });
+    '></a>
+  EOT;*/
+                              $cell .= "</div>";
+                              $row['data'][]['data'] = $cell;
+                              break;
+                          case 'piece':
+                              $cell = l($docu['piece'], $docu['concert_path']);
+                              $row['data'][]['data'] = $cell;
+                              break;
+                          case 'author':
+                              $cell = '<ul>';
+                              foreach ($docu['author'] as $author) {
+                                  $cell .= '<li>' . $author . '</li>';
+                              }
+                              $cell .= '</ul>';
+                              $row['data'][]['data'] = $cell;
+                              break;
+                          default:
+                              $row['data'][]['data'] = $docu[$field['name']];
+                      }
+                  }
+              }
+
+              //... otherwise, render it with the theme function, to be thrown into a cell.
+              //FIXME:	Kind of inefficient, as it is "preprocessed" twice, but anyway...
+              else {
+                  $row['data'][]['data'] = theme('islandora_fjm_solr_result', $doc);
+              }
+
+              $table[$type][] = $row;
+          }
         }
 
         //Add a player if required by either Lectures or Performances
