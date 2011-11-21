@@ -36,7 +36,7 @@
     <xsl:param name="NAMESPACE" select="'http://digital.march.es/atmusica#'"/>
 
     <xsl:template name="fjm-atm">
-        <xsl:param name="pid" select="no_pid"/>
+        <xsl:param name="pid" select="'no_pid'"/>
         <xsl:param name="previous_items" select="''"/>
         <!-- Index based on CModel -->
         <xsl:if test="not(contains($previous_items, $pid))">
@@ -1258,9 +1258,10 @@
                     <xsl:with-param name="pid" select="substring-after(res:performerObj/@uri, '/')"/>
                 </xsl:call-template>
                 
-                <xsl:call-template name="eac_cpf"><!-- Not really needed, but it'll allow them to sort nicely...  Blargh. -->
+                <!-- Not really needed, but it'll allow them to sort nicely...  Blargh.
+                <xsl:call-template name="eac_cpf">
                     <xsl:with-param name="pid" select="substring-after(res:person/@uri, '/')"/>
-                </xsl:call-template>
+                </xsl:call-template>-->
             </doc>
             
             <xsl:call-template name="atm_person">
