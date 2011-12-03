@@ -1109,7 +1109,11 @@ function islandora_fjm_preprocess_islandora_fjm_recent_ir_doc(&$vars) {
     }
     
     $xpath = new DOMXPath($mods);
-    $vars['type'] = $xpath->evaluate('string(/mods/genre[@authority="marcgt"]/text())');
+    $xpath->registerNamespace('m', 'http://www.loc.gov/mods/v3');
+    $vars['type'] = $xpath->evaluate('string(//m:mods/m:genre[@authority="marcgt"]/text())');
+    if (empty($vars['type'])) {
+       $vars['type'] = $xpath->evaluate('string(//m:mods/m:relatedItem[@type="host"]/m:genre[@authority="marcgt"]/text())');
+    }
     $vars['access'] = 'open';
     
     
