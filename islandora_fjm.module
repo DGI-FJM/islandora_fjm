@@ -1100,7 +1100,7 @@ function islandora_fjm_preprocess_islandora_fjm_recent_ir_doc(&$vars) {
     dd('Loaded MODS successfully...');
     if (module_exists('citeproc')) {
       module_load_include('inc', 'csl', 'CSL');
-      $styles = array_keys(CSL::GetNames());
+      $styles = array_values(CSL::GetNames()); //Array returned has keys == values, for some reason...  Whatever.
       $style = citeproc_style($styles[0]); //@todo Select a default, instead of the first...
       $vars['citation'] = citeproc_bibliography_from_mods($style, $mods)->render();
     }
