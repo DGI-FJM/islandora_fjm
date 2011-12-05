@@ -547,7 +547,7 @@
     <xsl:param name="prefix">rels_</xsl:param>
     <xsl:param name="suffix">_s</xsl:param>
 
-    <xsl:for-each select=".//rdf:description/*[@rdf:resource]">
+    <xsl:for-each select=".//rdf:Description/*[@rdf:resource]">
       <field>
         <xsl:attribute name="name">
           <xsl:value-of select="concat($prefix, local-name(), '_uri', $suffix)"/>
@@ -555,7 +555,7 @@
         <xsl:value-of select="@rdf:resource"/>
       </field>
     </xsl:for-each>
-    <xsl:for-each select=".//rdf:description/*[not(@rdf:resource)][normalize-space(text())]">
+    <xsl:for-each select=".//rdf:Description/*[not(@rdf:resource)][normalize-space(text())]">
       <field>
         <xsl:attribute name="name">
           <xsl:value-of select="concat($prefix, local-name(), '_literal', $suffix)"/>
