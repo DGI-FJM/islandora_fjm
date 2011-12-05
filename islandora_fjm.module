@@ -1060,13 +1060,22 @@ function islandora_fjm_block($op = 'list', $delta = 0, $edit = array()) {
             '#options' => CSL::getNames(),
             '#description' => t('The CSL to use in the display'),
             '#default_value' => variable_get('islandora_fjm_recent_additions_csl', NULL)
+          ),
+          'citation_number' => array(
+            '#type' => 'textfield',
+            '#title' => t('Number of recent docs'),
+            '#description' => t('The number of documents to show in the "Recent additions" block'),
+            '#default_value' => variable_get('islandora_fjm_recent_additions_number', 5),
+            '#element_validate' => array('islandora_fjm_validate_numeric_textfield')
           )
         ),
         'save' => array(
-          'func' => 'variable_set',
-          'args' => array('islandora_fjm_recent_additions_csl', !empty($edit)?
+          'islandora_fjm_recent_additions_csl' => !empty($edit)?
             $edit['csl_type']:
-            '')
+            '',
+          'islandora_fjm_recent_additions_number' => !empty($edit)?
+            intval($edit['citation_number']):
+            5
         )
       )
     );
@@ -1083,12 +1092,20 @@ function islandora_fjm_block($op = 'list', $delta = 0, $edit = array()) {
         return $blocks[$delta]['config'];
       case 'save':
         $block =& $blocks[$delta]['save'];
-        dd($edit);
-        call_user_func_array($block['func'], $block['args']);
+        foreach($block as $var => $value) {
+          variable_set($var, $value);
+        }
         break;
       default:
         return;
     }
+  }
+}
+
+function islandora_fjm_validate_numeric_textfield($element, &$form_state) {
+  if (!is_numeric($element['#value']) &&
+    !intval($element['#value']) > 0) {
+    form_error($element, t('Must be an integer greater than 0.'));
   }
 }
 
@@ -1099,7 +1116,7 @@ function islandora_fjm_preprocess_islandora_fjm_recentir(&$vars) {
   $pathParts = parse_url($solrUrl);
   $solr = new Apache_Solr_Service($pathParts['host'], $pathParts['port'], $pathParts['path']);
   $solr->setCreateDocuments(FALSE);
-  $results = $solr->search('PID:ir*', 0, 5, array(
+  $results = $solr->search('PID:ir*', 0, variable_get('islandora_fjm_recent_additions_number', 3), array(
     'sort' => 'fgs.lastModifiedDate asc',
     'fl' => 'PID',
     'fq' => 'rels_hasModel_uri_ms:"info:fedora/ir:citationCModel"'
