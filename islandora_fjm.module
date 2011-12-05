@@ -1065,7 +1065,7 @@ function islandora_fjm_block($op = 'list', $delta = 0, $edit = array()) {
         'save' => array(
           'func' => 'variable_set',
           'args' => array('islandora_fjm_recent_additions_csl', !empty($edit)?
-            $edit['values']['csl_type']:
+            $edit['csl_type']:
             '')
         )
       )
@@ -1083,6 +1083,7 @@ function islandora_fjm_block($op = 'list', $delta = 0, $edit = array()) {
         return $blocks[$delta]['config'];
       case 'save':
         $block =& $blocks[$delta]['save'];
+        dd($edit);
         call_user_func_array($block['func'], $block['args']);
         break;
       default:
