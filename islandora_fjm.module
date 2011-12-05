@@ -1101,7 +1101,7 @@ function islandora_fjm_preprocess_islandora_fjm_recentir(&$vars) {
   $results = $solr->search('PID:ir*', 0, 5, array(
     'sort' => 'fgs.lastModifiedDate asc',
     'fl' => 'PID',
-    'fq' => 'rels_hasModel_ms:"ir:citationCModel"'
+    'fq' => 'rels_hasModel_uri_ms:"info:fedora/ir:citationCModel"'
   ));
   foreach($results->response->docs as &$doc) {
     $vars['pids'][] = $doc->PID;

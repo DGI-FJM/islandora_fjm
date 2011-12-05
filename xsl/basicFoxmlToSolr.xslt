@@ -133,8 +133,8 @@
 
       <!-- Index the Rels-ext (using match="rdf:RDF") -->
       <xsl:apply-templates select="foxml:datastream[@ID='RELS-EXT']/foxml:datastreamVersion[last()]/foxml:xmlContent/rdf:RDF">
-        <xsl:with-param name="prefix">rels.</xsl:with-param>
-        <xsl:with-param name="suffix"></xsl:with-param>
+        <xsl:with-param name="prefix">rels_</xsl:with-param>
+        <xsl:with-param name="suffix">_ms</xsl:with-param>
       </xsl:apply-templates>
 
         <!--*************************************************************full text************************************************************************************-->
