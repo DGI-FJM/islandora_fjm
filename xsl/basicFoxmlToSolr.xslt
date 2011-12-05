@@ -161,13 +161,13 @@
         </xsl:if>
       </xsl:for-each>
         <!--***********************************************************end full text********************************************************************************-->
-      <xsl:variable name="pageCModel">
+      <!--<xsl:variable name="pageCModel">
         <xsl:text>info:fedora/ilives:pageCModel</xsl:text>
       </xsl:variable>
       <xsl:variable name="thisCModel">
         <xsl:value-of select="//fedora-model:hasModel/@rdf:resource"/>
       </xsl:variable>
-        <!-- why was this being output here?:
+         why was this being output here?:
         <xsl:value-of select="$thisCModel"/>-->
 
         <!--********************************************Darwin Core**********************************************************************-->
@@ -201,11 +201,6 @@
         <!-- Names and Roles -->
       <xsl:apply-templates select="foxml:datastream[@ID='MODS']/foxml:datastreamVersion[last()]/foxml:xmlContent//mods:mods" mode="default">
         <xsl:with-param name="prefix">mods.</xsl:with-param>
-        <xsl:with-param name="suffix"></xsl:with-param>
-      </xsl:apply-templates>
-
-      <xsl:apply-templates select="foxml:datastream[@ID='MODS']/foxml:datastreamVersion[last()]/foxml:xmlContent//mods:mods" mode="CoH">
-        <xsl:with-param name="prefix">coh_search_</xsl:with-param>
         <xsl:with-param name="suffix"></xsl:with-param>
       </xsl:apply-templates>
 
@@ -548,168 +543,6 @@
   </xsl:template>
   <!-- End Basic MODS -->
 
-  <!-- *** COH *** -->
-  <xsl:template match="mods:mods" mode="CoH" name="index_mods_for_CoH" >
-    <!-- defaults -->
-    <xsl:param name="prefix">coh_search_</xsl:param>
-    <xsl:param name="suffix"></xsl:param>
-
-    <!-- Topic and Notes -->
-    <xsl:for-each select="./mods:subject/mods:topic[not(@type)][normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'topic_and_notes', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-    <xsl:for-each select="./mods:note[not(@type)][normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'topic_and_notes', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-    <xsl:for-each select="./mods:subject/mods:name[normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'topic_and_notes', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-
-    <!-- Book Authors -->
-    <xsl:for-each select="./mods:relatedItem[@type='host']/mods:name/mods:role/mods:roleTerm['author']/../../mods:namePart[normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'book_authors', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-
-    <!-- Conference -->
-    <xsl:for-each select="./mods:titleInfo[@type='conference']/mods:title[normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'conference', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-
-    <!-- Editor  -->
-    <xsl:for-each select="./mods:name[@type='personal']/mods:role[roleTerm='editor']/../mods:namePart[normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'editor', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-
-    <!-- Full Journal Title -->
-    <xsl:for-each select="./mods:relatedItem[@type='host']/mods:titleInfo[not(@type)]/mods:title[normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'full_journal_title', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-
-    <!-- MeSH -->
-    <xsl:for-each select="./mods:subject[@authority='mesh']/mods:topic[normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'mesh_terms', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-
-    <!-- Peer Review -->
-    <xsl:for-each select="./mods:note[@type='peer reviewed'][normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'peer_reviewed', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-
-    <!-- Keywords -->
-    <xsl:for-each select="./mods:subject[not(@type)]/mods:topic[not(@type)][normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'keywords', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-    <xsl:for-each select="./mods:subject[not(@type)]/mods:name[not(@type)][normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'keywords', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-
-    <!-- Secondary Source ID -->
-    <xsl:for-each select="./mods:identifier[@displayLabel='Accession Number'][normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'secondary_source_id', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-
-    <!-- Status -->
-    <xsl:for-each select="./mods:note[@type='pubmedStatus'][normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'status', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-
-    <!-- Funding Agency -->
-    <xsl:for-each select="./mods:name[@type='corporate']/mods:role[mods:roleTerm[@type='text']='funding agency']/../mods:namePart[normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'funding_agency', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-
-    <!-- Grant Number -->
-    <xsl:for-each select="./mods:name[@type='corporate']/mods:role[mods:roleTerm[@type='text']='funding agency']/../mods:description[@type='grant number'][normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'grant_number', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-
-    <!-- Cores -->
-    <xsl:for-each select="./mods:note[@type='core facilities'][normalize-space(text())]">
-      <field>
-        <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, 'cores', $suffix)"/>
-        </xsl:attribute>
-        <xsl:value-of select="text()"/>
-      </field>
-    </xsl:for-each>
-  </xsl:template>
-  <!-- *** End COH *** -->
-
   <xsl:template match="rdf:RDF">
     <xsl:param name="prefix">rels_</xsl:param>
     <xsl:param name="suffix">_s</xsl:param>
@@ -717,7 +550,7 @@
     <xsl:for-each select=".//rdf:description/*[@rdf:resource]">
       <field>
         <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, local-name(), $suffix)"/>
+          <xsl:value-of select="concat($prefix, local-name(), '_uri', $suffix)"/>
         </xsl:attribute>
         <xsl:value-of select="@rdf:resource"/>
       </field>

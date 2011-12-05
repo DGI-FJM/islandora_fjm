@@ -415,7 +415,7 @@
   </requestHandler>
 
   <!-- Some wise-guy likes to create new handlers too much, just so they can check names, even though the names and actual settings they provide should be INDEPENDANT! -->
-  <requestHandler name="fjm" class="solr.SearchHandler">
+  <requestHandler name="fjm-atm" class="solr.SearchHandler">
     <!-- default values for query parameters -->
      <lst name="defaults">
      <str name="echoParams">explicit</str>
@@ -448,9 +448,34 @@
      </str>
     </lst>
     <lst name="appends">
-        <str name="q.alt">
-            atm_type_s:"Conciertos"
-        </str>
+        <str name="q.alt">atm_type_s:"Conciertos"</str>
+        <str name="fq">PID:atm*</str>
+    </lst>
+  </requestHandler>
+  
+  <requestHandler name="fjm-ceacs" class="solr.SearchHandler">
+    <!-- default values for query parameters -->
+   <lst name="defaults">
+     <str name="echoParams">explicit</str>
+     <float name="tie">0.01</float>
+     <str name="qf">
+        PID^16.0
+        mods.title^4.0
+        mods.subTitle^3.5
+        mods.abstract^2.0
+        mods.note
+        mods.subject
+     </str>
+     <str name="fl">
+        * score
+     </str>
+     <str name="sort">
+        score desc,
+        mods.title asc
+     </str>
+    </lst>
+    <lst name="appends">
+        <str name="fq">PID:ir*</str>
     </lst>
   </requestHandler>
 

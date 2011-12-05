@@ -1039,34 +1039,55 @@ function islandora_fjm_preprocess_page(&$vars) {
 }
 
 function islandora_fjm_block($op = 'list', $delta = 0, $edit = array()) {
-  $blocks = array(
-    array(
-      'info' => t('Recent IR additions'),
-      'cache' => BLOCK_NO_CACHE,
-      'content_call' => array(
-        'func' => 'theme',
-        'params' => array('islandora_fjm_recentir')
-      ),
-      'view' => array(
-        'subject' => t('Recent additions'),
-        //'content' => theme('islandora_fjm_recent_ir') //Using the 'content_call' bit to avoid the call during listing...
+  if (module_exists('csl')) {
+    module_load_include('inc', 'csl', 'CSL');
+    $blocks = array(
+      array(
+        'info' => t('Recent IR additions'),
+        'cache' => BLOCK_NO_CACHE,
+        'content_call' => array(
+          'func' => 'theme',
+          'params' => array('islandora_fjm_recentir')
+        ),
+        'view' => array(
+          'subject' => t('Recent additions'),
+          //'content' => theme('islandora_fjm_recent_ir') //Using the 'content_call' bit to avoid the call during listing...
+        ),
+        'config' => array(
+          'csl_type' => array(
+            '#type' => 'select',
+            '#title' => t('CSL type'),
+            '#options' => CSL::getNames(),
+            '#description' => t('The CSL to use in the display'),
+            '#default_value' => variable_get('islandora_fjm_recent_additions_csl', NULL)
+          )
+        ),
+        'save' => array(
+          'func' => 'variable_set',
+          'args' => array('islandora_fjm_recent_additions_csl', !empty($edit)?
+            $edit['values']['csl_type']:
+            '')
+        )
       )
-    )
-  );
-  
-  switch($op) {
-    case 'list':
-      return $blocks;
-    case 'view':
-      $block =& $blocks[$delta];
-      $call =& $block['content_call'];
-      $block['view']['content'] = call_user_func_array($call['func'], $call['params']);
-      return $blocks[$delta]['view'];
-    case 'configure':
-      return array();
-    case 'save':
-    default:
-      return;
+    );
+    
+    switch($op) {
+      case 'list':
+        return $blocks;
+      case 'view':
+        $block =& $blocks[$delta];
+        $call =& $block['content_call'];
+        $block['view']['content'] = call_user_func_array($call['func'], $call['params']);
+        return $blocks[$delta]['view'];
+      case 'configure':
+        return $blocks[$delta]['config'];
+      case 'save':
+        $block =& $blocks[$delta]['save'];
+        call_user_func_array($block['func'], $block['args']);
+        break;
+      default:
+        return;
+    }
   }
 }
 
@@ -1084,24 +1105,24 @@ function islandora_fjm_preprocess_islandora_fjm_recentir(&$vars) {
   foreach($results->response->docs as &$doc) {
     $vars['pids'][] = $doc->PID;
   }
-  dd($vars['pids']);
+  //dd($vars['pids']);
 }
 
 function islandora_fjm_preprocess_islandora_fjm_recent_ir_doc(&$vars) {
   $vars['link'] = url("fedora/{$vars['pid']}");
-  dd('Created link');
+  //dd('Created link');
   module_load_include('inc', 'fedora_repository', 'api/fedora_item');
   $mods = new DOMDocument();
-  dd("About to attempt to load MODS for {$vars['pid']}");
+  //dd("About to attempt to load MODS for {$vars['pid']}");
   $item = new Fedora_Item($vars['pid']);
   $mods_string = $item->get_datastream_dissemination('MODS');
-  dd($mods_string);
+  //dd($mods_string);
   if ($mods->loadXML($mods_string)) { 
-    dd('Loaded MODS successfully...');
+    //dd('Loaded MODS successfully...');
     if (module_exists('citeproc')) {
       module_load_include('inc', 'csl', 'CSL');
       $styles = array_values(CSL::GetNames()); //Array returned has keys == values, for some reason...  Whatever.
-      $style = citeproc_style($styles[0]); //@todo Select a default, instead of the first...
+      $style = citeproc_style(variable_get('islandora_fjm_recent_additions_csl', $styles[0]));
       $vars['citation'] = citeproc_bibliography_from_mods($style, $mods)->render();
     }
     else {
@@ -1129,7 +1150,7 @@ function islandora_fjm_preprocess_islandora_fjm_recent_ir_doc(&$vars) {
     }
   }
   else {
-    dd('Failed loading MODS');
+    //dd('Failed loading MODS');
     watchdog('islandora_fjm', 'Wanting to do citations, but failed loading mods');
   }
 }
