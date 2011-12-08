@@ -460,18 +460,18 @@
      <float name="tie">0.01</float>
      <str name="qf">
         PID^16.0
-        mods.title^4.0
-        mods.subTitle^3.5
-        mods.abstract^2.0
-        mods.note
-        mods.subject
+        mods_title_mt^4.0
+        mods_subTitle_mt^3.5
+        mods_abstract_mt^2.0
+        mods_note_mt
+        mods_subject_mt
      </str>
      <str name="fl">
         * score
      </str>
      <str name="sort">
         score desc,
-        mods.title asc
+        mods_title_s asc
      </str>
     </lst>
     <lst name="appends">

@@ -237,7 +237,7 @@
 
     <!-- Main Title, with non-sorting prefixes -->
     <!-- ...specifically, this avoids catching relatedItem titles -->
-    <xsl:for-each select="./mods:titleInfo/mods:title[normalize-space(text())]">
+    <xsl:for-each select="(./mods:titleInfo/mods:title[normalize-space(text())])[1]">
       <field>
         <xsl:attribute name="name">
           <xsl:value-of select="concat($prefix, local-name(), $suffix)"/>
@@ -248,13 +248,30 @@
         </xsl:if>
         <xsl:value-of select="text()"/>
       </field>
+      <!-- bit of a hack so it can be sorted on... -->
+      <field>
+        <xsl:attribute name="name">
+          <xsl:value-of select="concat($prefix, local-name(), '_mlt')"/>
+        </xsl:attribute>
+        <xsl:if test="../mods:nonSort">
+          <xsl:value-of select="../mods:nonSort/text()"/>
+          <xsl:text> </xsl:text>
+        </xsl:if>
+        <xsl:value-of select="text()"/>
+      </field>
     </xsl:for-each>
 
     <!-- Sub-title -->
-    <xsl:for-each select="./mods:titleInfo/mods:subTitle[normalize-space(text())]">
+    <xsl:for-each select="./mods:titleInfo/mods:subTitle[normalize-space(text())][1]">
       <field>
         <xsl:attribute name="name">
           <xsl:value-of select="concat($prefix, local-name(), $suffix)"/>
+        </xsl:attribute>
+        <xsl:value-of select="text()"/>
+      </field>
+      <field>
+        <xsl:attribute name="name">
+          <xsl:value-of select="concat($prefix, local-name(), '_mlt')"/>
         </xsl:attribute>
         <xsl:value-of select="text()"/>
       </field>
@@ -451,7 +468,7 @@
     </xsl:for-each>
 
       <!-- Volume (e.g. journal vol) -->
-    <xsl:for-each select=".//mods:mods/mods:part/mods:detail[@type='volume']/*[normalize-space(text())]">
+    <xsl:for-each select="./mods:part/mods:detail[@type='volume']/*[normalize-space(text())]">
       <field>
         <xsl:attribute name="name">
           <xsl:value-of select="concat($prefix, 'volume', $suffix)"/>
@@ -461,7 +478,7 @@
     </xsl:for-each>
 
       <!-- Issue (e.g. journal vol) -->
-    <xsl:for-each select=".//mods:mods/mods:part/mods:detail[@type='issue']/*[normalize-space(text())]">
+    <xsl:for-each select="./mods:part/mods:detail[@type='issue']/*[normalize-space(text())]">
       <field>
         <xsl:attribute name="name">
           <xsl:value-of select="concat($prefix, 'issue', $suffix)"/>
