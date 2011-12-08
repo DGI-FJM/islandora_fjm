@@ -323,6 +323,7 @@
    <dynamicField name="*_f"  type="sfloat"  indexed="true"  stored="true"/>
    <dynamicField name="*_d"  type="sdouble" indexed="true"  stored="true"/>
    <dynamicField name="*_dt" type="date"    indexed="true"  stored="true"/>
+   <dynamicField name="*_store" type="string" indexed="false" stored="true" multiValued="true" compressed="true"/> <!-- Store stuff that is not to be searched... -->
    <!-- uncomment the following to ignore any fields that don't already match an existing 
         field name or dynamic field, rather than reporting them as an error. 
         alternately, change the type="ignored" to some other type e.g. "text" if you want 

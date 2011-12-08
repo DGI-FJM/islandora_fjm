@@ -26,8 +26,8 @@
     </tr>
   </tfoot>
   <tbody>
-    <? foreach($pids as $pid) {
-      echo theme('islandora_fjm_recent_ir_doc', $pid);
+    <? foreach($solr_docs as $doc) {
+      echo theme('islandora_fjm_recent_ir_doc', $doc);
     } ?>
     
     <!--<tr>

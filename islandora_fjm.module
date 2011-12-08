@@ -344,16 +344,18 @@ function islandora_fjm_theme() {
         ),
         'islandora_fjm_recentir' => array(
           'arguments' => array(
-            'pids' => array()
+            'solr_docs' => array(),
+            //'pids' => array()
           ),
           'template' => 'templates/irrecent'
         ),
         'islandora_fjm_recent_ir_doc' => array(
           'arguments' => array(
-            'pid' => NULL,
+            'solr_doc' => NULL,
+            //'pid' => NULL,
             'type' => NULL,
             'access' => NULL,
-            'citation' => NULL
+            'citation' => NULL,
           ),
           'template' => 'templates/ir_recent_item'
         )
@@ -1118,58 +1120,36 @@ function islandora_fjm_preprocess_islandora_fjm_recentir(&$vars) {
   $solr->setCreateDocuments(FALSE);
   $results = $solr->search('PID:ir*', 0, variable_get('islandora_fjm_recent_additions_number', 3), array(
     'sort' => 'fgs.lastModifiedDate asc',
-    'fl' => 'PID',
+    'fl' => 'PID,mods_fullxml_store,mods_genre_ms',
     'fq' => 'rels_hasModel_uri_ms:"info:fedora/ir:citationCModel"'
   ));
   foreach($results->response->docs as &$doc) {
     $vars['pids'][] = $doc->PID;
   }
-  //dd($vars['pids']);
+  $vars['solr_docs'] = $results->response->docs;
 }
 
 function islandora_fjm_preprocess_islandora_fjm_recent_ir_doc(&$vars) {
-  $vars['link'] = url("fedora/{$vars['pid']}");
-  //dd('Created link');
-  module_load_include('inc', 'fedora_repository', 'api/fedora_item');
-  $mods = new DOMDocument();
-  //dd("About to attempt to load MODS for {$vars['pid']}");
-  $item = new Fedora_Item($vars['pid']);
-  $mods_string = $item->get_datastream_dissemination('MODS');
-  //dd($mods_string);
-  if ($mods->loadXML($mods_string)) { 
-    //dd('Loaded MODS successfully...');
-    if (module_exists('citeproc')) {
-      module_load_include('inc', 'csl', 'CSL');
-      $styles = array_values(CSL::GetNames()); //Array returned has keys == values, for some reason...  Whatever.
-      $style = citeproc_style(variable_get('islandora_fjm_recent_additions_csl', $styles[0]));
-      $vars['citation'] = citeproc_bibliography_from_mods($style, $mods)->render();
-    }
-    else {
-      watchdog('islandora_fjm', 'Wanting to do citations, but the citeproc module isn\'t enabled');
-    }
+  $doc = $vars['solr_doc'];
+  $pid = $doc->PID;
+  
+  $vars['link'] = url("fedora/{$doc->PID}");
+
+  $vars['citation'] = scholar_citation_from_solr_doc($doc);
     
-    $xpath = new DOMXPath($mods);
-    $xpath->registerNamespace('m', 'http://www.loc.gov/mods/v3');
-    $vars['type'] = $xpath->evaluate('string(//m:mods/m:genre[@authority="marcgt"]/text())');
-    if (empty($vars['type'])) {
-       $vars['type'] = $xpath->evaluate('string(//m:mods/m:relatedItem[@type="host"]/m:genre[@authority="marcgt"]/text())');
-    }
-    $vars['access'] = 'open';
-    
-    
-    $mapping = array(
-      'periodical' => 'articulo',
-      //'book' => 'book',
-      //'thesis' => 'thesis',
-      //'working paper' => 'workingpaper' //@todo needs to be verified.
-    );
-    
-    if (array_key_exists($vars['type'], $mapping)) {
-      $vars['type'] = $mapping[$vars['type']];
-    }
-  }
-  else {
-    //dd('Failed loading MODS');
-    watchdog('islandora_fjm', 'Wanting to do citations, but failed loading mods');
+  $genre = $doc->mods_genre_ms;
+  $vars['type'] = is_array($genre)?$genre[0]:$genre;
+  $vars['access'] = 'open';
+  
+  
+  $mapping = array(
+    'periodical' => 'articulo',
+    //'book' => 'book',
+    //'thesis' => 'thesis',
+    //'working paper' => 'workingpaper' //@todo needs to be verified.
+  );
+  
+  if (array_key_exists($vars['type'], $mapping)) {
+    $vars['type'] = $mapping[$vars['type']];
   }
 }
