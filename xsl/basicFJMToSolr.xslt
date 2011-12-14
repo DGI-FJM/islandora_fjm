@@ -19,7 +19,7 @@
             exclude-result-prefixes="exts m rdf res fds ns xalan set">
     <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
     <!-- FIXME:  I figure relative URLs should work...  They didn't want to work, and absolute ones aren't nice (Xalan has this as an unresolved major bug since 2005.  See Apache's JIRA (XALANJ-2000 or so))...  This is currently relying on a minor (?) hack in Islandora. -->
-    <xsl:include href="file:/var/www/drupal/sites/default/modules/islandora_fjm/xsl/url_util.xslt"/>
+    <xsl:include href="file:/var/www/html/drupal/sites/all/modules/islandora_fjm/xsl/url_util.xslt"/>
     
     <!-- FIXME:  Should probably get these as parameters, or sommat -->
     <xsl:param name="HOST" select="'localhost'"/>

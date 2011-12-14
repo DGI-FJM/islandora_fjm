@@ -21,8 +21,8 @@
   xmlns:eaccpf="urn:isbn:1-931666-33-4">
   <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
   <!-- FIXME:  I figure relative URLs should work...  They didn't want to work, and absolute ones aren't nice -->
-  <xsl:include href="file:/var/www/drupal/sites/default/modules/islandora_fjm/xsl/basicFJMToSolr.xslt"/>
-  <xsl:include href="file:/var/www/drupal/sites/default/modules/islandora_fjm/xsl/escape_xml.xslt"/>
+  <xsl:include href="file:/var/www/html/drupal/sites/all/modules/islandora_fjm/xsl/basicFJMToSolr.xslt"/>
+  <xsl:include href="file:/var/www/html/drupal/sites/all/modules/islandora_fjm/xsl/escape_xml.xslt"/>
 
   <xsl:param name="REPOSITORYNAME" select="repositoryName"/>
   <xsl:param name="FEDORASOAP" select="repositoryName"/>
@@ -87,26 +87,14 @@
       <field name="PID" boost="2.5">
         <xsl:value-of select="$PID"/>
       </field>
-      <xsl:for-each select="foxml:objectProperties/foxml:property">
-        <field>
-          <xsl:attribute name="name">
-            <xsl:value-of select="concat('fgs.', substring-after(@NAME,'#'))"/>
-          </xsl:attribute>
-          <xsl:value-of select="@VALUE"/>
-        </field>
-      </xsl:for-each>
+      
+      <xsl:apply-templates select="foxml:objectProperties/foxml:property"/>
 
       <!-- index DC -->
       <xsl:apply-templates mode="simple_set" select="foxml:datastream/foxml:datastreamVersion[last()]/foxml:xmlContent/oai_dc:dc/*">
         <xsl:with-param name="prefix">dc.</xsl:with-param>
         <xsl:with-param name="suffix"></xsl:with-param>
       </xsl:apply-templates>
-
-      <!-- index REFWORKS...  Should probably select a particular DS?
-      <xsl:apply-templates mode="simple_set" select="foxml:datastream/foxml:datastreamVersion[last()]/foxml:xmlContent/reference/*">
-        <xsl:with-param name="prefix">refworks.</xsl:with-param>
-        <xsl:with-param name="suffix"></xsl:with-param>
-      </xsl:apply-templates> -->
 
       <xsl:for-each select="foxml:datastream[@ID='RIGHTSMETADATA']/foxml:datastreamVersion[last()]/foxml:xmlContent//access/human/person">
         <field>
@@ -138,58 +126,12 @@
         <xsl:with-param name="suffix">_ms</xsl:with-param>
       </xsl:apply-templates>
 
-        <!--*************************************************************full text************************************************************************************-->
-        <!--  Filter added to ensure OCR streams for ilives books are NOT included -->
-      <xsl:for-each select="foxml:datastream[@ID='OCR']/foxml:datastreamVersion[last()]">
-        <xsl:if test="not(starts-with($PID,'ilives'))">
-          <field>
-            <xsl:attribute name="name">
-              <xsl:value-of select="concat('OCR.', 'OCR')"/>
-            </xsl:attribute>
-            <xsl:value-of select="islandora-exts:getDatastreamTextRaw($PID, $REPOSITORYNAME, 'OCR', $FEDORASOAP, $FEDORAUSER, $FEDORAPASS, $TRUSTSTOREPATH, $TRUSTSTOREPASS)"/>
-          </field>
-        </xsl:if>
-      </xsl:for-each>
-        <!--  Filter added to ensure OCR streams for ilives books are NOT included -->
-      <xsl:for-each select="foxml:datastream[@ID='OBJ']/foxml:datastreamVersion[last()]">
-        <xsl:if test="starts-with($PID,'ir')">
-          <field>
-            <xsl:attribute name="name">
-              <xsl:value-of select="concat('dsm.', 'text')"/>
-            </xsl:attribute>
-            <xsl:value-of select="islandora-exts:getDatastreamText($PID, $REPOSITORYNAME, 'OCR', $FEDORASOAP, $FEDORAUSER, $FEDORAPASS, $TRUSTSTOREPATH, $TRUSTSTOREPASS)"/>
-          </field>
-        </xsl:if>
-      </xsl:for-each>
-        <!--***********************************************************end full text********************************************************************************-->
-      <!--<xsl:variable name="pageCModel">
-        <xsl:text>info:fedora/ilives:pageCModel</xsl:text>
-      </xsl:variable>
-      <xsl:variable name="thisCModel">
-        <xsl:value-of select="//fedora-model:hasModel/@rdf:resource"/>
-      </xsl:variable>
-         why was this being output here?:
-        <xsl:value-of select="$thisCModel"/>-->
-
         <!--********************************************Darwin Core**********************************************************************-->
       <xsl:apply-templates mode="simple_set" select="foxml:datastream/foxml:datastreamVersion[last()]/foxml:xmlContent/dwc:SimpleDarwinRecordSet/dwc:SimpleDarwinRecord/*[normalize-space(text())]">
         <xsl:with-param name="prefix">dwc.</xsl:with-param>
         <xsl:with-param name="suffix"></xsl:with-param>
       </xsl:apply-templates>
         <!--***************************************** END Darwin Core ******************************************-->
-
-
-        <!-- a managed datastream is fetched, if its mimetype
-                 can be handled, the text becomes the value of the field. -->
-        <!--<xsl:for-each select="foxml:datastream[@CONTROL_GROUP='M']">
-                <field>
-                    <xsl:attribute name="name">
-                        <xsl:value-of select="concat('dsm.', @ID)"/>
-                    </xsl:attribute>
-                    <xsl:value-of select="exts:getDatastreamText($PID, $REPOSITORYNAME, @ID, $FEDORASOAP, $FEDORAUSER, $FEDORAPASS, $TRUSTSTOREPATH, $TRUSTSTOREPASS)"/>
-                </field>
-            </xsl:for-each>-->
-
 
         <!--************************************ BLAST ******************************************-->
         <!-- Blast -->
@@ -211,13 +153,35 @@
       </xsl:apply-templates>
       
       <xsl:for-each select="foxml:datastream[@ID][foxml:datastreamVersion[last()]]">
-        <field name="fedora_datastreams_ms">
-          <xsl:value-of select="@ID"/>
-        </field>
+          <xsl:choose>
+            <!-- Don't bother showing some... -->
+            <xsl:when test="@ID='AUDIT'"></xsl:when>
+            <xsl:when test="@ID='DC'"></xsl:when>
+            <xsl:when test="@ID='ENDNOTE'"></xsl:when>
+            <xsl:when test="@ID='MODS'"></xsl:when>
+            <xsl:when test="@ID='RIS'"></xsl:when>
+            <xsl:when test="@ID='SWF'"></xsl:when>
+            <xsl:otherwise>
+              <field name="fedora_datastreams_ms">
+                <xsl:value-of select="@ID"/>
+              </field>
+            </xsl:otherwise>
+          </xsl:choose>
       </xsl:for-each>
     </doc>
   </xsl:template>
 
+  <xsl:template match="foxml:property">
+    <xsl:param name="prefix">fgs_</xsl:param>
+    <xsl:param name="suffix">_s</xsl:param>
+    <field>
+      <xsl:attribute name="name">
+        <xsl:value-of select="concat($prefix, substring-after(@NAME,'#'), $suffix)"/>
+      </xsl:attribute>
+      <xsl:value-of select="@VALUE"/>
+    </field>
+  </xsl:template>
+  
   <!-- Basic MODS -->
   <xsl:template match="mods:mods" name="index_mods" mode="default">
     <xsl:param name="prefix">mods_</xsl:param>
@@ -289,9 +253,19 @@
 
     <!-- Genre (a.k.a. specific doctype) -->
     <xsl:for-each select=".//mods:genre[normalize-space(text())]">
+      <xsl:variable name="authority">
+        <xsl:choose>
+          <xsl:when test="@authority">
+            <xsl:value-of select="concat('_', @authority)"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:text>_local_authority</xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:variable>
       <field>
         <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, local-name(), $suffix)"/>
+          <xsl:value-of select="concat($prefix, local-name(), $authority, $suffix)"/>
         </xsl:attribute>
         <xsl:value-of select="text()"/>
       </field>

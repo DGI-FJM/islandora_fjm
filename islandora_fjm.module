@@ -345,21 +345,25 @@ function islandora_fjm_theme() {
         'islandora_fjm_recentir' => array(
           'arguments' => array(
             'solr_docs' => array(),
-            //'pids' => array()
           ),
           'template' => 'templates/irrecent'
         ),
         'islandora_fjm_recent_ir_doc' => array(
           'arguments' => array(
             'solr_doc' => NULL,
-            //'pid' => NULL,
             'type' => NULL,
             'access' => NULL,
             'citation' => NULL,
           ),
           'template' => 'templates/ir_recent_item'
-        )
+        ),
     );
+}
+
+function islandora_fjm_theme_registry_alter(&$registry) {
+  if (module_exists('scholar')) {
+    $ssai['arguments']['type'] = NULL;
+  }
 }
 
 function islandora_fjm_preprocess_islandora_fjm_atm_now_playing(&$vars) {
@@ -1118,15 +1122,32 @@ function islandora_fjm_preprocess_islandora_fjm_recentir(&$vars) {
   $pathParts = parse_url($solrUrl);
   $solr = new Apache_Solr_Service($pathParts['host'], $pathParts['port'], $pathParts['path']);
   $solr->setCreateDocuments(FALSE);
-  $results = $solr->search('PID:ir*', 0, variable_get('islandora_fjm_recent_additions_number', 3), array(
-    'sort' => 'fgs.lastModifiedDate asc',
-    'fl' => 'PID,mods_fullxml_store,mods_genre_ms',
+  $results = $solr->search('*:*', 0, variable_get('islandora_fjm_recent_additions_number', 3), array(
+    'sort' => 'fgs_lastModifiedDate_s desc',
+    'fl' => 'PID,mods_fullxml_store,mods_genre_endnote_ms',
     'fq' => 'rels_hasModel_uri_ms:"info:fedora/ir:citationCModel"'
   ));
   foreach($results->response->docs as &$doc) {
     $vars['pids'][] = $doc->PID;
   }
   $vars['solr_docs'] = $results->response->docs;
+}
+
+function islandora_fjm_map_genre($genre) {
+  static $mapping = array(
+    'Journal Article' => 'articulo',
+    'Book' => 'book',
+    'Book Section' => 'book',
+    'Edited Book' => 'book',
+    'Thesis' => 'thesis',
+    'Working Paper' => 'workingpaper' //@todo needs to be verified.
+  );
+  
+  $genre = is_array($genre)?$genre[0]:$genre;
+  
+  if (array_key_exists($genre, $mapping)) {
+    return $mapping[$genre];
+  }
 }
 
 function islandora_fjm_preprocess_islandora_fjm_recent_ir_doc(&$vars) {
@@ -1136,20 +1157,48 @@ function islandora_fjm_preprocess_islandora_fjm_recent_ir_doc(&$vars) {
   $vars['link'] = url("fedora/{$doc->PID}");
 
   $vars['citation'] = scholar_citation_from_solr_doc($doc);
-    
-  $genre = $doc->mods_genre_ms;
-  $vars['type'] = is_array($genre)?$genre[0]:$genre;
+  $vars['type'] = islandora_fjm_map_genre($doc->mods_genre_endnote_ms);
   $vars['access'] = 'open';
-  
-  
-  $mapping = array(
-    'periodical' => 'articulo',
-    //'book' => 'book',
-    //'thesis' => 'thesis',
-    //'working paper' => 'workingpaper' //@todo needs to be verified.
-  );
-  
-  if (array_key_exists($vars['type'], $mapping)) {
-    $vars['type'] = $mapping[$vars['type']];
+}
+
+function islandora_fjm_preprocess_scholar_search_alt_item(&$vars) {
+  $doc = $vars['solr_doc'];
+  $vars['type'] = islandora_fjm_map_genre($doc->mods_genre_endnote_ms);
+}
+
+function islandora_fjm_form_scholar_search_results_form_alter(&$form, &$form_state) {
+  //Adding a couple rows, based on the EndNote genre, and the presence of a PDF datastream.
+  $qp = $form_state['storage']['query'];
+  $docs = $qp->solrResult->response->docs;
+  foreach ($form['table']['rows'] as $index => &$row) {
+    $doc = $docs[$index];
+    $type = islandora_fjm_map_genre($doc->mods_genre_endnote_ms);
+    $DSs = $doc->fedora_datastreams_ms;
+    
+    $new_row = array(
+      '#pid' => $row['#pid'],
+      'icon' => array('#value' => <<<EOT
+<div class="icon type-$type">&nbsp;</div>
+EOT
+      ),
+      'result' => $row['result'],
+      'pdf' => array('#value' => array_search('PDF', (array)$DSs) !== FALSE? <<<EOT
+<div class="icon has-pdf">&nbsp;</div>
+EOT
+:''
+      )
+    );
+    $row = $new_row;
   }
+  
+  $head =& $form['table']['#header'];
+  
+  $form['table']['#caption'] = $head[1];  //Set the caption for the table.
+  
+  //And set the column titles, as we're moving them around anyway.
+  $head[1] = t('Type of Publication');
+  $head[2] = t('Bibliographical Citation');
+  $head[3] = t('PDF');
+
+  return $form; //Not sure if this is necessary, but anyway...
 }

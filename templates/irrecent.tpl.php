@@ -12,15 +12,15 @@
     <tr>
       <td colspan="3">
         <ul class="legend type">
-          <li><div class="type-articulo">&nbsp;</div><? echo t('ARTICLE');?></li>
-          <li><div class="type-workingpaper">&nbsp;</div><? echo t('WORKING PAPER');?></li>
-          <li><div class="type-thesis">&nbsp;</div><? echo t('THESES');?></li>
-          <li><div class="type-book">&nbsp;</div><? echo t('BOOK/BOOK CHAPTER');?></li>
+          <li><div class="type-articulo"></div><? echo t('ARTICLE');?></li>
+          <li><div class="type-workingpaper"></div><? echo t('WORKING PAPER');?></li>
+          <li><div class="type-thesis"></div><? echo t('THESES');?></li>
+          <li><div class="type-book"></div><? echo t('BOOK/BOOK CHAPTER');?></li>
         </ul>
         <ul class="legend access">
-          <li><div class="access-open">&nbsp;</div><? echo t('OPEN ACCESS');?></li>
-          <li><div class="access-restricted">&nbsp;</div><? echo t('RESTRICTED');?></li>
-          <li><div class="access-metadata">&nbsp;</div><? echo t('BIB. INFO');?></li>
+          <li><div class="access-open"></div><? echo t('OPEN ACCESS');?></li>
+          <li><div class="access-restricted"></div><? echo t('RESTRICTED');?></li>
+          <li><div class="access-metadata"></div><? echo t('BIB. INFO');?></li>
         </ul>
       </td>
     </tr>
