@@ -1172,13 +1172,17 @@ function islandora_fjm_form_scholar_search_results_form_alter(&$form, &$form_sta
   $docs = $qp->solrResult->response->docs;
   foreach ($form['table']['rows'] as $index => &$row) {
     $doc = $docs[$index];
-    $type = islandora_fjm_map_genre($doc->mods_genre_endnote_ms);
+    $genre =& $doc->mods_genre_endnote_ms;
+    $doc_type = is_array($genre)?
+      $genre[0]:
+      $genre;
+    $type = islandora_fjm_map_genre($doc_type);
     $DSs = $doc->fedora_datastreams_ms;
     
     $new_row = array(
       '#pid' => $row['#pid'],
       'icon' => array('#value' => <<<EOT
-<div class="icon type-$type">&nbsp;</div>
+<div class="icon type-$type" title="$doc_type">&nbsp;</div>
 EOT
       ),
       'result' => $row['result'],
