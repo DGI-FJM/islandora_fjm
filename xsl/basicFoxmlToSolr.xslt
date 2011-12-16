@@ -519,6 +519,14 @@
         </xsl:attribute>
         <xsl:value-of select="text()"/>
       </field>
+      <xsl:if test="position() = 1"><!-- use the first for a sortable field -->
+        <field>
+          <xsl:attribute name="name">
+            <xsl:value-of select="concat($prefix, local-name(), '_s')"/>
+          </xsl:attribute>
+          <xsl:value-of select="text()"/>
+        </field>
+      </xsl:if>
     </xsl:for-each>
 
       <!-- Copyright Date (is an okay substitute for Issued Date in many circumstances) -->
