@@ -21,13 +21,12 @@
   xmlns:eaccpf="urn:isbn:1-931666-33-4"
   xmlns:res="http://www.w3.org/2001/sw/DataAccess/rf1/result"
   xmlns:xalan="http://xml.apache.org/xalan"
-  xmlns:xlink="http://www.w3.org/1999/xlink"
-  xml:base="file:/var/www/drupal/sites/default/modules/islandora_fjm/xsl/">
+  xmlns:xlink="http://www.w3.org/1999/xlink">
   <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
   
   <!-- Docs to include, relative to xml:base in stylesheet element -->
-  <xsl:include href="basicFJMToSolr.xslt"/>
-  <xsl:include href="escape_xml.xslt"/>
+  <xsl:include href="file:/var/www/html/drupal/sites/all/modules/islandora_fjm/xsl/basicFJMToSolr.xslt"/>
+  <xsl:include href="file:/var/www/html/drupal/sites/all/modules/islandora_fjm/xsl/escape_xml.xslt"/>
 
   <xsl:param name="REPOSITORYNAME" select="repositoryName"/>
   <xsl:param name="FEDORASOAP" select="repositoryName"/>
@@ -306,6 +305,7 @@
 
       <!-- Names and Roles -->
     <xsl:for-each select=".//mods:roleTerm[normalize-space(text())]">
+      <!-- Names split by roles... -->
       <field>
         <xsl:attribute name="name">
           <xsl:value-of select="concat($prefix, 'name_', text(), $suffix)"/>
@@ -327,6 +327,49 @@
       <field>
         <xsl:attribute name="name">
           <xsl:value-of select="concat($prefix, 'rname_', text(), $suffix)"/>
+        </xsl:attribute>
+        <xsl:for-each select="../../mods:namePart[not(@type='given')]">
+          <xsl:value-of select="text()"/>
+          <xsl:if test="@type='given'">
+            <xsl:text> </xsl:text>
+          </xsl:if>
+        </xsl:for-each>
+        <xsl:for-each select="../../mods:namePart[@type='given']">
+          <xsl:if test="position()=1">
+            <xsl:text>, </xsl:text>
+          </xsl:if>
+          <xsl:value-of select="text()"/>
+          <xsl:if test="string-length(text())=1">
+            <xsl:text>.</xsl:text>
+          </xsl:if>
+          <xsl:if test="position()!=last()">
+            <xsl:text> </xsl:text>
+          </xsl:if>
+        </xsl:for-each>
+      </field>
+      
+      <!-- All names in one field  -->
+      <field>
+        <xsl:attribute name="name">
+          <xsl:value-of select="concat($prefix, 'name_associated', $suffix)"/>
+        </xsl:attribute>
+        <xsl:for-each select="../../mods:namePart[@type='given']">
+          <xsl:value-of select="text()"/>
+          <xsl:if test="string-length(text())=1">
+            <xsl:text>.</xsl:text>
+          </xsl:if>
+          <xsl:text> </xsl:text>
+        </xsl:for-each>
+        <xsl:for-each select="../../mods:namePart[not(@type='given')]">
+          <xsl:value-of select="text()"/>
+          <xsl:if test="position()!=last()">
+            <xsl:text> </xsl:text>
+          </xsl:if>
+        </xsl:for-each>
+      </field>
+      <field>
+        <xsl:attribute name="name">
+          <xsl:value-of select="concat($prefix, 'rname_associated', $suffix)"/>
         </xsl:attribute>
         <xsl:for-each select="../../mods:namePart[not(@type='given')]">
           <xsl:value-of select="text()"/>
@@ -664,10 +707,8 @@
       </xsl:choose>
     </field>
 
-    <field>
-      <xsl:attribute name="name">
-        <xsl:value-of select="concat($prefix, 'complete', $suffix)"/>
-      </xsl:attribute>
+    <!-- full/complete name -->
+    <xsl:variable name="full_name">
       <xsl:choose>
         <xsl:when test="normalize-space(part[@localType='middle'])">
           <xsl:value-of select="normalize-space(concat(eaccpf:part[@localType='surname'], ', ', eaccpf:part[@localType='forename'], ' ', eaccpf:part[@localType='middle']))"/>
@@ -676,7 +717,24 @@
           <xsl:value-of select="normalize-space(concat(eaccpf:part[@localType='surname'], ', ', eaccpf:part[@localType='forename']))"/>
         </xsl:otherwise>
       </xsl:choose>
+    </xsl:variable>
+    
+    <field>
+      <xsl:attribute name="name">
+        <xsl:value-of select="concat($prefix, 'complete', $suffix)"/>
+      </xsl:attribute>
+      <xsl:value-of select="$full_name"/>
     </field>
+    
+    <!-- create sortable copy -->
+    <xsl:if test="@localType='primary'">
+      <field>
+        <xsl:attribute name="name">
+          <xsl:value-of select="concat($prefix, 'complete', '_es')"/>
+        </xsl:attribute>
+        <xsl:value-of select="$full_name"/>
+      </field>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template match="eaccpf:eac-cpf" mode="fjm">
@@ -689,10 +747,9 @@
         <xsl:with-param name="lang">sparql</xsl:with-param>
         <xsl:with-param name="query">
 PREFIX ir-rel: &lt;http://digital.march.es/ceacs#&gt;
-PREFIX fedora-model: &lt;info:fedora/fedora-system:def/model#&gt;
 SELECT $tn_pid
 WHERE {
-  $tn_pid ir-rel:isIconOf &lt;info:fedora/<xsl:value-of select="$pid"/>&gt;
+  $tn_pid ir-rel:iconOf &lt;info:fedora/<xsl:value-of select="$pid"/>&gt;
 }
         </xsl:with-param>
       </xsl:call-template>
@@ -715,12 +772,41 @@ WHERE {
       </field>
     </xsl:for-each>
     
-    <xsl:for-each select='(eaccpf:cpfDescription/eaccpf:relations/eaccpf:cpfRelation[eaccpf:event/text()="CEACS membership"])[1]'>
+    <xsl:for-each select='(eaccpf:cpfDescription/eaccpf:relations/eaccpf:cpfRelation[starts-with(eaccpf:relationEntry/text(), "Institute Juan March")])[1]'>
       <field>
         <xsl:attribute name="name">
           <xsl:value-of select="concat($prefix, 'ceacs_member', '_b')"/>
         </xsl:attribute>
         <xsl:text>true</xsl:text>
+      </field>
+      <field>
+        <xsl:attribute name="name">
+          <xsl:value-of select="concat($prefix, 'ceacs_role', $suffix)"/>
+        </xsl:attribute>
+        <xsl:value-of select="normalize-space(eaccpf:relationEntry/text())"/>
+        
+        <xsl:variable name="dateInfo">
+          <xsl:choose>
+            <xsl:when test="substring(eaccpf:relationEntry/text(), string-length(eaccpf:relationEntry/text()) - 3, 'PhD')">
+              <xsl:value-of select="../../eaccpf:description/eaccpf:biogHist/eaccpf:chronList/eaccpf:chronItem[eaccpf:event/text()='Achieved PhD']/eaccpf:date/@standardDate"/>
+            </xsl:when>
+            <xsl:when test="eaccpf:dateRange">
+              <xsl:if test="eaccpf:dateRange/eaccpf:fromDate">
+                <xsl:value-of select="eaccpf:dateRange/eaccpf:fromDate/text()"/>
+              </xsl:if>
+              <xsl:text>-</xsl:text>
+              <xsl:if test="eaccpf:dateRange/eaccpf:toDate">
+                <xsl:value-of select="eaccpf:dateRange/eaccpf:toDate/text()"/>
+              </xsl:if>
+            </xsl:when>
+          </xsl:choose>
+        </xsl:variable>
+        
+        <xsl:if test="not($dateInfo='')">
+          <xsl:text> (</xsl:text>
+          <xsl:value-of select="$dateInfo"/>
+          <xsl:text>)</xsl:text>
+        </xsl:if>
       </field>
     </xsl:for-each>
   </xsl:template>

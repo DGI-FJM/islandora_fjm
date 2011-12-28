@@ -199,12 +199,28 @@ function islandora_fjm_menu() {
     //  With relative URLs.
     //TODO:  Might want to look at locking it down?  The callback function restricts to
     //  only .xsd and .xsl, so I don't see a major issue.
+    //FIXME:  I'm fairly sure I no longer use this...
     $items['fedora/xml'] = array(
         'title' => 'Get stored XML',
         'page callback' => 'islandora_fjm_display_schema',
         'type' => MENU_CALLBACK,
         'access callback' => TRUE
     );
+    $items['authors'] = array(
+      'title' => 'All Authors',
+      'page callback' => 'theme',
+      'page arguments' => array('islandora_fjm_ceacs_authors', 'all', 1),
+      'type' => MENU_NORMAL_PAGE,
+      'access arguments' => array('access content')
+    );
+    $items['members'] = array(
+      'title' => 'CEACS Members',
+      'page callback' => 'theme',
+      'page arguments' => array('islandora_fjm_ceacs_authors', 'ceacs', 1),
+      'type' => MENU_NORMAL_PAGE,
+      'access arguments' => array('access content')
+    );
+    
     return $items;
 }
 
@@ -357,13 +373,247 @@ function islandora_fjm_theme() {
           ),
           'template' => 'templates/ir_recent_item'
         ),
+        'islandora_fjm_ceacs_authors' => array(
+          'arguments' => array(
+            'type' => 'all',
+            'letter' => NULL
+          ),
+        ),
+        'islandora_fjm_ceacs_az' => array(),
+        'table_improved' => array(
+          'arguments' => array(
+            'headers' => array(),
+            'body' => array(),
+            'footers' => array(),
+            'caption' => NULL,
+            'attributes' => array()
+          )
+        )
     );
 }
 
-function islandora_fjm_theme_registry_alter(&$registry) {
-  if (module_exists('scholar')) {
-    $ssai['arguments']['type'] = NULL;
+function _theme_table_improved_rows($rows, $cell_type) {
+  $output = '';
+  foreach ($rows as $row) {
+    $row_attr = array();
+    $row_data = array();
+    if (array_key_exists('data', $row)) {
+      $row_attr = $row['attributes']; //Might not exist...  Should be null?
+      $row_data = $row['data'];
+    }
+    else {
+      $row_data = $row;
+    }
+      
+    $output .= '<tr '. drupal_attributes($row_attr) .'>';
+    foreach ($row_data as $cell) {
+      $cell_attr = array();
+      $cell_data = array();
+      if (array_key_exists('data', (array)$cell)) {
+        $cell_attr = $cell['attributes']; //Might not exist...  Should be null?
+        $cell_data = $cell['data'];
+      }
+      else {
+        $cell_data = $cell;
+      }
+      $output .= "<$cell_type ". drupal_attributes($cell_attr) .">$cell_data</$cell_type>";
+    }
+    $output .= '</tr>';
   }
+  return $output;
+}
+
+function _theme_table_section($rows, $type='body') {
+  $attributes = array();
+  $data = array();
+  if (array_key_exists('data', $rows)) {
+    $attributes = $rows['attributes']; //Might not exist...  Should be null?
+    $data = $rows['data'];
+  }
+  else {
+    $data = $rows;
+  }
+  
+  $cell_types = array(
+    'body' => 'td',
+    'head' => 'th',
+    'foot' => 'th'
+  );
+  
+  $cell_type = $cell_types[$type];
+  
+  $output = "<t$type ". drupal_attributes($attributes) .'>';
+  $output .= _theme_table_improved_rows($data, $cell_type);
+  $output .= "</t$type>";
+  return $output;
+}
+
+function theme_table_improved($headers, $body, $footers, $caption=NULL, $attributes=array()) {
+  $output = '<table '. drupal_attributes($attributes) .'>';
+  if (!is_null($caption)) {
+    $cap_data = '';
+    $cap_attr = array();
+    if (array_key_exists('data', (array)$caption)) {
+      $cap_data = $caption['data'];
+      $cap_attr = $caption['attributes'];
+    }
+    else {
+      $cap_data = $caption;
+    }
+    $output .= "<caption ". drupal_attributes($cap_attr) .">$cap_data</caption>";
+  }
+  
+  //Apparently, casting is more efficient than function calls...
+  $headers = (array)$headers;
+  $body = (array)$body;
+  $footers = (array)$footers;
+  
+  if (count($headers) > 0) {
+    $output .= _theme_table_section($headers, 'head');
+  }
+  if (count($footers) > 0) {
+    $output .= _theme_table_section($footers, 'foot');
+  }
+  if (count($body) > 0) {
+    $output .= _theme_table_section($body, 'body');
+  }
+  $output .= '</table>';
+  return $output;
+}
+
+function theme_islandora_fjm_ceacs_az($type, $letter_in) {
+  if (empty($type) || strcasecmp($type, 'all') === 0) {
+    $type = 'authors';
+  }
+  else {
+    $type = 'members';
+  }
+  $outputArray = array(
+    array(
+      'data' => l(t('ALL'), $type),
+      'class' => strcasecmp('all', $letter_in) === 0?
+          'selected':
+          ''
+    )
+  );
+  foreach (range('A', 'Z') as $letter) {
+      $outputArray[] = array(
+        'data' => l($letter, "$type/$letter"),
+        'class' => strcasecmp($letter, $letter_in) === 0?
+          'selected':
+          ''
+      );
+  }
+  return theme('item_list', $outputArray, '', 'ul', array('class' => 'ceacs-az-list'));
+}
+
+function theme_islandora_fjm_ceacs_authors($type='all', $letter=NULL) {
+    if (empty($type)) {
+      $type = 'all';
+    }
+    $fq = array('rels_hasModel_uri_ms:"info:fedora/ir:authorityCModel"');
+    if (strcasecmp($type, 'CEACS') === 0) {
+      $fq[] = 'eaccpf_ceacs_member_b:true';
+    }
+    
+    if (empty($letter)) {
+      $letter = t('ALL');
+    }
+    
+    if (strcasecmp($letter, t('ALL')) !== 0) {
+      $letter = strtoupper($letter);
+      $fq[] = "eaccpf_name_complete_es:$letter*";
+    }
+    
+    //Perform the search
+    module_load_include('php', 'islandora_solr_search', 'SolrPhpClient/Apache/Solr/Service');
+    $solrUrl = variable_get('islandora_solr_search_block_url', 'http://localhost:8080/solr/');
+    $pathParts = parse_url($solrUrl);
+    $solr = new Apache_Solr_Service($pathParts['host'], $pathParts['port'], $pathParts['path']);
+    $solr->setCreateDocuments(FALSE);
+    $results = $solr->search('*:*', 0, 10000, array(
+      'sort' => 'eaccpf_name_complete_mlt asc',
+      'fl' => '*,score',
+      'fq' => implode(' ', $fq)
+    ));
+    
+    $header = array();
+    $rows = array();
+    if (strcasecmp($type, 'CEACS') === 0) {
+      $header = array(
+        t('Image'),
+        t('Name'),
+        t('CEACS role'),
+        t('Publications'),
+        t('Academic page')
+      );
+      $rows = array();
+      //Process the results into rows...
+      foreach($results->response->docs as $doc) {
+        //dsm($doc);
+        $rows[] = array(
+          !empty($doc->eaccpf_thumbnail_object_s)?
+            "<img src='". url("fedora/repository/{$doc->eaccpf_thumbnail_object_s}/TN") ."'></img>":
+            '',//"<img src='". url("fedora/repository/atm:defaultPersonImage/TN") ."'></img>", //FIXME:  Needs a default image
+          $doc->eaccpf_name_complete_es,
+          $doc->eaccpf_ceacs_role_s,
+          l(t('Publications'), "islandora/solr/search/mods_rname_associated_mt:({$doc->eaccpf_name_complete_es})"),
+          (!empty($doc->eaccpf_academic_page_s))?
+              l(t('Academic page'), $doc->eaccpf_academic_page_s):
+              ''
+        );
+      }
+    }
+    else {
+      $header = array(
+        t('Image'),
+        t('Name'),
+        t('Publications'),
+        t('Academic page')
+      );
+      $rows = array();
+      //Process the results into rows...
+      foreach($results->response->docs as $doc) {
+        //dsm($doc);
+        $rows[] = array(
+          !empty($doc->eaccpf_thumbnail_object_s)?
+            "<img src='". url("fedora/repository/{$doc->eaccpf_thumbnail_object_s}/TN") ."'></img>":
+            '', //"<img src='". url("fedora/repository/atm:defaultPersonImage/TN") ."'></img>", //FIXME: Needs a default image    
+          $doc->eaccpf_name_complete_es,
+          l(t('Publications'), "islandora/solr/search/mods_rname_associated_mt:({$doc->eaccpf_name_complete_es})"),
+          (!empty($doc->eaccpf_academic_page_s))?
+              l(t('Academic page'), $doc->eaccpf_academic_page_s):
+              ''
+        );
+      }
+    }
+    
+    //The A-Z display
+    $az = array( //tr
+      array( //td
+        'data' => theme('islandora_fjm_ceacs_az', $type, $letter),
+        'attributes' => array('colspan' => count($header))
+      )
+    );
+    
+    //Return the table with the A-Z dealios.
+    return theme('table_improved',
+      array(  //header
+        $az,
+        $header
+      ),
+      $rows,  //body
+      array(  //footer
+        $az
+      ),
+      t('Authors - Listing %letter', 
+        array(
+          //'!title' => drupal_get_title(), //Use the page title, for now...
+          '%letter' => $letter)),
+      array(
+        'class' => 'ceacs-authors'
+      )
+    );
 }
 
 function islandora_fjm_preprocess_islandora_fjm_atm_now_playing(&$vars) {
@@ -1115,7 +1365,7 @@ function islandora_fjm_validate_numeric_textfield($element, &$form_state) {
   }
 }
 
-function islandora_fjm_preprocess_islandora_fjm_recentir(&$vars) {
+function template_preprocess_islandora_fjm_recentir(&$vars) {
   //Select all the recent docs... 
   module_load_include('php', 'islandora_solr_search', 'SolrPhpClient/Apache/Solr/Service');
   $solrUrl = variable_get('islandora_solr_search_block_url', 'http://localhost:8080/solr/');
@@ -1150,7 +1400,7 @@ function islandora_fjm_map_genre($genre) {
   }
 }
 
-function islandora_fjm_preprocess_islandora_fjm_recent_ir_doc(&$vars) {
+function template_preprocess_islandora_fjm_recent_ir_doc(&$vars) {
   $doc = $vars['solr_doc'];
   $pid = $doc->PID;
   
@@ -1163,6 +1413,9 @@ function islandora_fjm_preprocess_islandora_fjm_recent_ir_doc(&$vars) {
 
 function islandora_fjm_preprocess_scholar_search_alt_item(&$vars) {
   $doc = $vars['solr_doc'];
+  $title = (array)$doc->mods_title_mlt;
+  $pid = $doc->PID;
+  $vars['title'] = l(array_shift($title), "fedora/repository/$pid");
   $vars['type'] = islandora_fjm_map_genre($doc->mods_genre_endnote_ms);
 }
 
@@ -1203,6 +1456,4 @@ EOT
   $head[1] = t('Type of Publication');
   $head[2] = t('Bibliographical Citation');
   $head[3] = t('PDF');
-
-  return $form; //Not sure if this is necessary, but anyway...
 }
