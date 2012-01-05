@@ -65,7 +65,7 @@
     <xsl:variable name="PID" select="/foxml:digitalObject/@PID"/>
     <add>
       <!-- The following allows only active FedoraObjects to be indexed. -->
-      <xsl:if test="foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/model#state' and @VALUE='Active']">
+      <xsl:if test="foxml:digitalObject/foxml:objectProperties/foxml:property[@NAME='info:fedora/fedora-system:def/model#state']">
         <xsl:if test="not(foxml:digitalObject/foxml:datastream[@ID='METHODMAP' or @ID='DS-COMPOSITE-MODEL'])">
           <xsl:choose>
             <xsl:when test="starts-with($PID,'atm')">
@@ -73,10 +73,26 @@
                 <xsl:with-param name="pid" select="$PID"/>
               </xsl:call-template>
             </xsl:when>
-            <xsl:otherwise>
+            <xsl:when test="foxml:digitalObject/foxml:objectProperties/foxml:property[@VALUE='Active']">
               <xsl:apply-templates select="/foxml:digitalObject" mode="activeFedoraObject">
                 <xsl:with-param name="PID" select="$PID"/>
               </xsl:apply-templates>
+            </xsl:when>
+            <xsl:when test="foxml:digitalObject/foxml:objectProperties/foxml:property[@VALUE='Inactive']">
+              <xsl:apply-templates select="/foxml:digitalObject" mode="inactiveFedoraObject">
+                <xsl:with-param name="PID" select="$PID"/>
+              </xsl:apply-templates>
+            </xsl:when>
+            <xsl:when test="foxml:digitalObject/foxml:objectProperties/foxml:property[@VALUE='Deleted']">
+              <xsl:apply-templates select="/foxml:digitalObject" mode="deletedFedoraObject">
+                <xsl:with-param name="PID" select="$PID"/>
+              </xsl:apply-templates>
+            </xsl:when>
+            <xsl:otherwise>
+              <doc>
+                <field name="PID"><xsl:value-of select="$PID"/></field>
+                <field name="WTF_s"><xsl:text>What kinda state is this!?</xsl:text></field>
+              </doc>
             </xsl:otherwise>
           </xsl:choose>
         </xsl:if>
@@ -183,6 +199,26 @@
     </doc>
   </xsl:template>
 
+  <xsl:template match="/foxml:digitalObject" mode="inactiveFedoraObject">
+    <xsl:param name="PID"/>
+    <doc>
+      <field name="PID">
+        <xsl:value-of select="$PID"/>
+      </field>
+      <xsl:apply-templates select="foxml:property"/>
+    </doc>
+  </xsl:template>
+  
+  <xsl:template match="/foxml:digitalObject" mode="deletedFedoraObject">
+    <xsl:param name="PID"/>
+    <doc>
+      <field name="PID">
+        <xsl:value-of select="$PID"/>
+      </field>
+      <xsl:apply-templates select="foxml:property"/>
+    </doc>
+  </xsl:template>
+  
   <xsl:template match="foxml:property">
     <xsl:param name="prefix">fgs_</xsl:param>
     <xsl:param name="suffix">_s</xsl:param>

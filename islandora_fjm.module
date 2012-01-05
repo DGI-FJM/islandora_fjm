@@ -566,23 +566,22 @@ function theme_islandora_fjm_ceacs_authors($type='all', $letter=NULL) {
     }
     else {
       $header = array(
-        t('Image'),
         t('Name'),
         t('Publications'),
-        t('Academic page')
+        //t('Academic page')
       );
       $rows = array();
       //Process the results into rows...
       foreach($results->response->docs as $doc) {
         //dsm($doc);
         $rows[] = array(
-          !empty($doc->eaccpf_thumbnail_object_s)?
-            "<img src='". url("fedora/repository/{$doc->eaccpf_thumbnail_object_s}/TN") ."'></img>":
-            '', //"<img src='". url("fedora/repository/atm:defaultPersonImage/TN") ."'></img>", //FIXME: Needs a default image    
+          //!empty($doc->eaccpf_thumbnail_object_s)?
+          //  "<img src='". url("fedora/repository/{$doc->eaccpf_thumbnail_object_s}/TN") ."'></img>":
+          //  '', //"<img src='". url("fedora/repository/atm:defaultPersonImage/TN") ."'></img>", //FIXME: Needs a default image    
           $doc->eaccpf_name_complete_es,
           l(t('Publications'), "islandora/solr/search/mods_rname_associated_mt:({$doc->eaccpf_name_complete_es})"),
-          (!empty($doc->eaccpf_academic_page_s))?
-              l(t('Academic page'), $doc->eaccpf_academic_page_s):
+          //(!empty($doc->eaccpf_academic_page_s))?
+          //    l(t('Academic page'), $doc->eaccpf_academic_page_s):
               ''
         );
       }
@@ -636,13 +635,25 @@ function islandora_fjm_get_pid_from_array(&$array) {
 function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
     module_load_include('inc', 'islandora_fjm', 'includes/callbacks');
     $result = $vars['item'];
+    
     /*if (is_callable('dsm')) {
         global $conf;
         dsm($conf);
     }*/
     $toReturn = array();
-
-    switch ($result->atm_type_s) {
+    
+    $type = $result->atm_type_ms;
+    $type = (array)$type;
+    if (count($type) > 1 && array_search($fq_type, $type) !== FALSE) {
+      $type = $fq_type;
+    }
+    elseif (count($type) === 1) {
+      $type = $type[0];
+    }
+    else {
+      $type = 'No type!?';
+    }
+    switch ($type) {
     case "Composer":
     case "Compositores":
             $toReturn['icon'] = "fedora/repository/" . $result->atm_composer_icon_s . "/TN";
@@ -724,14 +735,17 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
     break;
     case "Performer":
     case "Intérpretes":
-            $toReturn['name'] = $result->atm_performer_name_s;
-            $toReturn['instrument'] = $result->atm_performer_instrument_s;
-            $toReturn['group'] = $result->atm_performer_group_s;
-            $toReturn['concert'] = l($result->atm_performer_concert_title_s, "fedora/repository/$result->atm_performer_concert_pid_s");
+            $toReturn['name'] = t('@first @last', array(
+                '@first' => $result->eaccpf_name_forename_es,
+                '@last' => $result->eaccpf_name_surname_es
+            ));
+            $toReturn['instrument'] = $result->atm_facet_instrument_s;
+            $toReturn['group'] = implode(', ', (array)$result->atm_facet_group_ms);
+            $toReturn['concert'] = l($result->atm_facet_concert_title_s, "fedora/repository/$result->atm_performer_concert_pid_s");
             $toReturn['concert_path'] = "fedora/repository/$result->atm_performer_concert_pid_s/-/-/$result->atm_performer_concert_order_s";
-            $toReturn['cycle'] = $result->atm_performer_concert_cycle_s;
-            $toReturn['piece'] = $result->atm_performer_piece_title_s;
-            $toReturn['year'] = $result->atm_performer_year_s;
+            $toReturn['cycle'] = $result->atm_facet_concert_cycle_s;
+            $toReturn['piece'] = $result->atm_facet_piece_s;
+            $toReturn['year'] = $result->atm_facet_year_s;
     break;
     case "Program":
     case "Programas de mano":
@@ -770,7 +784,7 @@ function islandora_fjm_preprocess_islandora_fjm_solr_result(&$vars) {
             $toReturn[] = "Unknown type!";
     }
 
-    $toReturn['type'] = $result->atm_type_s;
+    $toReturn['type'] = $type;
     $toReturn['PID'] = $result->PID;
 
     $vars['item'] = $toReturn;
@@ -1457,3 +1471,12 @@ EOT
   $head[2] = t('Bibliographical Citation');
   $head[3] = t('PDF');
 }
+
+/*TODO:  Finish implementing...
+function islandora_fjm_postprocess_bibutils_convert($src_filename, $src_format, $dest_filename, $dest_format) {
+  if ($src_format === 'EndNoteXML' && $dest_format === 'MODS') {
+    //Add the reftype to the MODS as a genre...
+    
+  }
+}*/
+ 

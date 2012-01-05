@@ -37,7 +37,7 @@ class SolrResults extends IslandoraSolrResults {
 
       $output .= $this->addSecondaries();
 
-      $field = 'atm_type_s';
+      $field = 'atm_type_ms';
       $map = array(
         'Archivo de voz' => t('List of Voice Archives'),
         'Obras' => t('List of Works'),
@@ -277,12 +277,25 @@ class SolrResults extends IslandoraSolrResults {
         );
         $js_data = array('islandora_fjm' => array('piece' => array()));
         $docs = $results->response->docs;
+        
+        //Get the fq...
+        $fq_type = '';
+        foreach(makeArray($results->responseHeader->params->fq) as $filter) {
+          $matches = array();
+          if (preg_match('/atm_type_ms\\:"(.+)"/', $filter, $matches) === 1) {
+            //dsm($matches);
+            $fq_type = $matches[1];
+            break;
+          }
+        }
+        //dsm($fq_type);
         if(is_array($docs)) {
           foreach ($docs as $doc) {
               //Setup to pass to preprocessor... (Something of a hack,
               //  using the preprocessor function in this way)
               $toPass = array();
               $toPass['item'] = $doc;
+              $toPass['fq_type'] = $fq_type;
 
               //NOTE:  Pass by reference, so toPass is(/should be) modified!
               islandora_fjm_preprocess_islandora_fjm_solr_result($toPass);
@@ -321,29 +334,10 @@ class SolrResults extends IslandoraSolrResults {
                                   $playlist[] = $entry;
                               }
 
-
-                              /*if($type === 'Obras') {
-                                $nowPlaying = theme('islandora_fjm_atm_now_playing', $docu['piece'], $docu['players']);
-                              }
-                              else { // $type === 'Conferencia'
-                                $nowPlaying = '<p>' . $docu['description'] . '</p>';
-                              }*/
                               $index = count($js_data['islandora_fjm']['audio']);
                               $js_data['islandora_fjm']['audio'][] = $playlist;
 
                               $cell .= "<a onClick='Drupal.settings.islandora_fjm.play(&quot;audio&quot;, $index, 0);'></a>";
-  /*                              $cell .= <<< EOT
-  <a onClick='
-    \$f().play($playlist); 
-    \$f().onStart(function(clip) {
-      this.getPlugin("content").setHtml("$nowPlaying"); 
-      if (typeof _tracker != "undefined") {
-          //object exists ... execute code here.
-          _tracker._trackEvent('Audio', 'Play', clip.url);
-      }
-    });
-    '></a>
-  EOT;*/
                               $cell .= "</div>";
                               $row['data'][]['data'] = $cell;
                               break;
@@ -406,19 +400,19 @@ class SolrResults extends IslandoraSolrResults {
         //Render the table for each content type.
         foreach ($table as $key => $tab) {
             //Deliciously hack-ful...  Handle the people differently, so as to make an 'A-Z' display...
-            if (array_search($key, $people) !== FALSE && array_search("atm_type_s:\"$key\"", makeArray($results->responseHeader->params->fq)) !== FALSE) {
+            if (array_search($key, $people) !== FALSE && array_search("atm_type_ms:\"$key\"", makeArray($results->responseHeader->params->fq)) !== FALSE) {
                 $output .= '<ul class="atm_solr_letterblock">';
                 $fq_array = array_filter(makeArray($results->responseHeader->params->fq), "filterComposer");
+                $query = $results->responseHeader->params->q;
+                $output .= '<li>'. l(t('ALL'), 'islandora/solr/search/'. $query .'/'. implode('~', $fq_array)) .'</li>';
                 foreach (range('A', 'Z') as $letter) {
-                    $output .= '<li>' . l($letter, "islandora/solr/search/" . 
-                        $results->responseHeader->params->q . '/' .
-                        implode('~', 
-                            array_merge(
+                    $output .= '<li>'. l($letter, 'islandora/solr/search/' . 
+                        $query .'/'. implode('~', array_merge(
                                 $fq_array, 
                                 makeArray("eaccpf_name_surname_es:$letter*")
                             )
                         )
-                    ) . '</li>';
+                    ) .'</li>';
                 }
                 $output .= '</ul>';
             }
