@@ -13,7 +13,7 @@ drupal_add_css($mod_base . '/css/islandora_fjm_player.css', 'module'); ?>
 <script type="text/javascript">
   
   function update_ga(event, url, time) {
-    <? if(!empty($trackingCode)): ?>
+    <?php if(!empty($trackingCode)): ?>
     if (typeof _gaq != "undefined") {
       if (time != null) {
         //_tracker._trackEvent('Audio', event, url, time);
@@ -23,12 +23,12 @@ drupal_add_css($mod_base . '/css/islandora_fjm_player.css', 'module'); ?>
         _gaq.push(['_trackEvent', 'Audio', event, url]);
       }
     }
-    <? endif; ?>
+    <?php endif; ?>
   }
 
   
   $(function() {
-    $f("atm_player", "/<? echo $base; ?>/flowplayer-3.2.7.swf", {
+    $f("atm_player", "/<?php echo $base; ?>/flowplayer-3.2.7.swf", {
       plugins: {
         controls: {
           all: false,
@@ -41,17 +41,17 @@ drupal_add_css($mod_base . '/css/islandora_fjm_player.css', 'module'); ?>
           height: 30
         },
         audio: {
-          url: "/<? echo $base; ?>/flowplayer.audio-3.2.2.swf"
+          url: "/<?php echo $base; ?>/flowplayer.audio-3.2.2.swf"
         },
         content: {
-          url: "/<? echo $base; ?>/flowplayer.content-3.2.0.swf",
-          stylesheet: "/<? echo $mod_base ;?>/css/islandora_fjm_player.css",
+          url: "/<?php echo $base; ?>/flowplayer.content-3.2.0.swf",
+          stylesheet: "/<?php echo $mod_base ;?>/css/islandora_fjm_player.css",
           width: '95%',
           height: '60%'
         }
       },
       clip: {
-        baseUrl: "<? echo $base_url; ?>",
+        baseUrl: "<?php echo $base_url; ?>",
         autoPlay: false,
         autoBuffering: true,
         onStop: function(clip) {
@@ -82,7 +82,7 @@ drupal_add_css($mod_base . '/css/islandora_fjm_player.css', 'module'); ?>
         subTitle: ''
       },
       onPlaylistReplace: function(clips){ 
-        $("<? echo $selector; ?>").show();
+        $("<?php echo $selector; ?>").show();
         //var index = Drupal.settings.islandora_fjm.current_index;
         if (clips.length > 0 && typeof clips[0].now_playing != 'undefined') {
           this.getPlugin('content').setHtml(clips[0].now_playing);
@@ -105,7 +105,7 @@ drupal_add_css($mod_base . '/css/islandora_fjm_player.css', 'module'); ?>
       }
     });
 
-    $f("atm_player").playlist("<? echo $selector; ?>", {
+    $f("atm_player").playlist("<?php echo $selector; ?>", {
       loop: true,
       template: "<li><a href=\"${url}\">${title}</a></li>",
       manual: false

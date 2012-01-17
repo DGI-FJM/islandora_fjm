@@ -1,6 +1,6 @@
 <?php 
  drupal_add_css(drupal_get_path('module', 'islandora_fjm') . "/css/islandora_fjm_imagegallery.css", 'module')?>
-<div <? 
+<div <?php 
 //FIXME:  Should this be moved to preprocess? I think so...  Probably...  Anyway.
 $attributeStringArray = array();
 foreach ($attributes as $attribute => $value) {
@@ -13,28 +13,28 @@ foreach ($attributes as $attribute => $value) {
 }
 echo implode(' ', $attributeStringArray);
 ?>>
-<?
+<?php
 $first = true;
 foreach ($images as $image): 
     if($first):
         $first = false;?>
   <div class="islandora_fjm_photo">
-      <a href="<? echo $image['path']?>" rel="lightbox" id="image_strip_link" title="<? echo $image['alt'] ?>">
-          <img id="image_strip_big" src="<? echo $image['path']?>" title="<? echo $image['alt']?>"></img>
+      <a href="<?php echo $image['path']?>" rel="lightbox" id="image_strip_link" title="<?php echo $image['alt'] ?>">
+          <img id="image_strip_big" src="<?php echo $image['path']?>" title="<?php echo $image['alt']?>"></img>
       </a>
   </div>
   <div class="islandora_fjm_jcarousel">
 
       <ul class="image_strip">
-  <?  endif;
+  <?php  endif;
       if(sizeof($images) > 1):?>
           <li>
-              <img src="<? echo $image['thumbnail']?>" title="<? echo $image['alt']?>" path="<? echo $image['path']?>"></img>
+              <img src="<?php echo $image['thumbnail']?>" title="<?php echo $image['alt']?>" path="<?php echo $image['path']?>"></img>
           </li>
-  <?  endif;
+  <?php  endif;
       endforeach; ?>
       </ul>
-  <? if(sizeof($images) > 1):?>
+  <?php if(sizeof($images) > 1):?>
       <script type="text/javascript">
           //FIXME (minor): Might be a good idea to get this JS out of here? 
           //  (into another file, that is...)
@@ -45,7 +45,7 @@ foreach ($images as $image):
               $("#image_strip_link").attr("href", $(this).attr("path"));
           });
       </script>
-      <? jcarousel_add("image_strip", 
+      <?php jcarousel_add("image_strip", 
               array(
                   'start' =>  "1", 
                   'wrap' => "both", 

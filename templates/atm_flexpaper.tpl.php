@@ -13,15 +13,15 @@ drupal_add_css("$base/css/islandora_fjm_flexpaper.css");
     <div id="viewer"></div>
     <script type="text/javascript">
         var fp = new FlexPaperViewer(
-            "<? echo $flexpaper_path; ?>/FlexPaperViewer",
+            "<?php echo $flexpaper_path; ?>/FlexPaperViewer",
             "viewer", //ID selector for the div above
             {
                 config : {
-                    <? foreach($flexpaper_config as $key => $value): 
+                    <?php foreach($flexpaper_config as $key => $value): 
                         //NOTE:  IDE (NetBeans 7.0) says there's a parse error 
                         //  here in the javascript, but the code works! ?>
-                        <? echo $key; ?> : <? echo $value; ?>,
-                    <? endforeach; ?>
+                        <?php echo $key; ?> : <?php echo $value; ?>,
+                    <?php endforeach; ?>
                 }
             }
         );

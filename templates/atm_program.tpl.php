@@ -6,23 +6,23 @@
 drupal_set_title(t('Programs'));
 ?>
 <div class="islandora_fjm_program">
-  <h2><? echo $concert['title'] . " - (" . $concert['year'] . ")" ?></h2>
+  <h2><?php echo $concert['title'] . " - (" . $concert['year'] . ")" ?></h2>
   
-  <? 
+  <?php 
   echo theme('islandora_fjm_flexpaper', $pid);?>
-  <h3><? echo $concert['cycle']?></h3><?
+  <h3><?php echo $concert['cycle']?></h3><?
   
   if(!empty($toc)):?>
-  <h4><? echo t('Table of contents')?></h4>
-  <p><? echo $toc ?></p>
-  <? endif;
+  <h4><?php echo t('Table of contents')?></h4>
+  <p><?php echo $toc ?></p>
+  <?php endif;
   if(sizeof($notes) > 0):?>
-  <h4><? echo t('Notes') ?></h4>
-  <? foreach($notes as $note): ?>
-  <p><? echo $note ?></p>
-  <? endforeach; 
+  <h4><?php echo t('Notes') ?></h4>
+  <?php foreach($notes as $note): ?>
+  <p><?php echo $note ?></p>
+  <?php endforeach; 
   endif;?>
   <div class="pdf">
-  <? echo l('Download PDF', "fedora/repository/$pid/PDF/download/" . t("Program for !title.pdf", array('!title' => $concert['title'])));?>
+  <?php echo l('Download PDF', "fedora/repository/$pid/PDF/download/" . t("Program for !title.pdf", array('!title' => $concert['title'])));?>
   </div>
 </div>

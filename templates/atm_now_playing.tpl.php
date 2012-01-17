@@ -1,9 +1,9 @@
-<h2 class='player-content'><? echo $piece ?></h2><br/><? 
+<h2 class='player-content'><?php echo $piece ?></h2><br/><?php 
 if (count($players) > 0): 
-  ?><p class='player-content'><? 
+  ?><p class='player-content'><?php 
   foreach($players as $name => $instruments):
     $built[] = "$name: (" . implode(', ', $instruments) . ")";
   endforeach; 
   echo implode(', ', $built);
-?></p><?
+?></p><?php
 endif;?>
