@@ -220,8 +220,18 @@ function islandora_fjm_menu() {
       'type' => MENU_NORMAL_PAGE,
       'access arguments' => array('access content')
     );
+    $items['islandora/atomfeed'] = array(
+      'title' => 'ATOM Feed',
+      'page callback' => 'islandora_fjm_atomfeed',
+      'type' => MENU_CALLBACK,
+      'access arguments' => array('access content')
+    );
     
     return $items;
+}
+
+function islandora_fjm_atomfeed($query = '*:*', $number=10, $csl=NULL, $sort='mods_dateIssued_mlt desc') {
+  return theme('islandora_fjm_atomfeed', $query, $number, $csl, $sort);
 }
 
 function islandora_fjm_display_schema() {
@@ -245,150 +255,217 @@ function islandora_fjm_display_schema() {
     return;
 }
 
+function template_preprocess_islandora_fjm_atomfeed(&$vars) {
+  module_load_include('php', 'islandora_solr_search', 'SolrPhpClient/Apache/Solr/Service');
+  $solrUrl = variable_get('islandora_solr_search_block_url', 'http://localhost:8080/solr/');
+  $pathParts = parse_url($solrUrl);
+  $solr = new Apache_Solr_Service($pathParts['host'], $pathParts['port'], $pathParts['path']);
+  $solr->setCreateDocuments(FALSE);
+
+  try {
+    $results = $solr->search($vars['query'], 0, min($vars['number'], 100), array(
+      'sort' => $vars['sort'],
+      'fl' => '*',
+      'fq' => 'rels_hasModel_uri_ms:"info:fedora/ir:citationCModel"'
+    ));
+    
+    $vars['solr_docs'] = $results->response->docs;
+    $vars['entries'] = array();
+    foreach($vars['solr_docs'] as &$doc) {
+      $vars['entries'][] = theme('islandora_fjm_atomentry', $doc, $vars['style']);
+    }
+    $vars['id'] = url("islandora/solr/search/{$vars['query']}");
+    $vars['title'] = variable_get('fedora_repository_title', 'Fedora Items');
+  }
+  catch (Exception $e) {
+    dsm($e);
+  }
+}
+
+function template_preprocess_islandora_fjm_atomentry(&$vars) {
+  $doc =& $vars['solr_doc'];
+  
+  //FIXME:  The ID should be changed to reflect a real handle...
+  $vars['id'] = $doc->PID;
+  $vars['link'] = url('fedora/repository/'. $doc->PID);
+  $vars['title'] = $doc->mods_title_mlt;
+  $vars['published'] = $doc->mods_dateIssued_mlt;
+  $vars['updated'] = $doc->fgs_lastModifiedDate_s;
+  
+  $vars['authors'] = (array)$doc->mods_rname_author_ms;
+  $vars['contributors'] = array_diff((array)$doc->mods_rname_associated_ms, 
+    (array)$doc->mods_rname_author_ms
+  );
+}
+
+function islandora_fjm_preprocess_islandora_fjm_atomentry(&$vars) {
+  //Take a Solr query, and call theme on each doc returned.
+  $doc =& $vars['solr_doc'];
+  $style = citeproc_style($vars['style']);
+  $vars['content'] = scholar_citation_from_solr_doc($doc, $style===FALSE?NULL:$style, 'mods_fullxml_store', 'php');
+  //dd($vars);
+}
+
 function islandora_fjm_theme() {
     return array(
-        'islandora_fjm_solr_result' => array(
-            'arguments' => array(
-                'item' => NULL
-            ),
-            'template' => 'templates/solr_result'
+      'islandora_fjm_atomfeed' => array(
+        'arguments' => array(
+          'query' => '*:*',
+          'number' => 10,
+          'style' => NULL,
+          'sort' => 'mods_dateIssued_mlt desc'
         ),
-        'islandora_fjm_atm_concert' => array(
-            'arguments' => array(
-                'pid' => NULL,
-                'pagenumber' => NULL,
-                'concert' => NULL,
-                'islandoraPath' => drupal_get_path("module", "islandora_fjm"), 
-                'fedoraPath' => variable_get("fedora_base_url", 'http://localhost:8080/fedora')
-            ),
-            'template' => 'templates/atm_concert'
+        'template' => 'templates/islandora-fjm-atomfeed'
+      ),
+      'islandora_fjm_atomentry' => array(
+        'arguments' => array(
+          'solr_doc' => NULL,
+          'style' => NULL
         ),
-        'islandora_fjm_atm_score' => array(
-            'arguments' => array(
-                'pid' => NULL,
-                'pagenumber' => 1,
-                'title' => t('unknown'),
-                'composer' => t('unknown'),
-                'abstract' => t('No abstract'),
-                'notes' => array()
+        'template' => 'templates/islandora-fjm-atomentry'
+      ),
+      'islandora_fjm_solr_result' => array(
+          'arguments' => array(
+              'item' => NULL
+          ),
+          'template' => 'templates/solr_result'
+      ),
+      'islandora_fjm_atm_concert' => array(
+          'arguments' => array(
+              'pid' => NULL,
+              'pagenumber' => NULL,
+              'concert' => NULL,
+              'islandoraPath' => drupal_get_path("module", "islandora_fjm"), 
+              'fedoraPath' => variable_get("fedora_base_url", 'http://localhost:8080/fedora')
+          ),
+          'template' => 'templates/atm_concert'
+      ),
+      'islandora_fjm_atm_score' => array(
+          'arguments' => array(
+              'pid' => NULL,
+              'pagenumber' => 1,
+              'title' => t('unknown'),
+              'composer' => t('unknown'),
+              'abstract' => t('No abstract'),
+              'notes' => array()
 
-            ),
-            'template' => 'templates/atm_score'
-        ),
-        'islandora_fjm_flexpaper' => array(
-            'arguments' => array(
-                'pid' => NULL,
-                'dsid' => 'SWF',
-                'pagenumber' => 1,
-                'flexpaper_path' => '/' . drupal_get_path("module", "islandora_fjm") . '/flexpaper',
-                'flexpaper_config' => array(
-                    'Scale' => 0.6,
-                    'ZoomTransition' => '"easeOut"',
-                    'ZoomTime' => 0.5,
-                    'ZoomInterval' => 0.1,
-                    'FitPageOnLoad' => 'false',
-                    'FitWidthOnLoad' => 'true',
-                    'PrintEnabled' => 'false',
-                    'FullScreenAsMaxWindow' => 'true',
-                    'ProgressiveLoading' => 'true',
-                    'MinZoomSize' => 0.2,
-                    'MaxZoomSize' => 5,
-                    'SearchMatchAll' => 'false',
-                    'InitViewMode' => "'Portrait'",
-                    'ViewModeToolsVisible' => 'true',
-                    'ZoomToolsVisible' => 'true',
-                    'NavToolsVisible' => 'true',
-                    'CursorToolsVisible' => 'true',
-                    'SearchToolsVisible' => 'true',
-                    'localeChain' => '"en_US"'
-                )
-            ),
-            'template' => 'templates/atm_flexpaper'
-        ),
-        'islandora_fjm_atm_program' => array(
-            'arguments' => array(
-                'pid' => NULL,
-                'dsid' => 'SWF',
-                'pagenumber' => 1,
-                'concert' => array(),
-                'toc' => NULL,
-                'notes' => array()
-            ),
-            'template' => 'templates/atm_program'
-        ),
-        'islandora_fjm_atm_person' => array(
-            'arguments' => array(
-                'pid' => NULL,
-                'name' => array(
-                    'first' => t('unknown'),
-                    'last' => t('unknown')
-                ),
-                'date' => array(
-                    'birth' => NULL,
-                    'death' => NULL
-                ),
-                'biography' => t('No biography'),
-                'default_image' => url("fedora/repository/atm:defaultPersonImage"),
-                'performances' => array(),
-                'performance_headers' => array("empty")
-            ),
-            'template' => 'templates/atm_person'
-        ),
-        'islandora_fjm_atm_imagegallery' => array(
-            'arguments' => array(
-                'pid' => NULL,
-                'attributes' => array(
-                    'class' => 'image_strip_group'
-                ),
-                'images' => array()
-            ),
-            'template' => 'templates/imagegallery'
-        ),
-        'islandora_fjm_atm_flowplayer' => array(
-            'arguments' => array(
-                'selector' => 'ol.atm_clips',
-                'base' => drupal_get_path("module", "islandora_fjm") . '/flowplayer',
-            ),
-            'template' => 'templates/atm_player'
-        ),
-        'islandora_fjm_atm_now_playing' => array(
-            'arguments' => array(
-                'piece' => NULL,
-                'players' => NULL
-            ),
-            'template' => 'templates/atm_now_playing'
-        ),
-        'islandora_fjm_recentir' => array(
-          'arguments' => array(
-            'solr_docs' => array(),
           ),
-          'template' => 'templates/irrecent'
-        ),
-        'islandora_fjm_recent_ir_doc' => array(
+          'template' => 'templates/atm_score'
+      ),
+      'islandora_fjm_flexpaper' => array(
           'arguments' => array(
-            'solr_doc' => NULL,
-            'type' => NULL,
-            'access' => NULL,
-            'citation' => NULL,
+              'pid' => NULL,
+              'dsid' => 'SWF',
+              'pagenumber' => 1,
+              'flexpaper_path' => '/' . drupal_get_path("module", "islandora_fjm") . '/flexpaper',
+              'flexpaper_config' => array(
+                  'Scale' => 0.6,
+                  'ZoomTransition' => '"easeOut"',
+                  'ZoomTime' => 0.5,
+                  'ZoomInterval' => 0.1,
+                  'FitPageOnLoad' => 'false',
+                  'FitWidthOnLoad' => 'true',
+                  'PrintEnabled' => 'false',
+                  'FullScreenAsMaxWindow' => 'true',
+                  'ProgressiveLoading' => 'true',
+                  'MinZoomSize' => 0.2,
+                  'MaxZoomSize' => 5,
+                  'SearchMatchAll' => 'false',
+                  'InitViewMode' => "'Portrait'",
+                  'ViewModeToolsVisible' => 'true',
+                  'ZoomToolsVisible' => 'true',
+                  'NavToolsVisible' => 'true',
+                  'CursorToolsVisible' => 'true',
+                  'SearchToolsVisible' => 'true',
+                  'localeChain' => '"en_US"'
+              )
           ),
-          'template' => 'templates/ir_recent_item'
-        ),
-        'islandora_fjm_ceacs_authors' => array(
+          'template' => 'templates/atm_flexpaper'
+      ),
+      'islandora_fjm_atm_program' => array(
           'arguments' => array(
-            'type' => 'all',
-            'letter' => NULL
+              'pid' => NULL,
+              'dsid' => 'SWF',
+              'pagenumber' => 1,
+              'concert' => array(),
+              'toc' => NULL,
+              'notes' => array()
           ),
-        ),
-        'islandora_fjm_ceacs_az' => array(),
-        'table_improved' => array(
+          'template' => 'templates/atm_program'
+      ),
+      'islandora_fjm_atm_person' => array(
           'arguments' => array(
-            'headers' => array(),
-            'body' => array(),
-            'footers' => array(),
-            'caption' => NULL,
-            'attributes' => array()
-          )
+              'pid' => NULL,
+              'name' => array(
+                  'first' => t('unknown'),
+                  'last' => t('unknown')
+              ),
+              'date' => array(
+                  'birth' => NULL,
+                  'death' => NULL
+              ),
+              'biography' => t('No biography'),
+              'default_image' => url("fedora/repository/atm:defaultPersonImage"),
+              'performances' => array(),
+              'performance_headers' => array("empty")
+          ),
+          'template' => 'templates/atm_person'
+      ),
+      'islandora_fjm_atm_imagegallery' => array(
+          'arguments' => array(
+              'pid' => NULL,
+              'attributes' => array(
+                  'class' => 'image_strip_group'
+              ),
+              'images' => array()
+          ),
+          'template' => 'templates/imagegallery'
+      ),
+      'islandora_fjm_atm_flowplayer' => array(
+          'arguments' => array(
+              'selector' => 'ol.atm_clips',
+              'base' => drupal_get_path("module", "islandora_fjm") . '/flowplayer',
+          ),
+          'template' => 'templates/atm_player'
+      ),
+      'islandora_fjm_atm_now_playing' => array(
+          'arguments' => array(
+              'piece' => NULL,
+              'players' => NULL
+          ),
+          'template' => 'templates/atm_now_playing'
+      ),
+      'islandora_fjm_recentir' => array(
+        'arguments' => array(
+          'solr_docs' => array(),
+        ),
+        'template' => 'templates/irrecent'
+      ),
+      'islandora_fjm_recent_ir_doc' => array(
+        'arguments' => array(
+          'solr_doc' => NULL,
+          'type' => NULL,
+          'access' => NULL,
+          'citation' => NULL,
+        ),
+        'template' => 'templates/ir_recent_item'
+      ),
+      'islandora_fjm_ceacs_authors' => array(
+        'arguments' => array(
+          'type' => 'all',
+          'letter' => NULL
+        ),
+      ),
+      'islandora_fjm_ceacs_az' => array(),
+      'table_improved' => array(
+        'arguments' => array(
+          'headers' => array(),
+          'body' => array(),
+          'footers' => array(),
+          'caption' => NULL,
+          'attributes' => array()
         )
+      )
     );
 }
 
@@ -812,7 +889,8 @@ function islandora_fjm_preprocess_islandora_fjm_atm_concert(&$vars) {
             )
         ),
         array());
-    $solr = new Apache_Solr_Service('localhost', 8080);
+    $solrparts = parse_url(variable_get('islandora_solr_search_block_url', 'http://localhost:8080/solr/'));
+    $solr = new Apache_Solr_Service($solrparts['host'], $solrparts['port'], $solrparts['path']);
     $perf_results = $solr->search("*:*", 0, 1000, array(
       'sort' => 'atm_performance_order_i asc',
       'fq' => array(
@@ -1386,6 +1464,7 @@ function template_preprocess_islandora_fjm_recentir(&$vars) {
   $pathParts = parse_url($solrUrl);
   $solr = new Apache_Solr_Service($pathParts['host'], $pathParts['port'], $pathParts['path']);
   $solr->setCreateDocuments(FALSE);
+  try {
   $results = $solr->search('*:*', 0, variable_get('islandora_fjm_recent_additions_number', 3), array(
     'sort' => 'fgs_lastModifiedDate_s desc',
     'fl' => 'PID,mods_fullxml_store,mods_genre_endnote_ms',
@@ -1395,6 +1474,10 @@ function template_preprocess_islandora_fjm_recentir(&$vars) {
     $vars['pids'][] = $doc->PID;
   }
   $vars['solr_docs'] = $results->response->docs;
+  }
+  catch (Exception $e) {
+    dsm($e);
+  }
 }
 
 function islandora_fjm_map_genre($genre) {
