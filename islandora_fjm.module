@@ -230,7 +230,7 @@ function islandora_fjm_menu() {
     return $items;
 }
 
-function islandora_fjm_atomfeed($query = '*:*', $number=10, $csl=NULL, $sort='mods_dateIssued_mlt desc') {
+function islandora_fjm_atomfeed($query = '*:*', $number=10, $csl=NULL, $sort='mods_dateIssued_dt desc') {
   return theme('islandora_fjm_atomfeed', $query, $number, $csl, $sort);
 }
 
@@ -289,8 +289,8 @@ function template_preprocess_islandora_fjm_atomentry(&$vars) {
   $vars['id'] = $doc->PID;
   $vars['link'] = url('fedora/repository/'. $doc->PID);
   $vars['title'] = $doc->mods_title_mlt;
-  $vars['published'] = $doc->mods_dateIssued_mlt;
-  $vars['updated'] = $doc->fgs_lastModifiedDate_s;
+  $vars['published'] = $doc->mods_dateIssued_dt;
+  $vars['updated'] = $doc->fgs_lastModifiedDate_dt;
   
   $vars['authors'] = (array)$doc->mods_rname_author_ms;
   $vars['contributors'] = array_diff((array)$doc->mods_rname_associated_ms, 
@@ -302,7 +302,11 @@ function islandora_fjm_preprocess_islandora_fjm_atomentry(&$vars) {
   //Take a Solr query, and call theme on each doc returned.
   $doc =& $vars['solr_doc'];
   $style = citeproc_style($vars['style']);
-  $vars['content'] = scholar_citation_from_solr_doc($doc, $style===FALSE?NULL:$style, 'mods_fullxml_store', 'php');
+  $vars['content'] = scholar_citation_from_solr_doc($doc, $style === FALSE? 
+      variable_get('islandora_fjm_recent_additions_csl', NULL):
+      $style,
+    'mods_fullxml_store',
+    'php');
   //dd($vars);
 }
 
@@ -313,7 +317,7 @@ function islandora_fjm_theme() {
           'query' => '*:*',
           'number' => 10,
           'style' => NULL,
-          'sort' => 'mods_dateIssued_mlt desc'
+          'sort' => 'mods_dateIssued_dt desc'
         ),
         'template' => 'templates/islandora-fjm-atomfeed'
       ),
@@ -444,6 +448,7 @@ function islandora_fjm_theme() {
       'islandora_fjm_recent_ir_doc' => array(
         'arguments' => array(
           'solr_doc' => NULL,
+          'style' => NULL,
           'type' => NULL,
           'access' => NULL,
           'citation' => NULL,
@@ -1420,7 +1425,7 @@ function islandora_fjm_block($op = 'list', $delta = 0, $edit = array()) {
         'save' => array(
           'islandora_fjm_recent_additions_csl' => !empty($edit)?
             $edit['csl_type']:
-            '',
+            citeproc_default_style(),
           'islandora_fjm_recent_additions_number' => !empty($edit)?
             intval($edit['citation_number']):
             5
@@ -1465,15 +1470,24 @@ function template_preprocess_islandora_fjm_recentir(&$vars) {
   $solr = new Apache_Solr_Service($pathParts['host'], $pathParts['port'], $pathParts['path']);
   $solr->setCreateDocuments(FALSE);
   try {
-  $results = $solr->search('*:*', 0, variable_get('islandora_fjm_recent_additions_number', 3), array(
-    'sort' => 'fgs_lastModifiedDate_s desc',
-    'fl' => 'PID,mods_fullxml_store,mods_genre_endnote_ms',
-    'fq' => 'rels_hasModel_uri_ms:"info:fedora/ir:citationCModel"'
-  ));
-  foreach($results->response->docs as &$doc) {
-    $vars['pids'][] = $doc->PID;
-  }
-  $vars['solr_docs'] = $results->response->docs;
+    $results = $solr->search('*:*', 0, variable_get('islandora_fjm_recent_additions_number', 3), array(
+      'sort' => 'fgs_createdDate_dt desc',
+      'fl' => 'PID,mods_fullxml_store,mods_genre_endnote_ms',
+      'fq' => 'rels_hasModel_uri_ms:"info:fedora/ir:citationCModel"'
+    ));
+    foreach($results->response->docs as &$doc) {
+      $vars['pids'][] = $doc->PID;
+    }
+    
+    module_load_include('inc', 'csl', 'CSL');
+    $csl = variable_get('islandora_fjm_recent_additions_csl', NULL);
+    if (!empty($csl) && CSL::Exists($csl)) {
+      $vars['style'] = citeproc_style($csl);
+    }
+    else {
+      $vars['style'] = citeproc_default_style();
+    }
+    $vars['solr_docs'] = $results->response->docs;
   }
   catch (Exception $e) {
     dsm($e);
@@ -1503,7 +1517,7 @@ function template_preprocess_islandora_fjm_recent_ir_doc(&$vars) {
   
   $vars['link'] = url("fedora/{$doc->PID}");
 
-  $vars['citation'] = scholar_citation_from_solr_doc($doc);
+  $vars['citation'] = scholar_citation_from_solr_doc($doc, $vars['style']);
   $vars['type'] = islandora_fjm_map_genre($doc->mods_genre_endnote_ms);
   $vars['access'] = 'open';
 }

@@ -27,7 +27,7 @@
   </tfoot>-->
   <tbody>
     <?php foreach($solr_docs as $doc) {
-      echo theme('islandora_fjm_recent_ir_doc', $doc);
+      echo theme('islandora_fjm_recent_ir_doc', $doc, $style);
     } ?>
     
     <!--<tr>

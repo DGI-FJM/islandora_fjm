@@ -21,6 +21,7 @@
   xmlns:eaccpf="urn:isbn:1-931666-33-4"
   xmlns:res="http://www.w3.org/2001/sw/DataAccess/rf1/result"
   xmlns:xalan="http://xml.apache.org/xalan"
+  xmlns:datetime="http://exslt.org/dates-and-times"
   xmlns:xlink="http://www.w3.org/1999/xlink">
   <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
   
@@ -222,9 +223,17 @@
   <xsl:template match="foxml:property">
     <xsl:param name="prefix">fgs_</xsl:param>
     <xsl:param name="suffix">_s</xsl:param>
+    <xsl:param name="date_suffix">_dt</xsl:param>
     <field>
       <xsl:attribute name="name">
-        <xsl:value-of select="concat($prefix, substring-after(@NAME,'#'), $suffix)"/>
+        <xsl:choose>
+          <xsl:when test="datetime:date(@VALUE)">
+            <xsl:value-of select="concat($prefix, substring-after(@NAME,'#'), $date_suffix)"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="concat($prefix, substring-after(@NAME,'#'), $suffix)"/>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:attribute>
       <xsl:value-of select="@VALUE"/>
     </field>
@@ -234,6 +243,7 @@
   <xsl:template match="mods:mods" name="index_mods" mode="default">
     <xsl:param name="prefix">mods_</xsl:param>
     <xsl:param name="suffix">_ms</xsl:param>
+    <xsl:param name="date_suffix">_dt</xsl:param>
     
     <!-- Index stuff from the auth-module. -->
     <xsl:for-each select=".//*[@authorityURI='info:fedora'][@valueURI]">
@@ -607,7 +617,14 @@
     <xsl:for-each select=".//mods:originInfo/mods:dateIssued[normalize-space(text())]">
       <field>
         <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, local-name(), $suffix)"/>
+          <xsl:choose>
+            <xsl:when test="datetime:date(text())">
+              <xsl:value-of select="concat($prefix, local-name(), $date_suffix)"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="concat($prefix, local-name(), $suffix)"/>
+            </xsl:otherwise>
+          </xsl:choose>
         </xsl:attribute>
         <xsl:value-of select="text()"/>
       </field>
@@ -625,7 +642,14 @@
     <xsl:for-each select=".//mods:originInfo/mods:copyrightDate[normalize-space(text())]">
       <field>
         <xsl:attribute name="name">
-          <xsl:value-of select="concat($prefix, local-name(), $suffix)"/>
+          <xsl:choose>
+            <xsl:when test="datetime:date(text())">
+              <xsl:value-of select="concat($prefix, local-name(), $date_suffix)"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="concat($prefix, local-name(), $suffix)"/>
+            </xsl:otherwise>
+          </xsl:choose>
         </xsl:attribute>
         <xsl:value-of select="text()"/>
       </field>
