@@ -484,7 +484,10 @@
      </str>
     </lst>
     <lst name="appends">
-        <str name="fq">rels_hasModel_uri_ms:"info:fedora/ir:citationCModel"</str>
+        <str name="fq">
+          rels_hasModel_uri_ms:"info:fedora/ir:citationCModel"
+          fgs_state_s:"Active"
+        </str>
     </lst>
   </requestHandler>
 

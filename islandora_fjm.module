@@ -1471,9 +1471,9 @@ function template_preprocess_islandora_fjm_recentir(&$vars) {
   $solr->setCreateDocuments(FALSE);
   try {
     $results = $solr->search('*:*', 0, variable_get('islandora_fjm_recent_additions_number', 3), array(
+      'qt' => variable_get('islandora_solr_search_block_request_handler', 'standard'),
       'sort' => 'fgs_createdDate_dt desc',
-      'fl' => 'PID,mods_fullxml_store,mods_genre_endnote_ms',
-      'fq' => 'rels_hasModel_uri_ms:"info:fedora/ir:citationCModel"'
+      'fl' => 'PID,mods_fullxml_store,mods_genre_endnote_ms'
     ));
     foreach($results->response->docs as &$doc) {
       $vars['pids'][] = $doc->PID;
