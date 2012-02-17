@@ -276,7 +276,7 @@ function islandora_fjm_get_titn_addr($titn) {
  * @return DOMDocument 
  */
 function _islandora_fjm_perform_ri_query($query, $type = 'itql', $limit = -1, $offset = 0) {
-    //_islandora_fjm_user_agent_hack();
+    _islandora_fjm_user_agent_hack();
     $queryUrl = variable_get('fedora_repository_url', 'http://localhost:8080/fedora/risearch');
     $queryUrl .= "?type=tuples&flush=TRUE&format=Sparql" . (($limit > 0)?("&limit=$limit"):("")) . "&offset=$offset&lang=$type&query=" . urlencode($query);
     $doc = DOMDocument::loadXML(do_curl($queryUrl));
@@ -287,4 +287,40 @@ function islandora_fjm_perform_itql_query($query, $limit = -1, $offset = 0) {
 }  
 function islandora_fjm_perform_sparql_query($query, $limit = -1, $offset = 0) {
     return _islandora_fjm_perform_ri_query($query, 'sparql', $limit, $offset);
+}
+
+/**
+ * @deprecated Should probably use the Apache_Solr_Service class instead...  It'd be less work.
+ * @param string $query Query string for Solr
+ * @param mixed $fields Either a CSV string or an array of fields to return
+ * @param array $otherParams
+ * @return DOMDocument containing the results (or empty if an error occured) 
+ */
+function islandora_fjm_perform_solr_q($query, $fields = "PID", $other_params = array()) {
+  _islandora_fjm_user_agent_hack();
+  $solr_url = variable_get('fedora_solr_search_url', 'http://localhost:8080/solr') . '/select';
+  $other_params['q'] = $query;
+  
+  if (!is_array($fields)) {
+    $fields = explode(',', $fields);
+  }
+  if (!is_array($other_params['fl'])) {
+    $other_params['fl'] = explode(',', $other_params['fl']);
+  }
+
+  $other_params['fl'] = array_merge($other_params['fl'], $fields);
+  
+  $solr_url = url($solr_url, array(
+    'absolute' => TRUE,
+    'query' => http_build_query($other_params, NULL, '&')
+  ));
+
+  $doc = DOMDocument::loadXML(do_curl($solr_url));
+  
+  $error = error_get_last();
+  if (is_callable("dsm") && !empty($error)) {
+    dsm($error);
+  }
+
+  return ((!$doc)?(new DOMDocument()):($doc));
 }
